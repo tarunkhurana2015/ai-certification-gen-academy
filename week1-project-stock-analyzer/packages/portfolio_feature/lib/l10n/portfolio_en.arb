@@ -1,0 +1,34 @@
+{
+  "@@locale": "en",
+  "tabTitle": "Portfolio Ingestion",
+  "welcomeTitle": "Welcome to GenStockFolio",
+  "welcomeSubtitle": "Get started by loading a mock diversified portfolio, uploading your CSV holdings, or adding positions manually.",
+  "loadDemoButton": "Load Demo Portfolio",
+  "uploadCsvButton": "Upload CSV File",
+  "addPositionButton": "Add Position Manually",
+  "clearPortfolio": "Clear Portfolio",
+  "dropZonePrompt": "Drag & drop your CSV file here, or click to browse",
+  "previewTitle": "CSV Import Preview",
+  "validRows": "Valid Rows",
+  "flaggedIssues": "Issues Flagged",
+  "confirmImport": "Confirm Import",
+  "importValidOnly": "Import Valid Rows Only",
+  "cancel": "Cancel",
+  "save": "Save",
+  "symbol": "Ticker Symbol",
+  "shares": "Shares Quantity",
+  "costBasis": "Average Cost Basis",
+  "companyName": "Company Name",
+  "sector": "Sector",
+  "positionsCount": "{count, plural, =0{No positions} =1{1 position} other{{count} positions}}",
+  "@positionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "robinhoodSectionTitle": "Brokerage Connection",
+  "robinhoodConnectPrompt": "Connect Robinhood Account (Phase 2 Preview)",
+  "robinhoodStatusDisconnected": "Offline / Local Mock Active"
+}

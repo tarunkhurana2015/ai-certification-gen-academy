@@ -1,0 +1,28 @@
+{
+  "@@locale": "en",
+  "tabTitle": "Asset Allocation",
+  "allocationHeader": "Portfolio Allocation & Breakdown",
+  "totalValuation": "Total Valuation",
+  "allHoldings": "All Holdings",
+  "filteredBy": "Filtered by: {ticker}",
+  "@filteredBy": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "clearFilter": "Clear Filter",
+  "symbolHeader": "Asset",
+  "sharesHeader": "Quantity",
+  "costBasisHeader": "Avg Cost",
+  "currentPriceHeader": "Price",
+  "marketValueHeader": "Market Value",
+  "unrealizedGainHeader": "Profit / Gains",
+  "weightHeader": "Weight",
+  "emptyAllocation": "No holdings detected. Please load a demo portfolio or import a CSV file in Tab 1.",
+  "positionDetails": "Position Details",
+  "totalInvested": "Total Cost",
+  "returnPercent": "Return Rate",
+  "priceTrend": "30-Day Simulated Trend"
+}

@@ -1,0 +1,35 @@
+name: gen_stock_folio
+description: GenStockFolio multi-platform stock portfolio analyzer
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^3.3.2
+  go_router: ^17.5.0
+  shared_preferences: ^2.5.4
+  fl_chart: ^1.1.1
+  file_picker: ^10.3.1
+  portfolio_feature:
+    path: ../../packages/portfolio_feature
+  allocation_feature:
+    path: ../../packages/allocation_feature
+  analytics_feature:
+    path: ../../packages/analytics_feature
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true

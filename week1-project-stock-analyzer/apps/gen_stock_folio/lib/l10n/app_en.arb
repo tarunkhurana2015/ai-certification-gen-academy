@@ -1,0 +1,8 @@
+{
+  "@@locale": "en",
+  "appTitle": "GenStockFolio",
+  "navImport": "Import & Data",
+  "navAllocation": "Allocation",
+  "navAnalytics": "Performance",
+  "themeToggle": "Toggle Theme"
+}
