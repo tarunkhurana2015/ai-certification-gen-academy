@@ -70,6 +70,49 @@ GOOGL,20,invalid_price
 
 ---
 
+### Scenario 1.5: Plaid Investments Adapter Flow & Holdings Ingestion
+- **Gherkin Reference**: `02_user_journeys_and_features.md#Scenario 1.5`
+- **Test File**: `packages/portfolio_feature/test/data/plaid_brokerage_adapter_test.dart`
+```dart
+test('completePlaidFlow executes 5-step flow end-to-end and returns live holdings', () async {
+  final adapter = PlaidBrokerageAdapter(client: mockClient);
+  final connectResult = await adapter.connectBrokerageAccount(
+    authToken: 'sandbox_auth_token',
+    clientId: 'test_client_id',
+    secret: 'test_secret',
+    institutionName: 'Charles Schwab',
+    isSandbox: true,
+  );
+
+  expect(connectResult is Success<bool>, isTrue);
+  expect(adapter.isConnectedToLiveBrokerage, isTrue);
+
+  final holdingsResult = await adapter.fetchHoldings();
+  expect(holdingsResult is Success<List<HoldingPosition>>, isTrue);
+  final holdings = (holdingsResult as Success<List<HoldingPosition>>).data;
+  expect(holdings.isNotEmpty, isTrue);
+  expect(holdings.first.symbol, 'AAPL');
+});
+```
+
+---
+
+### Scenario 1.6: Yahoo Finance Real-Time Batch Quotes & Streaming
+- **Gherkin Reference**: `02_user_journeys_and_features.md#Scenario 1.6`
+- **Test File**: `packages/portfolio_feature/test/data/yahoo_finance_price_service_test.dart`
+```dart
+test('fetchBatchQuotes fetches quotes and getPriceStream emits periodic updates', () async {
+  final service = YahooFinancePriceService(client: mockClient);
+  final quotes = await service.fetchBatchQuotes(['AAPL', 'MSFT']);
+
+  expect(quotes.containsKey('AAPL'), isTrue);
+  expect(quotes['AAPL']!.price, greaterThan(0));
+  expect(quotes['AAPL']!.changePercent, isNotNull);
+});
+```
+
+---
+
 ### Scenario 2.1 & 2.2: Allocation Pie Chart & Cross-Filtering
 - **Gherkin Reference**: `02_user_journeys_and_features.md#Scenario 2.1, 2.2`
 - **Test File**: `packages/allocation_feature/test/viewmodel/allocation_viewmodel_test.dart`

@@ -35,17 +35,22 @@ week1-project-stock-analyzer/
     │       │   └── views/
     │       │       ├── portfolio_ingest_view.dart
     │       │       ├── widgets/csv_preview_dialog.dart
-    │       │       └── widgets/manual_position_dialog.dart
+    │       │       ├── widgets/manual_position_dialog.dart
+    │       │       └── widgets/plaid_connect_dialog.dart
     │       ├── domain/
     │       │   ├── entities/holding_position.dart
     │       │   ├── entities/portfolio_summary.dart
+    │       │   ├── entities/investment_transaction.dart
+    │       │   ├── entities/plaid_institution.dart
+    │       │   ├── entities/stock_quote.dart
     │       │   └── repositories/brokerage_repository.dart
     │       └── data/
     │           ├── datasources/local_portfolio_storage.dart
     │           ├── datasources/csv_parser_service.dart
+    │           ├── datasources/yahoo_finance_price_service.dart
     │           └── repositories/
     │               ├── mock_brokerage_repository.dart
-    │               └── robinhood_brokerage_adapter.dart
+    │               └── plaid_brokerage_adapter.dart
     │
     ├── allocation_feature/                # Tab 2: Asset Allocation & Holdings Breakdown
     │   ├── pubspec.yaml                   # Feature dependencies (fl_chart, riverpod)
@@ -126,23 +131,43 @@ Within each feature package in `packages/<name>/lib/presentation/`:
 
 ---
 
-## 5. Brokerage Integration Architecture Bridge
+## 5. Brokerage Integration & Market Data Architecture Bridge
 
-To satisfy the requirement of supporting mock/CSV data today while preparing for Robinhood account linking in Phase 2, the data layer enforces the **Abstract Repository Pattern**:
+To satisfy the requirement of supporting mock/CSV data today while providing live multi-brokerage aggregation and real-time market quotes, the data layer enforces the **Abstract Repository & Service Pattern**:
 
 ```dart
 // packages/portfolio_feature/lib/domain/repositories/brokerage_repository.dart
-abstract class IBrokerageRepository {
-  Future<List<HoldingPosition>> fetchHoldings();
-  Future<PortfolioSummary> fetchPortfolioSummary();
-  Future<void> saveCustomPositions(List<HoldingPosition> positions);
-  Future<bool> connectBrokerageAccount({required String authToken});
+abstract interface class IBrokerageRepository {
+  Future<Result<List<HoldingPosition>>> fetchHoldings();
+  Future<Result<PortfolioSummary>> fetchPortfolioSummary();
+  Future<Result<List<InvestmentTransaction>>> fetchTransactions({
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+  Future<Result<void>> saveCustomPositions(List<HoldingPosition> positions);
+  Future<Result<void>> clearPortfolio();
+  Future<Result<List<HoldingPosition>>> generateDemoPortfolio();
+  Future<Result<bool>> connectBrokerageAccount({
+    required String authToken,
+    String? clientId,
+    String? secret,
+    String? accountIdentifier,
+    String? institutionName,
+    String environment = 'sandbox',
+    bool isSandbox = false,
+  });
+  Future<Result<void>> disconnectBrokerageAccount();
   bool get isConnectedToLiveBrokerage;
+  String? get accountIdentifier;
+  String? get institutionName;
+  bool get isSandboxMode;
+  DateTime? get lastSyncTime;
 }
 ```
 
-- **Active Provider**: Defaults to `MockBrokerageRepository` which integrates local mock generation and CSV import via `SharedPreferences`.
-- **Phase 2 Extensibility**: `RobinhoodBrokerageAdapter` implements `IBrokerageRepository`, encapsulating secure OAuth token exchange and portfolio REST endpoints without requiring refactoring of UI or ViewModels.
+- **Active Local Provider**: `MockBrokerageRepository` integrates local mock generation, 50-stock realistic datasets, and CSV import via `SharedPreferences`.
+- **Live Multi-Brokerage Adapter**: `PlaidBrokerageAdapter` implements `IBrokerageRepository`, encapsulating the 5-step official Plaid Investments API workflow (`/link/token/create`, `/sandbox/public_token/create`, `/item/public_token/exchange`, `/investments/holdings/get`, `/investments/transactions/get`) with strict in-memory credential security and sandbox simulation.
+- **Real-Time Market Data Engine**: `YahooFinancePriceService` implements `IStockPriceService` (`fetchQuote`, `fetchBatchQuotes`, `getPriceStream`), fetching live ticker updates from `/v8/finance/chart` and streaming periodic price changes.
 
 ---
 

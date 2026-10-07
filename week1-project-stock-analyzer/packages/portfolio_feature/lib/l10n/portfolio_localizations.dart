@@ -223,23 +223,71 @@ abstract class PortfolioLocalizations {
   /// **'{count, plural, =0{No positions} =1{1 position} other{{count} positions}}'**
   String positionsCount(int count);
 
-  /// No description provided for @robinhoodSectionTitle.
+  /// No description provided for @plaidSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Brokerage Connection'**
-  String get robinhoodSectionTitle;
+  /// **'Plaid Financial Integration'**
+  String get plaidSectionTitle;
 
-  /// No description provided for @robinhoodConnectPrompt.
+  /// No description provided for @plaidConnectPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Connect Robinhood Account (Phase 2 Preview)'**
-  String get robinhoodConnectPrompt;
+  /// **'Link your brokerage via Plaid (Fidelity, Schwab, Vanguard, etc.) to automatically sync investment holdings.'**
+  String get plaidConnectPrompt;
 
-  /// No description provided for @robinhoodStatusDisconnected.
+  /// No description provided for @plaidStatusDisconnected.
   ///
   /// In en, this message translates to:
-  /// **'Offline / Local Mock Active'**
-  String get robinhoodStatusDisconnected;
+  /// **'No Brokerage Linked'**
+  String get plaidStatusDisconnected;
+
+  /// No description provided for @plaidConnectedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected via Plaid'**
+  String get plaidConnectedStatus;
+
+  /// No description provided for @plaidConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Brokerage via Plaid'**
+  String get plaidConnectTitle;
+
+  /// No description provided for @plaidModeSandbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Plaid Sandbox'**
+  String get plaidModeSandbox;
+
+  /// No description provided for @plaidModeLive.
+  ///
+  /// In en, this message translates to:
+  /// **'API Credentials'**
+  String get plaidModeLive;
+
+  /// No description provided for @plaidConnectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Account'**
+  String get plaidConnectAction;
+
+  /// No description provided for @plaidSyncButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get plaidSyncButton;
+
+  /// No description provided for @plaidDisconnectButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get plaidDisconnectButton;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButton;
 }
 
 class _PortfolioLocalizationsDelegate

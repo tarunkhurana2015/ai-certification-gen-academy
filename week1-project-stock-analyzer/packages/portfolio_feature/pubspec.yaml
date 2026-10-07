@@ -18,6 +18,7 @@ dependencies:
   csv: ^6.0.0
   shared_preferences: ^2.5.4
   file_picker: ^10.3.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

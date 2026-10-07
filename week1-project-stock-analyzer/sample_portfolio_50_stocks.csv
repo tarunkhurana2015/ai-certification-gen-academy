@@ -1,0 +1,51 @@
+Symbol,Company,Shares,Price,Date,Sector,CurrentPrice
+AAPL,Apple Inc.,25.0,195.50,2024-01-15,Technology,232.50
+MSFT,Microsoft Corporation,15.0,385.00,2024-02-10,Technology,448.20
+NVDA,NVIDIA Corporation,40.0,95.20,2024-03-05,Technology,124.80
+AVGO,Broadcom Inc.,20.0,142.00,2024-03-22,Technology,168.50
+ORCL,Oracle Corporation,30.0,125.00,2024-04-12,Technology,175.00
+CRM,"Salesforce, Inc.",18.0,240.00,2024-05-18,Technology,288.50
+AMD,"Advanced Micro Devices, Inc.",35.0,140.00,2024-06-01,Technology,158.20
+ADBE,Adobe Inc.,10.0,465.00,2024-06-20,Technology,512.00
+GOOGL,Alphabet Inc. (Class A),22.0,155.00,2024-01-20,Communication Services,182.10
+META,"Meta Platforms, Inc.",12.0,475.00,2024-02-28,Communication Services,585.00
+NFLX,"Netflix, Inc.",8.0,620.00,2024-03-15,Communication Services,710.00
+DIS,The Walt Disney Company,45.0,110.00,2024-04-05,Communication Services,96.50
+CMCSA,Comcast Corporation,60.0,39.50,2024-05-10,Communication Services,42.00
+AMZN,"Amazon.com, Inc.",28.0,165.00,2024-01-25,Consumer Cyclical,188.40
+TSLA,"Tesla, Inc.",20.0,210.00,2024-02-15,Consumer Cyclical,254.30
+HD,"The Home Depot, Inc.",14.0,345.00,2024-03-10,Consumer Cyclical,412.00
+MCD,McDonald's Corporation,16.0,280.00,2024-04-01,Consumer Cyclical,302.50
+NKE,"NIKE, Inc.",35.0,92.00,2024-04-20,Consumer Cyclical,83.40
+SBUX,Starbucks Corporation,40.0,88.00,2024-05-15,Consumer Cyclical,96.50
+JPM,JPMorgan Chase & Co.,24.0,185.00,2024-01-18,Financial Services,222.00
+V,Visa Inc.,16.0,255.00,2024-02-05,Financial Services,282.50
+MA,Mastercard Incorporated,10.0,440.00,2024-02-22,Financial Services,496.00
+BAC,Bank of America Corporation,75.0,34.00,2024-03-18,Financial Services,42.80
+GS,"The Goldman Sachs Group, Inc.",8.0,415.00,2024-04-10,Financial Services,508.00
+MS,Morgan Stanley,30.0,88.00,2024-05-02,Financial Services,106.50
+BLK,"BlackRock, Inc.",6.0,810.00,2024-05-25,Financial Services,945.00
+LLY,Eli Lilly and Company,8.0,740.00,2024-01-12,Healthcare,895.00
+UNH,UnitedHealth Group Incorporated,12.0,510.00,2024-02-08,Healthcare,590.00
+JNJ,Johnson & Johnson,30.0,158.00,2024-03-01,Healthcare,162.50
+ABBV,AbbVie Inc.,25.0,168.00,2024-03-25,Healthcare,194.00
+MRK,"Merck & Co., Inc.",32.0,122.00,2024-04-15,Healthcare,114.50
+TMO,Thermo Fisher Scientific Inc.,7.0,545.00,2024-05-08,Healthcare,588.00
+CAT,Caterpillar Inc.,12.0,320.00,2024-01-30,Industrials,392.00
+GE,GE Aerospace,22.0,145.00,2024-02-18,Industrials,188.00
+HON,Honeywell International Inc.,18.0,195.00,2024-03-12,Industrials,212.00
+UNP,Union Pacific Corporation,15.0,225.00,2024-04-08,Industrials,244.00
+BA,The Boeing Company,20.0,185.00,2024-05-01,Industrials,154.00
+WMT,Walmart Inc.,45.0,68.00,2024-01-10,Consumer Defensive,81.20
+PG,The Procter & Gamble Company,25.0,156.00,2024-02-12,Consumer Defensive,172.50
+COST,Costco Wholesale Corporation,6.0,780.00,2024-03-08,Consumer Defensive,915.00
+KO,The Coca-Cola Company,55.0,61.00,2024-04-18,Consumer Defensive,70.50
+XOM,Exxon Mobil Corporation,35.0,105.00,2024-01-22,Energy,118.00
+CVX,Chevron Corporation,24.0,148.00,2024-02-25,Energy,152.00
+COP,ConocoPhillips,28.0,112.00,2024-03-20,Energy,108.50
+SLB,"SLB (Schlumberger)",50.0,48.00,2024-04-25,Energy,43.50
+NEE,"NextEra Energy, Inc.",40.0,66.00,2024-02-02,Utilities,83.50
+SO,The Southern Company,35.0,74.00,2024-03-16,Utilities,91.00
+PLD,"Prologis, Inc.",25.0,118.00,2024-02-20,Real Estate,124.00
+AMT,American Tower Corporation,14.0,198.00,2024-04-10,Real Estate,228.00
+LIN,Linde plc,9.0,425.00,2024-03-02,Basic Materials,465.00

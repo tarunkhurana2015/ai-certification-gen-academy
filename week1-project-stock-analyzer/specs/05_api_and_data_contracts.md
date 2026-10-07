@@ -205,6 +205,110 @@ class CsvParseResult {
 
 ---
 
+### Entity: `InvestmentTransaction`
+- **Location**: `packages/portfolio_feature/lib/domain/entities/investment_transaction.dart`
+- **Definition**:
+```dart
+@immutable
+class InvestmentTransaction {
+  final String id;
+  final String accountId;
+  final String? securityId;
+  final String? symbol;
+  final String name;
+  final DateTime date;
+  final double quantity;
+  final double amount;
+  final double price;
+  final double fees;
+  final String type; // 'buy', 'sell', 'cancel', 'cash', 'fee', 'transfer'
+  final String? subtype;
+  final String isoCurrencyCode;
+
+  const InvestmentTransaction({
+    required this.id,
+    required this.accountId,
+    this.securityId,
+    this.symbol,
+    required this.name,
+    required this.date,
+    required this.quantity,
+    required this.amount,
+    required this.price,
+    this.fees = 0.0,
+    required this.type,
+    this.subtype,
+    this.isoCurrencyCode = 'USD',
+  });
+}
+```
+
+---
+
+### Entity: `PlaidInstitution`
+- **Location**: `packages/portfolio_feature/lib/domain/entities/plaid_institution.dart`
+- **Definition**:
+```dart
+@immutable
+class PlaidInstitution {
+  final String id;
+  final String name;
+  final List<String> products;
+  final List<String> countryCodes;
+  final String? url;
+  final String? primaryColor;
+  final String? logo;
+  final bool oauth;
+  final List<String> routingNumbers;
+  final List<String> dtcNumbers;
+  final String connectionAvailability;
+
+  const PlaidInstitution({
+    required this.id,
+    required this.name,
+    this.products = const [],
+    this.countryCodes = const ['US'],
+    this.url,
+    this.primaryColor,
+    this.logo,
+    this.oauth = false,
+    this.routingNumbers = const [],
+    this.dtcNumbers = const [],
+    this.connectionAvailability = 'SUPPORTED',
+  });
+}
+```
+
+---
+
+### Entity: `StockQuote`
+- **Location**: `packages/portfolio_feature/lib/domain/entities/stock_quote.dart`
+- **Definition**:
+```dart
+@immutable
+class StockQuote {
+  final String symbol;
+  final double price;
+  final double? previousClose;
+  final double? change;
+  final double? changePercent;
+  final String? currency;
+  final DateTime timestamp;
+
+  const StockQuote({
+    required this.symbol,
+    required this.price,
+    this.previousClose,
+    this.change,
+    this.changePercent,
+    this.currency,
+    required this.timestamp,
+  });
+}
+```
+
+---
+
 ## 2. Market Data Contracts & Schemas
 
 ### Pluggable Market Engine Contract
@@ -269,31 +373,117 @@ The built-in mock market generator seeds real-world equity tickers with realisti
 
 ---
 
-### Phase 2 Robinhood Brokerage REST Contract (Future Bridge)
-The repository abstraction supports mapping future upstream Robinhood endpoints:
+### Plaid Investments API Contracts
+GenStockFolio implements the official Plaid Investments product endpoints:
 
-#### Endpoint: `POST /oauth2/token`
+#### Endpoint: `POST /link/token/create`
+Request to initialize Link session:
 ```json
 {
-  "grant_type": "password",
-  "client_id": "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKPhMBd",
-  "device_token": "device_uuid_v4",
-  "scope": "internal"
+  "client_id": "PLAID_CLIENT_ID",
+  "secret": "PLAID_SECRET",
+  "client_name": "GenStockFolio Stock Analyzer",
+  "country_codes": ["US"],
+  "language": "en",
+  "user": { "client_user_id": "user_unique_id" },
+  "products": ["investments"]
+}
+```
+Response:
+```json
+{
+  "link_token": "link-sandbox-12345-abcdef",
+  "expiration": "2026-10-06T20:00:00Z",
+  "request_id": "req_123"
 }
 ```
 
-#### Endpoint: `GET /portfolios/`
+#### Endpoint: `POST /item/public_token/exchange`
+Request exchanging public token for session access token:
 ```json
 {
-  "results": [
+  "client_id": "PLAID_CLIENT_ID",
+  "secret": "PLAID_SECRET",
+  "public_token": "public-sandbox-demo-token"
+}
+```
+Response (persisted strictly in-memory):
+```json
+{
+  "access_token": "access-sandbox-perm-token",
+  "item_id": "item-id-12345",
+  "request_id": "req_456"
+}
+```
+
+#### Endpoint: `POST /investments/holdings/get`
+Retrieves live holdings and securities:
+```json
+{
+  "holdings": [
     {
-      "account": "https://api.robinhood.com/accounts/12345678/",
-      "equity": "128450.25",
-      "extended_hours_equity": "128520.10",
-      "market_value": "125100.00",
-      "total_cash": "3350.25"
+      "account_id": "acc_1",
+      "cost_basis": 150.00,
+      "institution_price": 230.50,
+      "quantity": 25.0,
+      "security_id": "sec_aapl"
+    }
+  ],
+  "securities": [
+    {
+      "security_id": "sec_aapl",
+      "ticker_symbol": "AAPL",
+      "name": "Apple Inc.",
+      "type": "equity",
+      "close_price": 230.50
     }
   ]
+}
+```
+
+#### Endpoint: `POST /investments/transactions/get`
+Retrieves investment transaction logs:
+```json
+{
+  "investment_transactions": [
+    {
+      "investment_transaction_id": "txn_001",
+      "account_id": "acc_1",
+      "security_id": "sec_aapl",
+      "date": "2026-02-15",
+      "name": "Buy 10 AAPL",
+      "quantity": 10.0,
+      "amount": 1500.0,
+      "price": 150.0,
+      "fees": 0.0,
+      "type": "buy",
+      "subtype": "buy"
+    }
+  ]
+}
+```
+
+---
+
+### Yahoo Finance Real-Time Market Data Contract
+Endpoint: `GET /v8/finance/chart/{symbol}?interval=1m&range=1d`
+```json
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": "USD",
+          "symbol": "AAPL",
+          "regularMarketPrice": 232.50,
+          "chartPreviousClose": 230.35,
+          "regularMarketChangePercent": 0.93,
+          "regularMarketTime": 1770334800
+        }
+      }
+    ],
+    "error": null
+  }
 }
 ```
 
@@ -359,18 +549,47 @@ final class Failure<T> extends Result<T> {
 
 ---
 
-## 5. Repository Interface Contracts
+## 5. Repository & Service Interface Contracts
 
 ### `IBrokerageRepository`
 ```dart
 abstract interface class IBrokerageRepository {
   Future<Result<List<HoldingPosition>>> fetchHoldings();
   Future<Result<PortfolioSummary>> fetchPortfolioSummary();
+  Future<Result<List<InvestmentTransaction>>> fetchTransactions({
+    DateTime? startDate,
+    DateTime? endDate,
+  });
   Future<Result<void>> saveCustomPositions(List<HoldingPosition> positions);
   Future<Result<void>> clearPortfolio();
   Future<Result<List<HoldingPosition>>> generateDemoPortfolio();
-  Future<Result<bool>> connectBrokerageAccount({required String authToken});
+  Future<Result<bool>> connectBrokerageAccount({
+    required String authToken,
+    String? clientId,
+    String? secret,
+    String? accountIdentifier,
+    String? institutionName,
+    String environment = 'sandbox',
+    bool isSandbox = false,
+  });
+  Future<Result<void>> disconnectBrokerageAccount();
   bool get isConnectedToLiveBrokerage;
+  String? get accountIdentifier;
+  String? get institutionName;
+  bool get isSandboxMode;
+  DateTime? get lastSyncTime;
+}
+```
+
+### `IStockPriceService`
+```dart
+abstract interface class IStockPriceService {
+  Future<Result<StockQuote>> fetchQuote(String symbol);
+  Future<Map<String, StockQuote>> fetchBatchQuotes(List<String> symbols);
+  Stream<Map<String, StockQuote>> getPriceStream({
+    required List<String> Function() symbolsProvider,
+    Duration interval,
+  });
 }
 ```
 

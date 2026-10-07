@@ -48,7 +48,7 @@ week1-project-stock-analyzer/
    - **1-Click Demo Portfolio**: Instantly populates 6 diversified positions (AAPL, MSFT, NVDA, GOOGL, AMZN, TSLA) across Technology, Communication Services, and Consumer Cyclical.
    - **CSV Ingestion Engine**: Robust parser supporting Schwab, Fidelity, and standard CSV exports with newline normalization (`\r\n` / `\n`) and preview confirmation dialog.
    - **Manual Position Editor**: Add or edit positions with automated validation and ticker capitalization.
-   - **Robinhood Bridge**: Phase 2 OAuth connection mock bridge.
+   - **Plaid Financial Integration**: Connects via official [Plaid Investments API](https://plaid.com/docs/investments/) (`/investments/holdings/get`) supporting multi-brokerage aggregation (Fidelity, Schwab, Vanguard, etc.), cross-referencing securities and holdings with full Sandbox and Live credential modes.
    - **Local Persistence**: Automatically caches holdings in local storage across app sessions.
 
 2. **Tab 2: Asset Allocation (`allocation_feature`)**
@@ -117,3 +117,8 @@ Run the automated test suites across all packages:
 (cd packages/analytics_feature && flutter analyze)
 ```
 All packages pass with **0 issues found**.
+
+## Screen shots
+![alt text](image.png)
+
+### Recording

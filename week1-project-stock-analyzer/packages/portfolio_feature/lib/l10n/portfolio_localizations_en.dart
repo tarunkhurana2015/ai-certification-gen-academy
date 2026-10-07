@@ -83,12 +83,36 @@ class PortfolioLocalizationsEn extends PortfolioLocalizations {
   }
 
   @override
-  String get robinhoodSectionTitle => 'Brokerage Connection';
+  String get plaidSectionTitle => 'Plaid Financial Integration';
 
   @override
-  String get robinhoodConnectPrompt =>
-      'Connect Robinhood Account (Phase 2 Preview)';
+  String get plaidConnectPrompt =>
+      'Link your brokerage via Plaid (Fidelity, Schwab, Vanguard, etc.) to automatically sync investment holdings.';
 
   @override
-  String get robinhoodStatusDisconnected => 'Offline / Local Mock Active';
+  String get plaidStatusDisconnected => 'No Brokerage Linked';
+
+  @override
+  String get plaidConnectedStatus => 'Connected via Plaid';
+
+  @override
+  String get plaidConnectTitle => 'Link Brokerage via Plaid';
+
+  @override
+  String get plaidModeSandbox => 'Plaid Sandbox';
+
+  @override
+  String get plaidModeLive => 'API Credentials';
+
+  @override
+  String get plaidConnectAction => 'Connect Account';
+
+  @override
+  String get plaidSyncButton => 'Sync Now';
+
+  @override
+  String get plaidDisconnectButton => 'Disconnect';
+
+  @override
+  String get cancelButton => 'Cancel';
 }

@@ -46,6 +46,25 @@ The following end-to-end user journeys illustrate how equity investors achieve t
    - **Sharpe Ratio**: Risk-adjusted excess return metric.
    - **Diversification Score**: Concentration health rating (0 to 100) based on sector entropy and position weighting.
 
+### Journey 5: Multi-Brokerage Account Connection via Plaid (Tab 1)
+1. User navigates to Tab 1 and taps **"Connect Live Brokerage"** (or selects Plaid icon in action bar).
+2. The system opens the **Plaid Connection Dialog** offering Sandbox mode (zero credential testing) and Live institution integration.
+3. User selects their brokerage institution (e.g. Fidelity, Charles Schwab, Robinhood, Vanguard) and provides or generates credentials.
+4. The system executes the official 5-step Plaid Investments API workflow:
+   - Requests `/link/token/create` to initialize session.
+   - Obtains temporary `public_token` (or creates sandbox token via `/sandbox/public_token/create`).
+   - Exchanges public token via `/item/public_token/exchange` for an in-memory `access_token` and `item_id`.
+   - Calls `/investments/holdings/get` and `/investments/transactions/get` to retrieve positions and transaction history.
+5. The system maps the securities, populates holdings, updates `PortfolioState` with live connected badge and institution name, and saves cached positions to local storage.
+6. User can inspect connection status or disconnect at any time to clear in-memory tokens.
+
+### Journey 6: Live Market Price Streaming & Batch Refresh (Tabs 1 & 2)
+1. User views current holdings in Tab 1 or Tab 2.
+2. User taps the **"Live Prices"** toggle or **"Refresh Prices"** button.
+3. The system queries Yahoo Finance chart endpoints (`/v8/finance/chart/{symbol}`) in batch.
+4. The system updates each position's `currentPrice`, calculates real-time price change ($ and %), and updates total portfolio market valuation.
+5. When streaming mode is activated, a background timer periodically polls market quotes and smoothly updates UI state with live ticker badges without blocking interaction.
+
 ---
 
 ## 2. Feature Specifications with Gherkin Acceptance Criteria
@@ -96,6 +115,27 @@ And the user taps "Save Position"
 Then the system should validate that shares > 0 and cost basis > 0
 And the position should be added to the portfolio state
 And the dialog should close with an updated portfolio total
+```
+
+#### Scenario 1.5: Multi-Brokerage Plaid Connection & Holdings Synchronization
+```gherkin
+Given the user taps "Connect Live Brokerage"
+When the user selects institution "Charles Schwab" and toggles "Sandbox Mode"
+And the user submits the connection credentials
+Then the Plaid adapter should create a link token, exchange the public token, and fetch holdings from "/investments/holdings/get"
+And the securities should be cross-referenced into valid HoldingPosition entities
+And the portfolio state should update with isConnectedToLiveBrokerage true and institutionName "Charles Schwab"
+And the positions should be cached in local storage
+```
+
+#### Scenario 1.6: Real-Time Market Quote Refresh & Streaming
+```gherkin
+Given a portfolio containing positions "AAPL" and "MSFT"
+When the user taps the "Refresh Prices" button
+Then the Yahoo Finance service should fetch batch quotes from "/v8/finance/chart"
+And the current prices, dollar changes, and percent changes should be updated in the UI
+When the user toggles "Live Prices" streaming on
+Then the system should poll market quotes periodically and reflect real-time price updates without interrupting user interactions
 ```
 
 ---
@@ -193,4 +233,6 @@ And the Diversification Score should be rendered as a radial progress meter betw
 | **Fractional Share Quantities** | User holds 0.432 shares of a high-value stock | System supports 4 decimal places of share precision and calculates exact fractional values. |
 | **Negative Portfolio Return** | Total valuation is less than cost basis | Summary cards, chart gradients, and percentage indicators switch to semantic loss red with minus sign formatting. |
 | **Duplicate Tickers in CSV Import** | CSV has multiple purchase lots for the same ticker | System calculates cumulative shares and weighted average cost basis: `TotalCost / TotalShares`. |
+| **Plaid API / Auth Error** | Upstream Plaid credentials invalid, expired, or network unreachable | Handled gracefully with typed Failure; displays informative error banner/toast without crashing; existing cached holdings remain intact. |
+| **Live Price Stream Offline** | Yahoo Finance quote endpoint fails or rate limited | Fallback to latest cached or simulated price; live indicator reflects stale or disconnected status without disruption. |
 | **Extreme Screen Resizing** | User resizes window from Desktop widescreen (1400dp) to mobile window (400dp) on Web/macOS | Responsive layout seamlessly shifts between multi-column master-detail layout and single-column tab views with no RenderFlex overflow. |

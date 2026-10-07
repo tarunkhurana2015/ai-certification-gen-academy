@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:portfolio_feature/portfolio_feature.dart';
 
@@ -52,6 +53,68 @@ GOOGL,20,invalid_price
       expect(result.errors[2].reason, contains('Invalid numerical price'));
     });
 
+    test('parses optional Company, Sector, and CurrentPrice columns when provided', () {
+      const csv = '''
+Symbol,Company,Shares,Price,Date,Sector,CurrentPrice
+LLY,Eli Lilly and Company,8,740.00,2024-01-12,Healthcare,895.00
+CAT,Caterpillar Inc.,12,320.00,2024-01-30,Industrials,392.00
+''';
+      final result = parser.parseCsvString(csv);
+
+      expect(result.validPositions.length, 2);
+      expect(result.errors.isEmpty, true);
+      expect(result.validPositions[0].symbol, 'LLY');
+      expect(result.validPositions[0].companyName, 'Eli Lilly and Company');
+      expect(result.validPositions[0].sector, 'Healthcare');
+      expect(result.validPositions[0].currentPrice, 895.00);
+      expect(result.validPositions[1].symbol, 'CAT');
+      expect(result.validPositions[1].companyName, 'Caterpillar Inc.');
+      expect(result.validPositions[1].sector, 'Industrials');
+      expect(result.validPositions[1].currentPrice, 392.00);
+    });
+
+    test('parses sample_portfolio_50_stocks.csv with all 50 stocks and multiple sectors', () {
+      final file = File('../../sample_portfolio_50_stocks.csv');
+      if (file.existsSync()) {
+        final content = file.readAsStringSync();
+        final result = parser.parseCsvString(content);
+
+        expect(result.validPositions.length, 50);
+        expect(result.errors.isEmpty, true);
+        expect(result.totalRowsProcessed, 50);
+
+        // Verify sectors are properly distributed across multiple categories
+        final sectors = result.validPositions.map((p) => p.sector).toSet();
+        expect(sectors.length, greaterThanOrEqualTo(10));
+        expect(sectors.contains('Technology'), true);
+        expect(sectors.contains('Healthcare'), true);
+        expect(sectors.contains('Financial Services'), true);
+        expect(sectors.contains('Consumer Cyclical'), true);
+        expect(sectors.contains('Energy'), true);
+        expect(sectors.contains('Industrials'), true);
+        expect(sectors.contains('Consumer Defensive'), true);
+        expect(sectors.contains('Utilities'), true);
+        expect(sectors.contains('Real Estate'), true);
+        expect(sectors.contains('Basic Materials'), true);
+      }
+    });
+
+    test('parses sample_portfolio_50_stocks_simple.csv with 4 columns into 50 valid positions', () {
+      final file = File('../../sample_portfolio_50_stocks_simple.csv');
+      if (file.existsSync()) {
+        final content = file.readAsStringSync();
+        final result = parser.parseCsvString(content);
+
+        expect(result.validPositions.length, 50);
+        expect(result.errors.isEmpty, true);
+        expect(result.totalRowsProcessed, 50);
+
+        // Even with 4 columns, internal mappings should resolve sectors
+        final sectors = result.validPositions.map((p) => p.sector).toSet();
+        expect(sectors.length, greaterThanOrEqualTo(10));
+      }
+    });
+
     test('returns empty result on empty input', () {
       final result = parser.parseCsvString('');
       expect(result.validPositions.isEmpty, true);
@@ -60,3 +123,5 @@ GOOGL,20,invalid_price
     });
   });
 }
+
+

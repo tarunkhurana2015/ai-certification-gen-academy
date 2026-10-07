@@ -6,6 +6,7 @@ import 'package:portfolio_feature/l10n/portfolio_localizations.dart';
 import '../viewmodel/portfolio_viewmodel.dart';
 import 'widgets/csv_preview_dialog.dart';
 import 'widgets/manual_position_dialog.dart';
+import 'widgets/plaid_connect_dialog.dart';
 
 class PortfolioIngestView extends ConsumerWidget {
   const PortfolioIngestView({super.key});
@@ -228,6 +229,177 @@ class PortfolioIngestView extends ConsumerWidget {
                       ),
                     ),
 
+                    const SizedBox(height: 24),
+
+                    // Yahoo Finance Live Price Stream Controller Card
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: state.isLivePriceStreaming
+                              ? Colors.green.withValues(alpha: 0.6)
+                              : theme.colorScheme.outlineVariant,
+                          width: state.isLivePriceStreaming ? 1.5 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      color: state.isLivePriceStreaming
+                          ? Colors.green.withValues(alpha: 0.05)
+                          : theme.colorScheme.surfaceContainerLow,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: state.isLivePriceStreaming
+                                    ? Colors.green.withValues(alpha: 0.15)
+                                    : theme.colorScheme.surfaceContainerHighest,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                state.isLivePriceStreaming ? Icons.sensors : Icons.sensors_off,
+                                color: state.isLivePriceStreaming
+                                    ? Colors.green[700]
+                                    : theme.colorScheme.onSurfaceVariant,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 8,
+                                    runSpacing: 4,
+                                    children: [
+                                      Text(
+                                        'Yahoo Finance Live Stream',
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: state.isLivePriceStreaming
+                                              ? Colors.green.withValues(alpha: 0.2)
+                                              : Colors.grey.withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: state.isLivePriceStreaming
+                                                    ? Colors.green[700]
+                                                    : Colors.grey[600],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              state.isLivePriceStreaming ? 'LIVE' : 'PAUSED',
+                                              style: theme.textTheme.labelSmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: state.isLivePriceStreaming
+                                                    ? Colors.green[900]
+                                                    : Colors.grey[800],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    state.livePriceStatus ??
+                                        (state.isLivePriceStreaming
+                                            ? 'Streaming real-time stock prices every 10 seconds.'
+                                            : 'Enable live stream to track stock prices live via Yahoo Finance.'),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton(
+                              icon: const Icon(Icons.refresh),
+                              tooltip: 'Refresh prices now',
+                              onPressed: state.holdings.isEmpty
+                                  ? null
+                                  : () => ref
+                                      .read(portfolioViewModelProvider.notifier)
+                                      .refreshLivePrices(),
+                            ),
+                            const SizedBox(width: 4),
+                            Switch.adaptive(
+                              value: state.isLivePriceStreaming,
+                              onChanged: state.holdings.isEmpty
+                                  ? null
+                                  : (_) => ref
+                                      .read(portfolioViewModelProvider.notifier)
+                                      .toggleLivePrices(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    if (state.holdings.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      // Live Portfolio Summary Banner
+                      Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Wrap(
+                            spacing: 24,
+                            runSpacing: 12,
+                            alignment: WrapAlignment.spaceAround,
+                            children: [
+                              _buildSummaryMetric(
+                                context,
+                                label: 'Total Valuation',
+                                value: '\$${state.summary.currentValuation.toStringAsFixed(2)}',
+                                isBold: true,
+                              ),
+                              _buildSummaryMetric(
+                                context,
+                                label: 'Total Invested',
+                                value: '\$${state.summary.totalInvested.toStringAsFixed(2)}',
+                              ),
+                              _buildSummaryMetric(
+                                context,
+                                label: 'Total Return',
+                                value:
+                                    '${state.summary.netProfit >= 0 ? "+" : ""}\$${state.summary.netProfit.toStringAsFixed(2)} (${state.summary.returnPercentage.toStringAsFixed(2)}%)',
+                                valueColor: state.summary.netProfit >= 0
+                                    ? Colors.green[700]
+                                    : theme.colorScheme.error,
+                                isBold: true,
+                              ),
+                              _buildSummaryMetric(
+                                context,
+                                label: 'Holdings Count',
+                                value: '${state.summary.totalHoldingsCount} stocks',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 28),
 
                     // Active Positions Ledger Summary
@@ -301,8 +473,29 @@ class PortfolioIngestView extends ConsumerWidget {
                                   ),
                                 ],
                               ),
-                              subtitle: Text(
-                                '${p.companyName} • ${p.shares.toStringAsFixed(2)} shares @ \$${p.avgCostBasis.toStringAsFixed(2)}',
+                              subtitle: Wrap(
+                                spacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    '${p.companyName} • ${p.shares.toStringAsFixed(2)} sh @ \$${p.avgCostBasis.toStringAsFixed(2)}',
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Live: \$${p.currentPrice.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -355,38 +548,80 @@ class PortfolioIngestView extends ConsumerWidget {
 
                     const SizedBox(height: 36),
 
-                    // Brokerage Connection Bridge (Phase 2 Preview)
+                    // Plaid Financial Integration Card
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(color: theme.colorScheme.outlineVariant),
+                        side: BorderSide(
+                          color: state.isBrokerageConnected
+                              ? const Color(0xFF0A85EA).withValues(alpha: 0.5)
+                              : theme.colorScheme.outlineVariant,
+                        ),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      color: theme.colorScheme.surfaceContainerLow,
+                      color: state.isBrokerageConnected
+                          ? const Color(0xFF0A85EA).withValues(alpha: 0.04)
+                          : theme.colorScheme.surfaceContainerLow,
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.15),
+                                color: const Color(0xFF0A85EA).withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.account_balance, color: Colors.green),
+                              child: const Icon(
+                                Icons.account_balance,
+                                color: Color(0xFF0A85EA),
+                                size: 24,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    l10n?.robinhoodSectionTitle ?? 'Brokerage Connection',
-                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 8,
+                                    children: [
+                                      Text(
+                                        state.isBrokerageConnected
+                                            ? (l10n?.plaidConnectedStatus ?? 'Connected via Plaid')
+                                            : (l10n?.plaidSectionTitle ?? 'Plaid Financial Integration'),
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (state.isBrokerageConnected)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: state.isBrokerageSandbox
+                                                ? Colors.amber.withValues(alpha: 0.2)
+                                                : Colors.green.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            state.isBrokerageSandbox ? 'SANDBOX' : 'LIVE',
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: state.isBrokerageSandbox
+                                                  ? Colors.amber.shade900
+                                                  : Colors.green.shade900,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 4),
                                   Text(
-                                    'Link your Robinhood account via secure OAuth to fetch real holdings in Phase 2.',
+                                    state.isBrokerageConnected
+                                        ? '${state.brokerageInstitution ?? 'Brokerage'} • ${state.brokerageAccountName ?? 'Account'} (Synced: ${state.lastBrokerageSync?.toLocal().toString().split('.').first ?? 'Just now'})'
+                                        : (l10n?.plaidConnectPrompt ??
+                                            'Link your brokerage via Plaid (Fidelity, Schwab, Vanguard, etc.) to automatically sync investment holdings.'),
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
@@ -394,16 +629,56 @@ class PortfolioIngestView extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            FilledButton.tonal(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Robinhood OAuth connection bridge ready for Phase 2.'),
-                                  ),
-                                );
-                              },
-                              child: const Text('Connect'),
-                            ),
+                            const SizedBox(width: 16),
+                            if (state.isBrokerageConnected) ...[
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.sync, size: 16),
+                                onPressed: () =>
+                                    ref.read(portfolioViewModelProvider.notifier).syncPlaid(),
+                                label: Text(l10n?.plaidSyncButton ?? 'Sync Now'),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.link_off),
+                                tooltip: l10n?.plaidDisconnectButton ?? 'Disconnect',
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: Text(l10n?.plaidDisconnectButton ?? 'Disconnect Plaid'),
+                                      content: const Text(
+                                          'Do you want to disconnect your linked Plaid account?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(ctx).pop(),
+                                          child: Text(l10n?.cancel ?? 'Cancel'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () {
+                                            Navigator.of(ctx).pop();
+                                            ref
+                                                .read(portfolioViewModelProvider.notifier)
+                                                .disconnectPlaid();
+                                          },
+                                          child: Text(l10n?.plaidDisconnectButton ?? 'Disconnect'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ] else ...[
+                              FilledButton.tonalIcon(
+                                icon: const Icon(Icons.link, size: 18),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => const PlaidConnectDialog(),
+                                  );
+                                },
+                                label: const Text('Connect'),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -431,6 +706,36 @@ class PortfolioIngestView extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSummaryMetric(
+    BuildContext context, {
+    required String label,
+    required String value,
+    Color? valueColor,
+    bool isBold = false,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: valueColor,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

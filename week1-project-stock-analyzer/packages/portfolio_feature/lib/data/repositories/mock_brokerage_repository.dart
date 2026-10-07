@@ -1,4 +1,5 @@
 import '../../domain/entities/holding_position.dart';
+import '../../domain/entities/investment_transaction.dart';
 import '../../domain/entities/portfolio_summary.dart';
 import '../../domain/entities/result.dart';
 import '../../domain/repositories/brokerage_repository.dart';
@@ -79,8 +80,6 @@ class MockBrokerageRepository implements IBrokerageRepository {
         ),
       ];
 
-  @override
-  bool get isConnectedToLiveBrokerage => false;
 
   @override
   Future<Result<List<HoldingPosition>>> fetchHoldings() async {
@@ -137,9 +136,60 @@ class MockBrokerageRepository implements IBrokerageRepository {
     }
   }
 
+  String? _accountIdentifier;
+  String? _institutionName;
+  bool _isConnected = false;
+  bool _isSandbox = false;
+  DateTime? _lastSync;
+
   @override
-  Future<Result<bool>> connectBrokerageAccount({required String authToken}) async {
-    // Phase 2 stub interface: In MVP mock mode, informs user of mock status
-    return const Success(false);
+  bool get isConnectedToLiveBrokerage => _isConnected;
+
+  @override
+  String? get accountIdentifier => _accountIdentifier;
+
+  @override
+  String? get institutionName => _institutionName;
+
+  @override
+  bool get isSandboxMode => _isSandbox;
+
+  @override
+  DateTime? get lastSyncTime => _lastSync;
+
+  @override
+  Future<Result<List<InvestmentTransaction>>> fetchTransactions({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    return const Success([]);
+  }
+
+  @override
+  Future<Result<bool>> connectBrokerageAccount({
+    required String authToken,
+    String? clientId,
+    String? secret,
+    String? accountIdentifier,
+    String? institutionName,
+    String environment = 'sandbox',
+    bool isSandbox = false,
+  }) async {
+    _isConnected = true;
+    _isSandbox = isSandbox;
+    _accountIdentifier = accountIdentifier ?? 'Mock-Account-123';
+    _institutionName = institutionName ?? 'Mock Brokerage';
+    _lastSync = DateTime.now();
+    return const Success(true);
+  }
+
+  @override
+  Future<Result<void>> disconnectBrokerageAccount() async {
+    _isConnected = false;
+    _accountIdentifier = null;
+    _institutionName = null;
+    _isSandbox = false;
+    _lastSync = null;
+    return const Success(null);
   }
 }

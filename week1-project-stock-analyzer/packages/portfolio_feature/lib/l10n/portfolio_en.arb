@@ -28,7 +28,15 @@
       }
     }
   },
-  "robinhoodSectionTitle": "Brokerage Connection",
-  "robinhoodConnectPrompt": "Connect Robinhood Account (Phase 2 Preview)",
-  "robinhoodStatusDisconnected": "Offline / Local Mock Active"
+  "plaidSectionTitle": "Plaid Financial Integration",
+  "plaidConnectPrompt": "Link your brokerage via Plaid (Fidelity, Schwab, Vanguard, etc.) to automatically sync investment holdings.",
+  "plaidStatusDisconnected": "No Brokerage Linked",
+  "plaidConnectedStatus": "Connected via Plaid",
+  "plaidConnectTitle": "Link Brokerage via Plaid",
+  "plaidModeSandbox": "Plaid Sandbox",
+  "plaidModeLive": "API Credentials",
+  "plaidConnectAction": "Connect Account",
+  "plaidSyncButton": "Sync Now",
+  "plaidDisconnectButton": "Disconnect",
+  "cancelButton": "Cancel"
 }
