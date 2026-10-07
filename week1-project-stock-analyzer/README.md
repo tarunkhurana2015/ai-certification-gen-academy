@@ -122,3 +122,6 @@ All packages pass with **0 issues found**.
 ![alt text](image.png)
 
 ### Recording
+<img width="1055" height="866" alt="genstockfolio" src="https://github.com/user-attachments/assets/1e4a599f-22c0-4d4d-b284-01f0ce75b3ab" />
+
+
