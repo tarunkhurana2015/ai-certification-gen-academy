@@ -87,7 +87,7 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 ### iOS Simulator
 ```bash
 cd apps/gen_stock_folio
-flutter run -d "iPhone 16 Pro"
+flutter run -d "iPhone 18 Pro Max"
 ```
 
 ---
