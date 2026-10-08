@@ -81,6 +81,7 @@ flutter run -d macos
 ```bash
 cd apps/gen_stock_folio
 flutter run -d chrome
+flutter run -d chrome --web-browser-flag "--disable-web-security"
 ```
 
 ### iOS Simulator

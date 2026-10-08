@@ -432,7 +432,7 @@ class PortfolioViewModel extends Notifier<PortfolioState> {
     );
   }
 
-  void toggleLivePrices({Duration interval = const Duration(seconds: 10)}) {
+  void toggleLivePrices({Duration interval = const Duration(seconds: 1)}) {
     if (state.isLivePriceStreaming) {
       stopLivePrices();
     } else {
