@@ -2,6 +2,12 @@
 
 **GenStockFolio** is a stock portfolio analyzer built with **Flutter 3.41.6 (Dart 3.11.4)** for **macOS Desktop**, **Web (Chrome)**, and **iOS Mobile**. Developed under strict **Spec-Driven Development (SDD)** with 100% gated specification approvals and automated unit/widget test verification.
 
+### 📌 Project Resources
+* 📄 **[Comprehensive Project Documentation (Architecture, Features & Specs)](PROJECT_DOCUMENTATION.md)**
+* 🌐 **[Live Web Demo (GitHub Pages)](https://tarunkhurana2015.github.io/ai-certification-gen-academy/#/import)**
+* 🤖 **[Custom AI Skills ("Superpowers")](https://github.com/tarunkhurana2015/ai-skills)**
+* 💻 **[GitHub Repository Codebase](https://github.com/tarunkhurana2015/ai-certification-gen-academy/tree/main/week1-project-stock-analyzer)**
+
 ---
 
 ## 🏛️ Monorepo Architecture
