@@ -128,7 +128,11 @@ All packages pass with **0 issues found**.
 ## Screen shots
 ![alt text](image.png)
 
-### Recording
+### Recording (MacOS)
 <img width="1055" height="866" alt="genstockfolio" src="https://github.com/user-attachments/assets/1e4a599f-22c0-4d4d-b284-01f0ce75b3ab" />
+
+### Recording (iOS)
+<img width="708" height="330" alt="genstockfolio-iphone" src="https://github.com/user-attachments/assets/cd37d596-ceeb-493a-8163-57dfc803d1a6" />
+
 
 
