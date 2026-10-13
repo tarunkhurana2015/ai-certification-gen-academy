@@ -73,3 +73,19 @@ OPENAI_API_KEY=your_openai_api_key_here
 # API key and update the relevant model calls.
 # ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
+
+### local model
+
+```ollama
+
+uv add langchain-ollama
+
+# Pull the gpt-oss model (only need to do this once)
+ollama pull gpt-oss
+
+# Start the model locally
+ollama run gpt-oss
+
+# Check that it's running
+ollama ps
+```
