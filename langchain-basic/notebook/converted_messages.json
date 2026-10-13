@@ -1,0 +1,1125 @@
+[
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer',), ('Invoice',), ('InvoiceLine',)]",
+        "name": "execute_sql",
+        "id": "39d43050-538f-439b-b851-c3876518e501",
+        "tool_call_id": "call_2JfzK3Th2TZJHcSejPAYZpIX"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer',), ('Invoice',), ('InvoiceLine',)]",
+        "name": "execute_sql",
+        "id": "39d43050-538f-439b-b851-c3876518e501",
+        "tool_call_id": "call_2JfzK3Th2TZJHcSejPAYZpIX"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 177,
+            "prompt_tokens": 330,
+            "total_tokens": 507,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 128,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQIAIL9Q5PiF4LxJ8GyGxV2vR1G",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-1c53-7d30-97f5-dd2fb0b86aef-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN ('Customer','Invoice','InvoiceLine') ORDER BY name;"
+            },
+            "id": "call_A6VBFYlY9taV92KtDnSqPKeS",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 330,
+          "output_tokens": 177,
+          "total_tokens": 507,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 128
+          }
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer',), ('Invoice',), ('InvoiceLine',)]",
+        "name": "execute_sql",
+        "id": "39d43050-538f-439b-b851-c3876518e501",
+        "tool_call_id": "call_2JfzK3Th2TZJHcSejPAYZpIX"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 177,
+            "prompt_tokens": 330,
+            "total_tokens": 507,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 128,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQIAIL9Q5PiF4LxJ8GyGxV2vR1G",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-1c53-7d30-97f5-dd2fb0b86aef-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN ('Customer','Invoice','InvoiceLine') ORDER BY name;"
+            },
+            "id": "call_A6VBFYlY9taV92KtDnSqPKeS",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 330,
+          "output_tokens": 177,
+          "total_tokens": 507,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 128
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer', 'CREATE TABLE [Customer]\\n(\\n    [CustomerId] INTEGER  NOT NULL,\\n    [FirstName] NVARCHAR(40)  NOT NULL,\\n    [LastName] NVARCHAR(20)  NOT NULL,\\n    [Company] NVARCHAR(80),\\n    [Address] NVARCHAR(70),\\n    [City] NVARCHAR(40),\\n    [State] NVARCHAR(40),\\n    [Country] NVARCHAR(40),\\n    [PostalCode]...'), ('Invoice', 'CREATE TABLE [Invoice]\\n(\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [CustomerId] INTEGER  NOT NULL,\\n    [InvoiceDate] DATETIME  NOT NULL,\\n    [BillingAddress] NVARCHAR(70),\\n    [BillingCity] NVARCHAR(40),\\n    [BillingState] NVARCHAR(40),\\n    [BillingCountry] NVARCHAR(40),\\n    [BillingPostalCode]...'), ('InvoiceLine', 'CREATE TABLE [InvoiceLine]\\n(\\n    [InvoiceLineId] INTEGER  NOT NULL,\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [TrackId] INTEGER  NOT NULL,\\n    [UnitPrice] NUMERIC(10,2)  NOT NULL,\\n    [Quantity] INTEGER  NOT NULL,\\n    CONSTRAINT [PK_InvoiceLine] PRIMARY KEY  ([InvoiceLineId]),\\n    FOREIGN KEY...')]",
+        "name": "execute_sql",
+        "id": "ef90b720-5635-421e-a07f-ad42acf53acb",
+        "tool_call_id": "call_A6VBFYlY9taV92KtDnSqPKeS"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer',), ('Invoice',), ('InvoiceLine',)]",
+        "name": "execute_sql",
+        "id": "39d43050-538f-439b-b851-c3876518e501",
+        "tool_call_id": "call_2JfzK3Th2TZJHcSejPAYZpIX"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 177,
+            "prompt_tokens": 330,
+            "total_tokens": 507,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 128,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQIAIL9Q5PiF4LxJ8GyGxV2vR1G",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-1c53-7d30-97f5-dd2fb0b86aef-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN ('Customer','Invoice','InvoiceLine') ORDER BY name;"
+            },
+            "id": "call_A6VBFYlY9taV92KtDnSqPKeS",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 330,
+          "output_tokens": 177,
+          "total_tokens": 507,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 128
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer', 'CREATE TABLE [Customer]\\n(\\n    [CustomerId] INTEGER  NOT NULL,\\n    [FirstName] NVARCHAR(40)  NOT NULL,\\n    [LastName] NVARCHAR(20)  NOT NULL,\\n    [Company] NVARCHAR(80),\\n    [Address] NVARCHAR(70),\\n    [City] NVARCHAR(40),\\n    [State] NVARCHAR(40),\\n    [Country] NVARCHAR(40),\\n    [PostalCode]...'), ('Invoice', 'CREATE TABLE [Invoice]\\n(\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [CustomerId] INTEGER  NOT NULL,\\n    [InvoiceDate] DATETIME  NOT NULL,\\n    [BillingAddress] NVARCHAR(70),\\n    [BillingCity] NVARCHAR(40),\\n    [BillingState] NVARCHAR(40),\\n    [BillingCountry] NVARCHAR(40),\\n    [BillingPostalCode]...'), ('InvoiceLine', 'CREATE TABLE [InvoiceLine]\\n(\\n    [InvoiceLineId] INTEGER  NOT NULL,\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [TrackId] INTEGER  NOT NULL,\\n    [UnitPrice] NUMERIC(10,2)  NOT NULL,\\n    [Quantity] INTEGER  NOT NULL,\\n    CONSTRAINT [PK_InvoiceLine] PRIMARY KEY  ([InvoiceLineId]),\\n    FOREIGN KEY...')]",
+        "name": "execute_sql",
+        "id": "ef90b720-5635-421e-a07f-ad42acf53acb",
+        "tool_call_id": "call_A6VBFYlY9taV92KtDnSqPKeS"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 593,
+            "prompt_tokens": 701,
+            "total_tokens": 1294,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 512,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQKqKdvShbCmqMiWQnxT1F0QBra",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-25af-7390-8161-a31a7132e594-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT i.InvoiceId, i.InvoiceDate, i.Total\nFROM Invoice AS i\nJOIN Customer AS c ON c.CustomerId = i.CustomerId\nWHERE c.FirstName = 'Frank' AND c.LastName = 'Harris'\nORDER BY i.InvoiceDate DESC\nLIMIT 1;"
+            },
+            "id": "call_7B50IfWSNRy7zO8IZh31kp02",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 701,
+          "output_tokens": 593,
+          "total_tokens": 1294,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 512
+          }
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer',), ('Invoice',), ('InvoiceLine',)]",
+        "name": "execute_sql",
+        "id": "39d43050-538f-439b-b851-c3876518e501",
+        "tool_call_id": "call_2JfzK3Th2TZJHcSejPAYZpIX"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 177,
+            "prompt_tokens": 330,
+            "total_tokens": 507,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 128,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQIAIL9Q5PiF4LxJ8GyGxV2vR1G",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-1c53-7d30-97f5-dd2fb0b86aef-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN ('Customer','Invoice','InvoiceLine') ORDER BY name;"
+            },
+            "id": "call_A6VBFYlY9taV92KtDnSqPKeS",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 330,
+          "output_tokens": 177,
+          "total_tokens": 507,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 128
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer', 'CREATE TABLE [Customer]\\n(\\n    [CustomerId] INTEGER  NOT NULL,\\n    [FirstName] NVARCHAR(40)  NOT NULL,\\n    [LastName] NVARCHAR(20)  NOT NULL,\\n    [Company] NVARCHAR(80),\\n    [Address] NVARCHAR(70),\\n    [City] NVARCHAR(40),\\n    [State] NVARCHAR(40),\\n    [Country] NVARCHAR(40),\\n    [PostalCode]...'), ('Invoice', 'CREATE TABLE [Invoice]\\n(\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [CustomerId] INTEGER  NOT NULL,\\n    [InvoiceDate] DATETIME  NOT NULL,\\n    [BillingAddress] NVARCHAR(70),\\n    [BillingCity] NVARCHAR(40),\\n    [BillingState] NVARCHAR(40),\\n    [BillingCountry] NVARCHAR(40),\\n    [BillingPostalCode]...'), ('InvoiceLine', 'CREATE TABLE [InvoiceLine]\\n(\\n    [InvoiceLineId] INTEGER  NOT NULL,\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [TrackId] INTEGER  NOT NULL,\\n    [UnitPrice] NUMERIC(10,2)  NOT NULL,\\n    [Quantity] INTEGER  NOT NULL,\\n    CONSTRAINT [PK_InvoiceLine] PRIMARY KEY  ([InvoiceLineId]),\\n    FOREIGN KEY...')]",
+        "name": "execute_sql",
+        "id": "ef90b720-5635-421e-a07f-ad42acf53acb",
+        "tool_call_id": "call_A6VBFYlY9taV92KtDnSqPKeS"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 593,
+            "prompt_tokens": 701,
+            "total_tokens": 1294,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 512,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQKqKdvShbCmqMiWQnxT1F0QBra",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-25af-7390-8161-a31a7132e594-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT i.InvoiceId, i.InvoiceDate, i.Total\nFROM Invoice AS i\nJOIN Customer AS c ON c.CustomerId = i.CustomerId\nWHERE c.FirstName = 'Frank' AND c.LastName = 'Harris'\nORDER BY i.InvoiceDate DESC\nLIMIT 1;"
+            },
+            "id": "call_7B50IfWSNRy7zO8IZh31kp02",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 701,
+          "output_tokens": 593,
+          "total_tokens": 1294,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 512
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[(374, '2013-07-04 00:00:00', 5.94)]",
+        "name": "execute_sql",
+        "id": "d48f8d1e-cc75-4d9e-88ed-3973a86edde9",
+        "tool_call_id": "call_7B50IfWSNRy7zO8IZh31kp02"
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "type": "HumanMessage",
+        "content": "This is Frank Harris, What was the total on my last invoice?",
+        "additional_kwargs": {},
+        "response_metadata": {},
+        "id": "ad2bd76d-e5f6-4c66-bc00-2167c2ecf8d5"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 521,
+            "prompt_tokens": 238,
+            "total_tokens": 759,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 448,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQD1pV1boMzZEUCByYdKeS66nf9",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-09a9-79b1-8023-44a4e0ef827d-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name FROM sqlite_master WHERE type='table' AND (lower(name) LIKE '%invoice%' OR lower(name) LIKE '%customer%' OR lower(name) LIKE '%client%' OR lower(name) LIKE '%user%') ORDER BY name LIMIT 5;"
+            },
+            "id": "call_2JfzK3Th2TZJHcSejPAYZpIX",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 238,
+          "output_tokens": 521,
+          "total_tokens": 759,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 448
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer',), ('Invoice',), ('InvoiceLine',)]",
+        "name": "execute_sql",
+        "id": "39d43050-538f-439b-b851-c3876518e501",
+        "tool_call_id": "call_2JfzK3Th2TZJHcSejPAYZpIX"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 177,
+            "prompt_tokens": 330,
+            "total_tokens": 507,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 128,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQIAIL9Q5PiF4LxJ8GyGxV2vR1G",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-1c53-7d30-97f5-dd2fb0b86aef-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN ('Customer','Invoice','InvoiceLine') ORDER BY name;"
+            },
+            "id": "call_A6VBFYlY9taV92KtDnSqPKeS",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 330,
+          "output_tokens": 177,
+          "total_tokens": 507,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 128
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[('Customer', 'CREATE TABLE [Customer]\\n(\\n    [CustomerId] INTEGER  NOT NULL,\\n    [FirstName] NVARCHAR(40)  NOT NULL,\\n    [LastName] NVARCHAR(20)  NOT NULL,\\n    [Company] NVARCHAR(80),\\n    [Address] NVARCHAR(70),\\n    [City] NVARCHAR(40),\\n    [State] NVARCHAR(40),\\n    [Country] NVARCHAR(40),\\n    [PostalCode]...'), ('Invoice', 'CREATE TABLE [Invoice]\\n(\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [CustomerId] INTEGER  NOT NULL,\\n    [InvoiceDate] DATETIME  NOT NULL,\\n    [BillingAddress] NVARCHAR(70),\\n    [BillingCity] NVARCHAR(40),\\n    [BillingState] NVARCHAR(40),\\n    [BillingCountry] NVARCHAR(40),\\n    [BillingPostalCode]...'), ('InvoiceLine', 'CREATE TABLE [InvoiceLine]\\n(\\n    [InvoiceLineId] INTEGER  NOT NULL,\\n    [InvoiceId] INTEGER  NOT NULL,\\n    [TrackId] INTEGER  NOT NULL,\\n    [UnitPrice] NUMERIC(10,2)  NOT NULL,\\n    [Quantity] INTEGER  NOT NULL,\\n    CONSTRAINT [PK_InvoiceLine] PRIMARY KEY  ([InvoiceLineId]),\\n    FOREIGN KEY...')]",
+        "name": "execute_sql",
+        "id": "ef90b720-5635-421e-a07f-ad42acf53acb",
+        "tool_call_id": "call_A6VBFYlY9taV92KtDnSqPKeS"
+      },
+      {
+        "type": "AIMessage",
+        "content": "",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 593,
+            "prompt_tokens": 701,
+            "total_tokens": 1294,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 512,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQKqKdvShbCmqMiWQnxT1F0QBra",
+          "service_tier": "default",
+          "finish_reason": "tool_calls",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-25af-7390-8161-a31a7132e594-0",
+        "tool_calls": [
+          {
+            "name": "execute_sql",
+            "args": {
+              "query": "SELECT i.InvoiceId, i.InvoiceDate, i.Total\nFROM Invoice AS i\nJOIN Customer AS c ON c.CustomerId = i.CustomerId\nWHERE c.FirstName = 'Frank' AND c.LastName = 'Harris'\nORDER BY i.InvoiceDate DESC\nLIMIT 1;"
+            },
+            "id": "call_7B50IfWSNRy7zO8IZh31kp02",
+            "type": "tool_call"
+          }
+        ],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 701,
+          "output_tokens": 593,
+          "total_tokens": 1294,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 512
+          }
+        }
+      },
+      {
+        "type": "ToolMessage",
+        "content": "[(374, '2013-07-04 00:00:00', 5.94)]",
+        "name": "execute_sql",
+        "id": "d48f8d1e-cc75-4d9e-88ed-3973a86edde9",
+        "tool_call_id": "call_7B50IfWSNRy7zO8IZh31kp02"
+      },
+      {
+        "type": "AIMessage",
+        "content": "Your most recent invoice total is $5.94 (Invoice 374, dated 2013-07-04).",
+        "additional_kwargs": {
+          "refusal": null
+        },
+        "response_metadata": {
+          "token_usage": {
+            "completion_tokens": 225,
+            "prompt_tokens": 809,
+            "total_tokens": 1034,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 192,
+              "rejected_prediction_tokens": 0,
+              "text_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": null,
+              "cached_tokens": 0,
+              "image_tokens": null,
+              "text_tokens": null
+            }
+          },
+          "model_provider": "openai",
+          "model_name": "gpt-5-2025-08-07",
+          "system_fingerprint": null,
+          "id": "chatcmpl-EYJQQIAT3lRJ58erNjUJzdeLuQ1ue",
+          "service_tier": "default",
+          "finish_reason": "stop",
+          "logprobs": null
+        },
+        "id": "lc_run--01a13260-3db4-72d2-822d-45925d7e1151-0",
+        "tool_calls": [],
+        "invalid_tool_calls": [],
+        "usage_metadata": {
+          "input_tokens": 809,
+          "output_tokens": 225,
+          "total_tokens": 1034,
+          "input_token_details": {
+            "audio": 0,
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "audio": 0,
+            "reasoning": 192
+          }
+        }
+      }
+    ]
+  }
+]
