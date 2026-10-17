@@ -1,6 +1,7 @@
 """
 SQLAlchemy 2.0 ORM Models for Deterministic Financial Analysis.
 
+Conforms to ARCHITECTURE.md Section 8 (app/db/models.py).
 Models:
 - DocumentModel: Metadata, SHA-256 deduplication fingerprint, and file tracking.
 - FinancialKPIModel: 18+ standardized GAAP financial metrics across Income,
@@ -32,7 +33,7 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.database.session import Base, engine, init_db
+from app.db.session import Base, engine, init_db
 
 
 def generate_uuid() -> str:
@@ -238,20 +239,17 @@ if __name__ == "__main__":
     import json
     from datetime import datetime
     from sqlalchemy.orm import Session
-    from app.database.session import SessionLocal
+    from app.db.session import SessionLocal
 
     print("🚀 Initializing Tables from Models...")
     init_db(engine)
 
-    # Verify tables registered
     registered_tables = list(Base.metadata.tables.keys())
     print(f"✅ Registered Tables: {registered_tables}")
 
-    # Test an insert and cascade delete verification
     session: Session = SessionLocal()
     test_sha = "mock_sha256_" + uuid.uuid4().hex[:16]
     try:
-        # Create a sample document
         doc = DocumentModel(
             ticker="DEMO",
             fiscal_quarter="Q2",
@@ -264,7 +262,6 @@ if __name__ == "__main__":
         session.add(doc)
         session.flush()
 
-        # Add KPI
         kpi = FinancialKPIModel(
             document_id=doc.id,
             ticker="DEMO",
@@ -291,7 +288,6 @@ if __name__ == "__main__":
         )
         session.add(kpi)
 
-        # Add Task
         task = IngestionTaskModel(
             document_id=doc.id,
             ticker="DEMO",
@@ -304,12 +300,10 @@ if __name__ == "__main__":
 
         print(f"✅ Inserted test records successfully. Document ID: {doc.id}")
 
-        # Test Cascade Delete
         doc_id = doc.id
         session.delete(doc)
         session.commit()
 
-        # Verify child KPI was deleted automatically by cascade
         orphaned_kpi = session.query(FinancialKPIModel).filter_by(document_id=doc_id).first()
         assert orphaned_kpi is None, "Child KPI should have been cascade deleted!"
         print("✅ Cascade Delete verified: Deleting parent Document automatically deleted child KPIs.")
@@ -317,7 +311,6 @@ if __name__ == "__main__":
     finally:
         session.close()
 
-    # Export Artifact to .artifact/ (Only when run directly as CLI)
     artifact_dir = _SERVER_ROOT / ".artifact"
     artifact_dir.mkdir(parents=True, exist_ok=True)
 

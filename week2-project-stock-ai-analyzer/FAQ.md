@@ -10,6 +10,7 @@
 3. [Ingestion Strategy: How do we extract financial numbers when every PDF has a different format?](#3-ingestion-strategy-how-do-we-extract-financial-numbers-when-every-pdf-has-a-different-format)
 4. [Section Tagging: How do we classify financial domains across wildly different companies (e.g. Meta vs Tesla)?](#4-section-tagging-how-do-we-classify-financial-domains-across-wildly-different-companies-eg-meta-vs-tesla)
 5. [Multi-Company Generalization: Are we limited to Meta and Tesla, or does this scale to thousands of companies?](#5-multi-company-generalization-are-we-limited-to-meta-and-tesla-or-does-this-scale-to-thousands-of-companies)
+6. [Extraction Strategy: Why do we send full classified statement pages to the LLM instead of 1,000-character chunks?](#6-extraction-strategy-why-do-we-send-full-classified-statement-pages-to-the-llm-instead-of-1000-character-chunks)
 
 ---
 
@@ -200,3 +201,77 @@ A common fear is: *"What if the classifier gets a page wrong? Does the search br
 The domain tag is a **precision booster**, not a gatekeeper:
 - If a page has no clear GAAP financial statement patterns (e.g., executive photos, product marketing, ESG essays), it safely defaults to **`GENERAL`**.
 - It is **still 100% indexed in Pinecone and BM25**! When a user asks general narrative questions, the system searches the entire document, including all `GENERAL` pages.
+
+---
+
+### 6. Extraction Strategy: Why do we send full classified statement pages to the LLM instead of 1,000-character chunks?
+
+**Question:**
+> *"Is this step now to connect to the LLM to send the chunked data and get the structured output?"*
+
+**Answer:**
+We connect to the LLM to get **Structured Outputs**, but we **do not send small 1,000-character chunks**. 
+
+Instead, we send the **complete text of the classified financial statement pages** (`PROFITABILITY`, `BALANCE_SHEET`, `CASH_FLOW`).
+
+#### The Problem With Chunking Financial Tables:
+Financial statement tables (Income Statement, Balance Sheet, Cash Flow) contain dense, multi-column alignments:
+```
+(in millions, except per share data)       Three Months Ended June 30, 2026   June 30, 2025
+Revenue .............................................. $47,510                   $39,071
+Costs and expenses:
+  Cost of revenue .................................... $ 8,550                   $ 7,000
+Gross profit ......................................... $38,960                   $32,071
+```
+If you cut that page into arbitrary 1,000-character chunks with word boundaries:
+1. **Header Separation**: Chunk A might contain the column date headers (`"Three Months Ended June 30, 2026"`), while Chunk B contains the numbers.
+2. **Column Misalignment**: Without seeing the column headers in the same prompt, the LLM risks confusing 2026 with 2025 or reading across columns.
+3. **Missing Footnotes**: Financial accounting units (*"in millions"*, *"in thousands"*) are usually declared at the top or bottom of the page. Chunking risks separating the numbers from their units.
+
+#### The Dual-Path Architecture:
+
+| Pathway | Source Data | Target Store | Used For |
+| :--- | :--- | :--- | :--- |
+| **Deterministic KPI Pipeline (Step 2.4)** | Full Classified Statement Pages (`PROFITABILITY`, `BALANCE_SHEET`, `CASH_FLOW`) | **SQLite Database** (`financial_kpis`) | 100% exact numerical facts, ratios, and multi-quarter chart time series. |
+| **Semantic Hybrid RAG Pipeline (Phase 3)** | 1,000-character Chunks (`chunker.py`) | **Pinecone + BM25** | Qualitative narrative questions (CEO commentary, AI GPU strategy, risk factors). |
+
+By feeding complete financial statement pages into `gpt-4o-mini` with Pydantic structured output, the LLM reads unbroken financial tables with all headers and units intact.
+
+---
+
+### 7. Database Persistence: Why keep Pydantic schemas separate from SQLAlchemy models, and why link KPIs to documents?
+
+**Question:**
+> *"Why do we have both `FinancialReportKPIs` in Pydantic and `FinancialKPIModel` in SQLAlchemy? And why do we need a `DocumentModel` parent for KPIs?"*
+
+**Answer:**
+This represents the classic software engineering pattern of **Separation of Concerns (Validation vs. Persistence)**:
+
+#### 1. In-Memory Validation (Pydantic) vs. Relational Storage (SQLAlchemy)
+```
+┌────────────────────────────────────────────────────────┐
+│ Pydantic DTO (`FinancialReportKPIs`)                   │
+│ • Validates LLM output JSON strictly at runtime.       │
+│ • Enforces business math (margins between 0.0 and 1.0).│
+│ • Ephemeral in-memory data contract for APIs & LLMs.   │
+└──────────────────────────┬─────────────────────────────┘
+                           │ save_extracted_kpis_to_db()
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ SQLAlchemy ORM (`FinancialKPIModel`)                   │
+│ • Defines physical SQLite schema on disk.              │
+│ • Manages relational foreign keys & indexes.           │
+│ • Provides persistent query API (time series, peers).  │
+└────────────────────────────────────────────────────────┘
+```
+
+#### 2. Audit Lineage (`DocumentModel` Parent)
+In corporate auditing and SEC compliance, financial figures **cannot float unanchored**:
+- Every KPI row has a `document_id` foreign key pointing to the exact parent filing in `DocumentModel`.
+- If an investor or auditor questions a metric (*"Why is Free Cash Flow $784M?"*), the system traces back:
+  `KPI Record` ──▶ `Document ID` ──▶ `SHA-256 Hash` ──▶ `Source Pages [1, 5, 6, 7]` ──▶ `Raw PDF File`.
+
+#### 3. Idempotent Ingestion (`upsert_kpi`)
+If an ingestion job is rerun or an updated earnings report is uploaded:
+- SQLite unique constraint on `(ticker, fiscal_year, fiscal_quarter)` prevents duplicate rows.
+- `upsert_kpi()` updates the existing record in-place and refreshes its timestamp, keeping historical time series perfectly clean.

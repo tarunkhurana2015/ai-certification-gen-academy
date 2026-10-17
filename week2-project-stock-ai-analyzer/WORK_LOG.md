@@ -173,7 +173,8 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
   - `financial_kpis` table (18+ standardized GAAP metrics)
   - `ingestion_tasks` table (background job state machine)
 - **Step 2.3: Deterministic KPI Repository** (`database/kpi_repo.py`) — ✅ Completed
-- **Step 2.4: OpenAI Structured Output KPI Extractor** (`extractor/kpi_extractor.py`) — 🔄 Up Next
+- **Step 2.4.1: LLM Structured Output & Math Reconciliation** (`extractor/kpi_extractor.py`) — ✅ Completed
+- **Step 2.4.2: Automated SQLite Persistence & Ingestion Pipeline Integration** — 🔄 Up Next
 
 ---
 
@@ -268,4 +269,150 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
     5. Peer company comparisons for a given fiscal period.
     6. Ingestion task lifecycle state tracking.
   - All 6 tests passed with 0 errors. Pure assertions only, no test artifacts created.
+
+---
+
+### Step 2.4.1: LLM Structured Output & Mathematical Reconciliation (`kpi_extractor.py`)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/extractor/kpi_extractor.py` ([kpi_extractor.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/extractor/kpi_extractor.py))
+  - `server/app/extractor/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/extractor/__init__.py))
+  - `server/tests/extractor/test_kpi_extractor.py` ([test_kpi_extractor.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/extractor/test_kpi_extractor.py))
+- **What Was Built**:
+  - `FinancialReportKPIs`: Pydantic v2 schema standardizing all 18+ GAAP line items with strict type validation, field descriptions, reporting units (`millions`), and citation grounding (`source_pages`).
+  - `filter_financial_statement_pages()`: Eliminates ~80% of document tokens by extracting only pages tagged `PROFITABILITY`, `BALANCE_SHEET`, or `CASH_FLOW` from Step 1.3. Avoids confusing the LLM with executive photos, marketing blurbs, or general essays.
+  - `validate_and_reconcile_kpis()`:
+    - **CapEx Sign Correction**: Catches negative CapEx reporting (cash flow statements list outflows in parentheses/negative numbers) and normalizes to positive absolute values.
+    - **Mathematical Consistency**: Guarantees `Free Cash Flow = Operating Cash Flow - CapEx`.
+    - **Ratio Derivation**: Auto-computes `Gross Margin`, `Operating Margin`, and `Net Margin` if omitted.
+  - Direct CLI tool: `python app/extractor/kpi_extractor.py <pdf_path>` runs extraction via `gpt-4o-mini` with structured output, and exports `07_extracted_kpis_<doc>.[json|md]` to `.artifact/`.
+- **Verification**:
+  - Unit tests in `tests/extractor/test_kpi_extractor.py` tested schema defaults, negative CapEx sign correction, margin derivations, page filtering, and mocked extraction pipeline (all passed, 0 side effects, 0 artifacts).
+  - **Live Meta Q2 2026 Test** (`Meta-06-30-2026-Exhibit-99-1-FINAL.pdf`):
+    - Extracted 9 pages -> Filtered to statement pages `[1, 5, 6, 7]`.
+    - Revenue: `$60,801.0M`, Gross Profit: `$49,471.0M` (Margin: 81.2%), Operating Income: `$18,775.0M` (Margin: 30.9%), Net Income: `$15,848.0M` (Margin: 26.1%), EPS: `$6.18`, FCF: `$784.0M`.
+    - Artifact exported: [.artifact/07_extracted_kpis_meta_06_30_2026_exhibit_99_1_final.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/07_extracted_kpis_meta_06_30_2026_exhibit_99_1_final.md).
+    - Artifact exported: [.artifact/07_extracted_kpis_tsla_q2_2026_update.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/07_extracted_kpis_tsla_q2_2026_update.md).
+
+---
+
+### Step 2.4.1b: Repository Architecture Reorganization (Aligned with ARCHITECTURE.md Section 8)
+- **Status**: ✅ Completed
+- **Why Reorganized**:
+  - As specified in [ARCHITECTURE.md Section 8](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/ARCHITECTURE.md#8-repository-structure), `extractor/` is a sub-step of `ingestion/` (Branch A: KPI Extraction vs Branch B: Chunking & Indexing).
+  - Similarly, the database tier is specified as `app/db/` with `repositories/` separating `document_repo.py` and `kpi_repo.py`.
+- **Target Folder Layout Implemented**:
+  ```text
+  server/app/
+  ├── schemas/                            # 📋 Pydantic Type Contracts & DTOs
+  │   ├── common.py                       # Enums: FinancialDomain, StatementType, ContentFormat
+  │   └── kpis.py                         # FinancialReportKPIs Pydantic schema
+  │
+  ├── db/                                 # 🗄️ Relational Data Tier (SQLite)
+  │   ├── session.py                      # SQLite connection pooling & PRAGMA foreign_keys
+  │   ├── models.py                       # SQLAlchemy ORM models (documents, financial_kpis, ingestion_tasks)
+  │   └── repositories/                   # Repository Pattern
+  │       ├── document_repo.py            # Documents CRUD & task state queries
+  │       └── kpi_repo.py                 # Structured KPI queries & multi-quarter time series
+  │
+  └── ingestion/                          # 📑 Document Processing & Extraction Pipeline
+      ├── validator.py                    # Header bytes & SHA-256 deduplication
+      ├── parsers/                        # Layout-Aware PDF Extraction
+      │   ├── pdf_extractor.py            # Page text & structure extractor (pypdf)
+      │   └── section_classifier.py       # Domain classifier (Income, Balance Sheet, Cash Flow)
+      ├── chunkers/                       # Chunking & Semantic Enrichment
+      │   └── chunker.py                  # LangChain recursive splitter & facet enricher
+      └── extractor/                      # Deterministic KPI Extraction (Branch A)
+          ├── kpi_extractor.py            # OpenAI Structured Output parser for 18+ KPIs
+          └── kpi_validator.py            # Financial math validator (FCF == OCF - CapEx, margin derivations)
+  ```
+- **Backward Compatibility**:
+  - All existing modules (`app.ingestion`, `app.db`, `app.schemas`) provide clean package exports and forwarding wrappers so that neither unit tests nor direct CLI scripts break.
+- **Verification**:
+  - Ran all 8 unit test suites (`test_validator`, `test_pdf_extractor`, `test_section_classifier`, `test_chunker`, `test_session`, `test_models`, `test_kpi_repo`, `test_kpi_extractor`).
+  - **100% assertions passed with zero errors and zero side effects.**
+
+---
+
+### Step 2.4.2: Automated SQLite Database Persistence
+- **Status**: ✅ Completed
+- **What Was Built**:
+  - `save_extracted_kpis_to_db()` in [app/ingestion/extractor/kpi_extractor.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/extractor/kpi_extractor.py):
+    - Bridges the in-memory Pydantic validation DTO (`FinancialReportKPIs`) with the SQLite database via `kpi_repo.upsert_kpi()`.
+    - Automatically links every KPI row to the parent `DocumentModel` via foreign key `document_id`.
+    - Serializes citation grounding page numbers (`source_pages`) into JSON strings for exact audit trace.
+    - Idempotent upsert: Re-processing an existing filing safely updates the metrics in-place rather than creating duplicate rows.
+  - Legacy directory cleanup:
+    - Completely removed deprecated forwarding folders `server/app/extractor/` and `server/app/database/`.
+    - Codebase is now 100% clean and perfectly mirrors [ARCHITECTURE.md Section 8](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/ARCHITECTURE.md#8-repository-structure).
+- **Verification**:
+  - Added pure in-memory SQLite unit tests to [tests/extractor/test_kpi_extractor.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/extractor/test_kpi_extractor.py):
+    - `test_save_extracted_kpis_to_db()`: verified insertion, foreign key linking, and query round-trip.
+    - `test_save_extracted_kpis_idempotency()`: verified revised filings update existing records without creating extra rows.
+    - Zero artifacts created during tests (pure assertions only).
+  - Executed CLI end-to-end on real benchmark filings:
+    - **Meta Q2 2026**: Revenue `$60,801.0M`, Gross Profit `$49,471.0M` (81.2%), Operating Income `$18,775.0M` (30.9%), Net Income `$15,848.0M` (26.0%), EPS `$6.18`, FCF `$784.0M`.
+    - **Tesla Q2 2026**: Revenue `$28,236.0M`, Gross Profit `$4,751.0M` (16.8%), Operating Income `$398.0M` (1.4%), Net Income `$1,114.0M` (3.9%), EPS `$0.32`, FCF `$-1,092.0M`.
+    - Tested deduplication: Second run on Meta identified existing SHA-256 hash in 0.1ms and updated the row idempotently without duplication.
+    - Verified cross-company peer query: `get_multi_company_comparison(session, ['META', 'TSLA'], 2026, 'Q2')` successfully compared both companies side-by-side.
+  - Generated CLI inspectable artifacts:
+    - [.artifact/08_persisted_kpis_meta_06_30_2026_exhibit_99_1_final.json](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/08_persisted_kpis_meta_06_30_2026_exhibit_99_1_final.json)
+    - [.artifact/08_persisted_kpis_meta_06_30_2026_exhibit_99_1_final.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/08_persisted_kpis_meta_06_30_2026_exhibit_99_1_final.md)
+    - [.artifact/08_persisted_kpis_tsla_q2_2026_update.json](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/08_persisted_kpis_tsla_q2_2026_update.json)
+    - [.artifact/08_persisted_kpis_tsla_q2_2026_update.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/08_persisted_kpis_tsla_q2_2026_update.md)
+
+---
+
+### Step 2.4.3: Chunker Decoupling & 1:1 Test Suite Alignment
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **Decoupled Chunking Pipeline** ([server/app/ingestion/chunkers/](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/chunkers/)):
+     - [recursive_chunker.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/chunkers/recursive_chunker.py): Focused exclusively on text-splitting mechanics (`create_financial_text_splitter`, `split_page_text`).
+     - [metadata_enricher.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/chunkers/metadata_enricher.py): Focused exclusively on financial domain inheritance, coordinate tagging, and deterministic ID stamping (`enrich_split`, `chunk_document_pages`, `EnrichedChunk`).
+     - Removed redundant monolithic `chunker.py` and old top-level shallow wrappers.
+  2. **1-to-1 Code & Test Mirror Alignment**:
+     - Synchronized test folders to perfectly mirror `server/app/`:
+       ```text
+       server/app/                           server/tests/
+       ├── db/                               ├── db/
+       │   ├── models.py                     │   ├── test_models.py
+       │   ├── session.py                    │   ├── test_session.py
+       │   └── repositories/                 │   └── repositories/
+       │       ├── document_repo.py          │       └── test_kpi_repo.py
+       │       └── kpi_repo.py               ├── schemas/
+       ├── schemas/                          │   └── test_schemas.py
+       │   ├── common.py                     └── ingestion/
+       │   └── kpis.py                           ├── test_validator.py
+       └── ingestion/                            ├── parsers/
+           ├── validator.py                      │   ├── test_pdf_extractor.py
+           ├── parsers/                          │   └── test_section_classifier.py
+           │   ├── pdf_extractor.py              ├── chunkers/
+           │   └── section_classifier.py         │   ├── test_recursive_chunker.py
+           ├── chunkers/                         │   └── test_metadata_enricher.py
+           │   ├── recursive_chunker.py          └── extractor/
+           │   └── metadata_enricher.py              └── test_kpi_extractor.py
+           └── extractor/
+               ├── kpi_extractor.py
+               └── kpi_validator.py
+       ```
+- **Verification**:
+  - Ran all 10 unit test suites across `tests/schemas/`, `tests/db/`, and `tests/ingestion/`.
+  - **All 10 test suites passed cleanly with 100% assertions and zero test artifacts.**
+
+---
+
+### Step 2.4.4: LLM Prompt Decoupling (`llm_extraction_prompts.py`)
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **Prompt Template Module** ([server/app/ingestion/extractor/llm_extraction_prompts.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/extractor/llm_extraction_prompts.py)):
+     - Extracted all prompt building logic, system persona definitions (`KPI_AUDITOR_SYSTEM_ROLE`), and GAAP extraction rules (`KPI_EXTRACTION_RULES`) out of `kpi_extractor.py`.
+     - `build_extraction_prompt()`: Context-rich prompt assembler with page-by-page header anchors and optional hints (`ticker`, `quarter`, `year`).
+  2. **Refactored `kpi_extractor.py`**:
+     - Imports `build_extraction_prompt` from `llm_extraction_prompts.py`.
+     - `kpi_extractor.py` now purely focuses on orchestrating the LangChain structured LLM call and database persistence.
+  3. **1:1 Mirror Test Suite**:
+     - Created [server/tests/ingestion/extractor/test_llm_extraction_prompts.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/extractor/test_llm_extraction_prompts.py) testing rule assertions, prompt interpolation, and edge-cases without hints.
+- **Verification**:
+  - Ran all 11 unit test suites sequentially.
+  - **100% assertions passed with zero errors and zero test artifacts.**
 

@@ -20,7 +20,7 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.database.session import (
+from app.db.session import (
     Base,
     create_db_engine,
     engine,

@@ -1,11 +1,14 @@
 """
-Database Module:
-- SQLAlchemy 2.0 Base, Engine, and SessionLocal (session.py)
-- ORM Models (models.py)
-- KPI Database Repository (kpi_repo.py)
+Relational Data Tier Package (SQLite).
+
+Conforms to ARCHITECTURE.md Section 8 (app/db/).
+Exposes:
+- Base, engine, SessionLocal, get_db, init_db
+- Models: DocumentModel, FinancialKPIModel, IngestionTaskModel
+- Repositories: document_repo, kpi_repo
 """
 
-from app.database.session import (
+from app.db.session import (
     Base,
     DATABASE_URL,
     SessionLocal,
@@ -17,12 +20,9 @@ from app.database.session import (
 
 
 def __getattr__(name: str):
-    """
-    Lazy import ORM models and repository functions to prevent circular import traps
-    when running submodule scripts directly via CLI.
-    """
+    """Lazy import ORM models and repositories to prevent circular imports."""
     if name in {"DocumentModel", "FinancialKPIModel", "IngestionTaskModel"}:
-        import app.database.models as models
+        import app.db.models as models
         return getattr(models, name)
 
     repo_exports = {
@@ -30,17 +30,17 @@ def __getattr__(name: str):
         "get_document_by_hash",
         "save_document",
         "list_documents",
+        "create_task",
+        "update_task_status",
+        "get_task",
         "get_kpis_by_quarter",
         "get_kpi_time_series",
         "get_multi_company_comparison",
         "upsert_kpi",
-        "create_task",
-        "update_task_status",
-        "get_task",
     }
     if name in repo_exports:
-        import app.database.kpi_repo as kpi_repo
-        return getattr(kpi_repo, name)
+        import app.db.repositories as repositories
+        return getattr(repositories, name)
 
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
@@ -60,11 +60,11 @@ __all__ = [
     "get_document_by_hash",
     "save_document",
     "list_documents",
+    "create_task",
+    "update_task_status",
+    "get_task",
     "get_kpis_by_quarter",
     "get_kpi_time_series",
     "get_multi_company_comparison",
     "upsert_kpi",
-    "create_task",
-    "update_task_status",
-    "get_task",
 ]

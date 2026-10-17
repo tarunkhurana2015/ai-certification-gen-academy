@@ -1,6 +1,7 @@
 """
 Database Session & Connection Management Module.
 
+Conforms to ARCHITECTURE.md Section 8 (app/db/session.py).
 Provides:
 - SQLite Database Engine configuration with enforced foreign keys
 - Modern DeclarativeBase for SQLAlchemy 2.0 ORM models
@@ -16,7 +17,7 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-# Ensure server root is in sys.path for direct CLI runs
+# Ensure server root is in sys.path
 _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
@@ -54,7 +55,6 @@ def create_db_engine(db_url: str = DATABASE_URL) -> Engine:
     across async FastAPI worker threads safely.
     """
     if db_url.startswith("sqlite"):
-        # Ensure parent directory exists for file-based SQLite databases
         if not db_url.startswith("sqlite:///:memory:") and "///" in db_url:
             raw_path = db_url.split("///", 1)[1]
             db_file = Path(raw_path)
@@ -102,19 +102,15 @@ if __name__ == "__main__":
     from datetime import datetime
 
     print("🚀 Initializing Database Engine & Verifying Connection...")
-    
-    # 1. Initialize tables
     init_db(engine)
 
-    # 2. Test Foreign Keys PRAGMA and Connection
     with engine.connect() as conn:
         fk_result = conn.execute(text("PRAGMA foreign_keys;")).scalar()
         version_result = conn.execute(text("SELECT sqlite_version();")).scalar()
-    
+
     print(f"✅ SQLite Connected: version={version_result}, foreign_keys_enabled={bool(fk_result)}")
     print(f"📁 Database Location: {DATABASE_URL}")
 
-    # 3. Export Artifact to .artifact/ (Only when run directly as CLI)
     artifact_dir = _SERVER_ROOT / ".artifact"
     artifact_dir.mkdir(parents=True, exist_ok=True)
 

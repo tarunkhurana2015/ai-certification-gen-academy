@@ -2,12 +2,11 @@
 Interactive Learning Test: Step 1.2 - PDF Text & Page Extractor
 ===============================================================
 
+Conforms to ARCHITECTURE.md Section 8 (tests/ingestion/parsers/test_pdf_extractor.py).
 Pure verification test (does NOT write to .artifact/ directory).
 
 Run from server directory:
-    python tests/ingestion/test_pdf_extractor.py
-or
-    uv run python tests/ingestion/test_pdf_extractor.py
+    python tests/ingestion/parsers/test_pdf_extractor.py
 """
 
 import sys
@@ -16,12 +15,16 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 # Ensure the server root is in sys.path so 'from app...' works cleanly
-SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+SERVER_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(SERVER_ROOT))
 
-# Import extractor component
-from app.ingestion.pdf_extractor import extract_text_by_pages
+# Import extractor component from canonical location
+from app.ingestion.parsers.pdf_extractor import (
+    ExtractedPage,
+    PDFExtractionResult,
+    extract_text_by_pages,
+)
 
 
 def generate_mock_earnings_report(pdf_path: Path) -> Path:
@@ -85,7 +88,7 @@ def main():
     print("🎓 LEARNING TEST: STEP 1.2 - PDF TEXT & PAGE-BY-PAGE EXTRACTION")
     print("=" * 70)
 
-    test_dir = Path(__file__).resolve().parent.parent / "test_data"
+    test_dir = SERVER_ROOT / "tests/test_data"
     test_dir.mkdir(exist_ok=True)
 
     # ---------------- Case 1: Multi-Page Generated Financial Report ----------------

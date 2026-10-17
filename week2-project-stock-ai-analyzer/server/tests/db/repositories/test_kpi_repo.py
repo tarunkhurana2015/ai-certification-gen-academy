@@ -18,23 +18,25 @@ from pathlib import Path
 from sqlalchemy.orm import Session, sessionmaker
 
 # Ensure server root is in sys.path
-_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.database.session import Base, create_db_engine
-from app.database.models import DocumentModel, FinancialKPIModel, IngestionTaskModel
-from app.database.kpi_repo import (
+from app.db.session import Base, create_db_engine
+from app.db.models import DocumentModel, FinancialKPIModel, IngestionTaskModel
+from app.db.repositories.document_repo import (
     create_task,
     get_document_by_hash,
     get_document_by_id,
-    get_kpi_time_series,
-    get_kpis_by_quarter,
-    get_multi_company_comparison,
     get_task,
     list_documents,
     save_document,
     update_task_status,
+)
+from app.db.repositories.kpi_repo import (
+    get_kpi_time_series,
+    get_kpis_by_quarter,
+    get_multi_company_comparison,
     upsert_kpi,
 )
 

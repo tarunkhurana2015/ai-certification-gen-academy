@@ -1,75 +1,26 @@
 """
 Deterministic Financial KPI Repository Module.
 
+Conforms to ARCHITECTURE.md Section 8 (app/db/repositories/kpi_repo.py).
 Provides high-level, type-safe data access functions for:
-- Document metadata and 0.1ms SHA-256 deduplication
 - 18+ GAAP Financial KPIs (single quarter, multi-quarter time series, cross-company comparisons)
 - Auto-validation and calculation of derived financial ratios (Margins, FCF)
-- Ingestion task lifecycle management
 """
 
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from sqlalchemy import desc, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 # Ensure server root is in sys.path
-_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.database.models import DocumentModel, FinancialKPIModel, IngestionTaskModel
+from app.db.models import FinancialKPIModel
 
-
-# =====================================================================
-# Document Repository Operations
-# =====================================================================
-
-def get_document_by_id(session: Session, document_id: str) -> Optional[DocumentModel]:
-    """Retrieve a document by primary key UUID."""
-    return session.get(DocumentModel, document_id)
-
-
-def get_document_by_hash(session: Session, sha256_hash: str) -> Optional[DocumentModel]:
-    """
-    Look up a document by its SHA-256 checksum.
-    Executes in ~0.1ms using the indexed unique hash to instantly detect duplicates.
-    """
-    stmt = select(DocumentModel).where(DocumentModel.sha256_hash == sha256_hash)
-    return session.scalars(stmt).first()
-
-
-def save_document(session: Session, doc_data: Dict[str, Any]) -> DocumentModel:
-    """Save or create a new document record."""
-    doc = DocumentModel(
-        ticker=doc_data["ticker"].upper().strip(),
-        fiscal_quarter=doc_data["fiscal_quarter"].upper().strip(),
-        fiscal_year=int(doc_data["fiscal_year"]),
-        report_title=doc_data["report_title"],
-        sha256_hash=doc_data["sha256_hash"],
-        file_path=str(doc_data["file_path"]),
-        page_count=int(doc_data.get("page_count", 0)),
-    )
-    session.add(doc)
-    session.commit()
-    session.refresh(doc)
-    return doc
-
-
-def list_documents(session: Session, ticker: Optional[str] = None) -> List[DocumentModel]:
-    """List all ingested documents, optionally filtered by ticker."""
-    stmt = select(DocumentModel)
-    if ticker:
-        stmt = stmt.where(DocumentModel.ticker == ticker.upper().strip())
-    stmt = stmt.order_by(DocumentModel.fiscal_year.desc(), DocumentModel.fiscal_quarter.desc())
-    return list(session.scalars(stmt).all())
-
-
-# =====================================================================
-# Financial KPI Repository Operations
-# =====================================================================
 
 def get_kpis_by_quarter(
     session: Session,
@@ -99,7 +50,6 @@ def get_kpi_time_series(
     Used by the Flutter frontend charts (Revenue growth, Margins, FCF curve).
     Returns up to `limit` quarters in chronological order (earliest to latest).
     """
-    # Fetch latest quarters first, then reverse to chronological order
     stmt = (
         select(FinancialKPIModel)
         .where(FinancialKPIModel.ticker == ticker.upper().strip())
@@ -221,71 +171,17 @@ def upsert_kpi(session: Session, kpi_data: Dict[str, Any]) -> FinancialKPIModel:
     return kpi
 
 
-# =====================================================================
-# Ingestion Task Repository Operations
-# =====================================================================
-
-def create_task(
-    session: Session,
-    ticker: Optional[str] = None,
-    document_id: Optional[str] = None,
-) -> IngestionTaskModel:
-    """Create a new tracking task for an ingestion job."""
-    task = IngestionTaskModel(
-        ticker=ticker.upper().strip() if ticker else None,
-        document_id=document_id,
-        status="PENDING",
-        progress_percent=0,
-        message="Queued for ingestion",
-    )
-    session.add(task)
-    session.commit()
-    session.refresh(task)
-    return task
-
-
-def update_task_status(
-    session: Session,
-    task_id: str,
-    status: str,
-    progress_percent: int,
-    message: str,
-    error_details: Optional[str] = None,
-) -> Optional[IngestionTaskModel]:
-    """Update task progress and state."""
-    task = session.get(IngestionTaskModel, task_id)
-    if not task:
-        return None
-    task.status = status
-    task.progress_percent = progress_percent
-    task.message = message
-    if error_details:
-        task.error_details = error_details
-    session.commit()
-    session.refresh(task)
-    return task
-
-
-def get_task(session: Session, task_id: str) -> Optional[IngestionTaskModel]:
-    """Retrieve an ingestion task by UUID."""
-    return session.get(IngestionTaskModel, task_id)
-
-
-# =====================================================================
-# Direct CLI Execution (Exports Artifact to .artifact/)
-# =====================================================================
-
 if __name__ == "__main__":
     import json
     import uuid
-    from app.database.session import SessionLocal, init_db, engine
+    from app.db.session import SessionLocal, init_db, engine
+    from app.db.repositories.document_repo import save_document, get_document_by_hash
 
     print("🚀 Demonstrating KPI Repository Queries...")
     init_db(engine)
     session = SessionLocal()
 
     try:
-        # Seed test document for Meta
         meta_hash = "mock_sha_" + uuid.uuid4().hex[:12]
         doc_meta = save_document(session, {
             "ticker": "META",
@@ -297,7 +193,6 @@ if __name__ == "__main__":
             "page_count": 9,
         })
 
-        # Seed 4 quarters of Meta data for time-series demonstration
         quarters_data = [
             {"quarter": "Q3", "year": 2025, "rev": 40589.0, "gp": 33283.0, "ni": 15688.0, "ocf": 21000.0, "capex": 9200.0},
             {"quarter": "Q4", "year": 2025, "rev": 48385.0, "gp": 39676.0, "ni": 20838.0, "ocf": 27000.0, "capex": 10500.0},
@@ -319,7 +214,6 @@ if __name__ == "__main__":
                 "source_pages": "[5, 6, 7]",
             })
 
-        # Seed TSLA for cross-company comparison
         tsla_hash = "mock_sha_" + uuid.uuid4().hex[:12]
         doc_tsla = save_document(session, {
             "ticker": "TSLA",
@@ -343,24 +237,19 @@ if __name__ == "__main__":
             "source_pages": "[10, 11]",
         })
 
-        # Query 1: Exact Quarter Lookup
         meta_q2 = get_kpis_by_quarter(session, "META", 2026, "Q2")
         print(f"✅ Exact Quarter: META Q2 2026 Rev=${meta_q2.revenue:,.0f}M, GM={meta_q2.gross_margin:.1%}, FCF=${meta_q2.free_cash_flow:,.0f}M")
 
-        # Query 2: Time Series Lookup
         meta_ts = get_kpi_time_series(session, "META", limit=4)
         print(f"✅ Time Series: Retrieved {len(meta_ts)} chronological quarters for META")
 
-        # Query 3: Multi-Company Comparison
         comp = get_multi_company_comparison(session, ["META", "TSLA"], 2026, "Q2")
         print(f"✅ Peer Comparison: {len(comp)} companies compared for Q2 2026")
 
-        # Query 4: Instant Hash Deduplication
         dedup_check = get_document_by_hash(session, meta_hash)
         assert dedup_check is not None
         print(f"✅ 0.1ms Deduplication: Found existing document {dedup_check.report_title}")
 
-        # Export Artifact to .artifact/ (Only when run directly as CLI)
         artifact_dir = _SERVER_ROOT / ".artifact"
         artifact_dir.mkdir(parents=True, exist_ok=True)
 
