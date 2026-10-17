@@ -11,8 +11,8 @@
 | Phase | Component | Focus / Learning Goal | Status |
 | :--- | :--- | :--- | :--- |
 | **Phase 0** | **Environment Setup** | Python 3.11+, virtualenv (`uv`), dependencies, `.env` | ✅ Completed |
-| **Phase 1** | **PDF Ingestion Pipeline** | PDF validation, text extraction, section parsing, chunking | 🔄 **In Progress** |
-| **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | ⏳ Pending |
+| **Phase 1** | **PDF Ingestion Pipeline** | PDF validation, text extraction, section parsing, chunking | ✅ Completed |
+| **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | 🔄 **In Progress** |
 | **Phase 3** | **Dual Hybrid Indexing** | Pinecone dense embeddings + BM25 sparse keyword index | ⏳ Pending |
 | **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ⏳ Pending |
 | **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
@@ -131,11 +131,49 @@ To learn this thoroughly, we break the Ingestion Pipeline down into small, diges
 ---
 
 ### Step 1.4: Semantic Chunking & Metadata Enrichment (LangChain)
-- **Status**: ⏳ Pending / Next Up
-- **Target File**: `server/app/ingestion/chunker.py`
-- **Why this component?**:
-  - LLMs have finite context windows, and dense vector embeddings lose semantic sharpness if chunks are too large (e.g. 5,000 chars).
-  - This component uses LangChain's `RecursiveCharacterTextSplitter` (1000 characters with 100 overlap) to split each page while respecting paragraphs, tables, and sentence boundaries.
-  - Each chunk is stamped with rich, typed metadata (`chunk_id`, `ticker`, `quarter`, `year`, `page_number`, `financial_domain`), which makes hard metadata pre-filtering possible in Pinecone and BM25!
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/ingestion/chunker.py` ([chunker.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/chunker.py))
+  - `server/tests/ingestion/test_chunker.py` ([test_chunker.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/test_chunker.py))
+- **What Was Built**:
+  - `EnrichedChunk`: Immutable dataclass representing a semantic snippet with `chunk_id`, `ticker`, `fiscal_quarter`, `fiscal_year`, `page_number`, `financial_domain`, `char_count`, and chunk indices.
+  - `chunk_document_pages()`: Uses LangChain's `RecursiveCharacterTextSplitter` (1000 chunk size, 100 overlap, `["\n\n", "\n", ". ", " ", ""]` separators).
+  - Skips blank pages, pairs each page with its classified domain from Step 1.3, and produces deterministic IDs (`{ticker}_{quarter}_{year}_p{page}_c{idx}`).
+  - Direct CLI tool: `python app/ingestion/chunker.py [pdf_path]` exports `03_chunks_<doc>.[json|md]` to `.artifact/`.
+- **Verification**:
+  - Tested on **Meta Q2 2026** (9 pages): produced 24 semantic chunks across all 6 financial domains.
+  - Verified Page 5 (Statements of Income) produced 2 chunks faithfully inheriting `financial_domain = "profitability"`.
+  - Verified Page 6 (Balance Sheet) produced 2 chunks inheriting `financial_domain = "balance_sheet"`.
+  - Tested on **Tesla Q2 2026** (33 pages): produced 66 semantic chunks.
+  - Verified blank page handling (0 chunks) and chunk overlap boundaries.
+  - All unit test assertions passed with 0 errors.
+
+---
+
+## 🗄️ Phase 2: Deterministic Financial Database (SQLite & SQLAlchemy)
+
+Now that raw PDFs can be ingested, classified, and chunked with 100% precision, we move to **Phase 2: Structured Data Storage**.
+
+### Why SQLite for Financial KPIs?
+In financial analysis, an AI must **never guess or hallucinate numerical facts**:
+- When a user asks: *"What was Meta's revenue in Q2 2026 vs Q2 2025?"* or *"Plot gross margins across the last 4 quarters"*, the system does **not** rely on fuzzy vector retrieval.
+- Instead, it queries **SQLite directly** with deterministic SQL:
+  ```sql
+  SELECT fiscal_quarter, fiscal_year, revenue, gross_margin, net_income 
+  FROM financial_kpis 
+  WHERE ticker = 'META' 
+  ORDER BY fiscal_year ASC, fiscal_quarter ASC;
+  ```
+- This guarantees **100% mathematical precision**, exact multi-quarter chart data, and zero hallucinations.
+
+### Phase 2 Step-by-Step Breakdown:
+- **Step 2.1: SQLite Database Engine & Connection Pool** (`database/session.py`)
+- **Step 2.2: SQLAlchemy ORM Models** (`database/models.py`)
+  - `documents` table (file tracking, sha256_hash, page count)
+  - `financial_kpis` table (18+ standardized GAAP metrics)
+  - `ingestion_tasks` table (background job state machine)
+- **Step 2.3: Deterministic KPI Repository** (`database/kpi_repo.py`)
+- **Step 2.4: OpenAI Structured Output KPI Extractor** (`extractor/kpi_extractor.py`)
+
 
 

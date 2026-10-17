@@ -18,6 +18,10 @@ from app.ingestion.section_classifier import (
     classify_page,
     classify_document_pages,
 )
+from app.ingestion.chunker import (
+    EnrichedChunk,
+    chunk_document_pages,
+)
 
 __all__ = [
     "PDFValidationResult",
@@ -29,4 +33,6 @@ __all__ = [
     "PageClassification",
     "classify_page",
     "classify_document_pages",
+    "EnrichedChunk",
+    "chunk_document_pages",
 ]
