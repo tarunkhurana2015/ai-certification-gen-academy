@@ -66,7 +66,7 @@ void main() {
     await tester.tap(find.text('AI Analyst'));
     await tester.pumpAndSettle();
     expect(find.text('AI Analyst Copilot'), findsOneWidget);
-    expect(find.text('Executive Summary & Strategic Takeaways'), findsOneWidget);
+    expect(find.text('Import Quarterly Earnings Report (PDF)'), findsOneWidget);
   });
 
   testWidgets('GenStockFolio loads demo portfolio and populates summary cards', (WidgetTester tester) async {

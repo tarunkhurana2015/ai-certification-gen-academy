@@ -80,6 +80,10 @@ void main() {
       expect(find.text('Import Quarterly Earnings Report (PDF)'), findsOneWidget);
       expect(find.text('Extract KPIs & Ingest RAG'), findsOneWidget);
 
+      // Browse and select PDF file
+      await tester.tap(find.text('Browse'));
+      await tester.pumpAndSettle();
+
       // Click Ingest button
       await tester.tap(find.text('Extract KPIs & Ingest RAG'));
       await tester.pump();

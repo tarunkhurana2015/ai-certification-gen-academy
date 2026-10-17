@@ -6,11 +6,10 @@ import '../state/kpi_dashboard_state.dart';
 class KpiDashboardViewModel extends Notifier<KpiDashboardState> {
   @override
   KpiDashboardState build() {
-    final initialReports = MockKpiDataSource.benchmarkReports;
-    return KpiDashboardState(
+    return const KpiDashboardState(
       isLoading: false,
-      availableReports: initialReports,
-      selectedReport: initialReports.isNotEmpty ? initialReports.first : null,
+      availableReports: [],
+      selectedReport: null,
     );
   }
 

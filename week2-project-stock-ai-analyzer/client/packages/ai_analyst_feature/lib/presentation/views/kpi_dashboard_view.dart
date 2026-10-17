@@ -103,8 +103,43 @@ class _KpiDashboardViewState extends ConsumerState<KpiDashboardView> {
 
     final report = state.selectedReport;
     if (report == null) {
-      return const Scaffold(
-        body: Center(child: Text('No earnings reports available.')),
+      return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ReportSelectorHeader(
+                      selectedReport: null,
+                      availableReports: state.availableReports,
+                      onReportSelected: (selected) => viewModel.selectReport(selected),
+                      onIngestTap: null,
+                    ),
+                    const SizedBox(height: 20),
+                    ReportIngestionPanel(
+                      onReportIngested: (newReport) {
+                        viewModel.addAndSelectReport(newReport);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Successfully ingested and indexed ${newReport.ticker} ${newReport.fiscalPeriodDisplay}!',
+                            ),
+                            backgroundColor: Colors.green.shade800,
+                          ),
+                        );
+                      },
+                      onCancel: null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       );
     }
 

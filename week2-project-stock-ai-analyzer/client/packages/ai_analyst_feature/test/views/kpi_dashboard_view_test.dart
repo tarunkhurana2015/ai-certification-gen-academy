@@ -16,16 +16,28 @@ void main() {
       ),
     );
 
-    // Initial render
+    // Initial render: No report is loaded, so Ingestion Panel is shown
     await tester.pumpAndSettle();
 
-    // Verify AI Analyst Copilot Header
     expect(find.text('AI Analyst Copilot'), findsOneWidget);
-    expect(find.text('RAG Active'), findsOneWidget);
+    expect(find.byType(ReportIngestionPanel), findsOneWidget);
+    expect(find.text('Import Quarterly Earnings Report (PDF)'), findsOneWidget);
+    expect(find.text('Extract KPIs & Ingest RAG'), findsOneWidget);
 
-    // Verify Executive Summary Card
+    // Ingest PDF file
+    await tester.tap(find.text('Browse'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Extract KPIs & Ingest RAG'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    // Now that PDF is ingested, full dashboard is displayed!
     expect(find.text('Executive Summary & Strategic Takeaways'), findsOneWidget);
-    expect(find.textContaining('Total revenue expanded +2.1% YoY'), findsOneWidget);
+    expect(find.textContaining('Extracted 18+ standardized financial KPIs'), findsOneWidget);
 
     // Verify Pillar 1: Profitability & Descriptions
     expect(find.text('Profitability & Earnings Power'), findsOneWidget);
@@ -60,14 +72,7 @@ void main() {
     expect(find.text('Earnings Copilot Q&A'), findsOneWidget);
     expect(find.textContaining('Active Scope: Tesla, Inc. (Q2 2026)'), findsOneWidget);
 
-    // Verify Import PDF button opens ReportIngestionPanel
+    // Verify Import PDF button is visible to import additional reports
     expect(find.text('Import PDF'), findsOneWidget);
-    await tester.tap(find.text('Import PDF'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(ReportIngestionPanel), findsOneWidget);
-    expect(find.text('Import Quarterly Earnings Report (PDF)'), findsOneWidget);
-    expect(find.text('Choose PDF Earnings Report / Shareholder Deck'), findsOneWidget);
-    expect(find.text('Stock Ticker *'), findsOneWidget);
   });
 }

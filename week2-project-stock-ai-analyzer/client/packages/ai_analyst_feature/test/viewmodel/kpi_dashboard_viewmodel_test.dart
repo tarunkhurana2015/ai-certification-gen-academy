@@ -29,18 +29,31 @@ void main() {
       container.dispose();
     });
 
-    test('Initializes with synchronous benchmark reports and default selection', () {
+    test('Initializes with empty reports and null selection until PDF is ingested', () {
       final state = container.read(kpiDashboardViewModelProvider);
 
       expect(state.isLoading, isFalse);
-      expect(state.availableReports.isNotEmpty, isTrue);
-      expect(state.selectedReport, isNotNull);
+      expect(state.availableReports.isEmpty, isTrue);
+      expect(state.selectedReport, isNull);
+    });
+
+    test('addAndSelectReport adds ingested report and updates selectedReport', () {
+      final notifier = container.read(kpiDashboardViewModelProvider.notifier);
+      final sample = MockKpiDataSource.benchmarkReports.first;
+
+      notifier.addAndSelectReport(sample);
+
+      final state = container.read(kpiDashboardViewModelProvider);
+      expect(state.availableReports.length, equals(1));
       expect(state.selectedReport?.ticker, equals('TSLA'));
       expect(state.selectedReport?.fiscalQuarter, equals('Q2'));
     });
 
     test('selectReport updates selectedReport state', () {
       final notifier = container.read(kpiDashboardViewModelProvider.notifier);
+      for (final r in MockKpiDataSource.benchmarkReports) {
+        notifier.addAndSelectReport(r);
+      }
       final initial = container.read(kpiDashboardViewModelProvider);
 
       final appleReport = initial.availableReports.firstWhere((r) => r.ticker == 'AAPL');
@@ -53,6 +66,9 @@ void main() {
 
     test('selectReportByDocId selects report matching doc ID', () {
       final notifier = container.read(kpiDashboardViewModelProvider.notifier);
+      for (final r in MockKpiDataSource.benchmarkReports) {
+        notifier.addAndSelectReport(r);
+      }
       notifier.selectReportByDocId('doc_tsla_2026_q1');
 
       final updated = container.read(kpiDashboardViewModelProvider);
