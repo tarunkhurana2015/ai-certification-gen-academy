@@ -137,3 +137,71 @@ def extract_text_by_pages(file_path: Union[str, Path]) -> PDFExtractionResult:
         metadata=cleaned_metadata,
         blank_page_count=blank_pages,
     )
+
+
+if __name__ == "__main__":
+    import sys
+    # Ensure server root is on path when executed directly
+    server_root = Path(__file__).resolve().parent.parent.parent
+    if str(server_root) not in sys.path:
+        sys.path.insert(0, str(server_root))
+
+    from app.ingestion.artifact_saver import save_artifact
+
+    # Check for CLI argument or fallback to Meta Q2 2026 test PDF
+    default_sample = server_root / "tests" / "test_data" / "Meta-06-30-2026-Exhibit-99-1-FINAL.pdf"
+    target_path = Path(sys.argv[1]) if len(sys.argv) > 1 else default_sample
+
+    if not target_path.exists():
+        print(f"❌ Sample PDF not found at: {target_path}")
+        sys.exit(1)
+
+    print("=" * 70)
+    print(f"📄 EXTRACTING PDF: {target_path.name}")
+    print("=" * 70)
+
+    res = extract_text_by_pages(target_path)
+    print(f"  • Total Pages:      {res.total_pages}")
+    print(f"  • Total Characters: {res.total_characters}")
+    print(f"  • Blank Pages:      {res.blank_page_count}")
+
+    doc_prefix = target_path.stem.lower().replace("-", "_")
+
+    # Export JSON artifact
+    json_data = {
+        "file_name": target_path.name,
+        "total_pages": res.total_pages,
+        "total_characters": res.total_characters,
+        "blank_page_count": res.blank_page_count,
+        "pages": [
+            {
+                "page_number": p.page_number,
+                "char_count": p.char_count,
+                "is_blank": p.is_blank,
+                "text": p.text,
+            }
+            for p in res.pages
+        ],
+    }
+    json_path = save_artifact(f"01_extracted_{doc_prefix}.json", json_data)
+
+    # Export Markdown artifact
+    md_lines = [
+        f"# Extracted PDF Text: {target_path.name}",
+        f"\n- **Total Pages**: {res.total_pages}",
+        f"- **Total Characters**: {res.total_characters}",
+        f"- **Blank Pages**: {res.blank_page_count}",
+        "\n---\n",
+    ]
+    for p in res.pages:
+        md_lines.append(f"## 📄 Page {p.page_number} ({p.char_count} chars, Blank: {p.is_blank})\n")
+        md_lines.append("```text")
+        md_lines.append(p.text if p.text else "[NO EXTRACTABLE TEXT]")
+        md_lines.append("```\n")
+
+    md_path = save_artifact(f"01_extracted_{doc_prefix}.md", "\n".join(md_lines))
+
+    print(f"\n🎉 Saved artifacts:")
+    print(f"  • JSON: {json_path}")
+    print(f"  • MD:   {md_path}")
+    print("=" * 70)

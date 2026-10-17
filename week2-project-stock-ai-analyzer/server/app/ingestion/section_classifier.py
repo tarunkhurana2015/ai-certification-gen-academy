@@ -21,12 +21,21 @@ Why this matters:
    preventing cross-statement confusion during user queries.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure server root is in sys.path when module is invoked directly as a script
+_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_SERVER_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SERVER_ROOT))
+
 from dataclasses import dataclass, field
 from enum import Enum
 import re
 from typing import Dict, List, Optional, Set, Tuple
 
 from app.ingestion.pdf_extractor import ExtractedPage
+
 
 
 class FinancialDomain(str, Enum):
@@ -292,3 +301,70 @@ def classify_document_pages(pages: List[ExtractedPage]) -> List[PageClassificati
         List of PageClassification objects aligned with each page.
     """
     return [classify_page(page) for page in pages]
+
+
+if __name__ == "__main__":
+    import sys
+    from pathlib import Path
+    server_root = Path(__file__).resolve().parent.parent.parent
+    if str(server_root) not in sys.path:
+        sys.path.insert(0, str(server_root))
+
+    from app.ingestion.pdf_extractor import extract_text_by_pages
+    from app.ingestion.artifact_saver import save_artifact
+
+    default_sample = server_root / "tests" / "test_data" / "Meta-06-30-2026-Exhibit-99-1-FINAL.pdf"
+    target_path = Path(sys.argv[1]) if len(sys.argv) > 1 else default_sample
+
+    if not target_path.exists():
+        print(f"❌ Sample PDF not found at: {target_path}")
+        sys.exit(1)
+
+    print("=" * 75)
+    print(f"🏷️  CLASSIFYING FINANCIAL DOMAINS: {target_path.name}")
+    print("=" * 75)
+
+    doc = extract_text_by_pages(target_path)
+    classifications = classify_document_pages(doc.pages)
+
+    for c in classifications:
+        top_sig = c.matched_signals[0] if c.matched_signals else "None"
+        print(f"  📄 Page {c.page_number:02d} ──▶ {c.domain.value.upper():<16} (Confidence: {c.confidence:.2f}) | {top_sig}")
+
+    doc_prefix = target_path.stem.lower().replace("-", "_")
+
+    # Export JSON artifact
+    json_payload = {
+        "document_name": target_path.name,
+        "total_pages": len(classifications),
+        "classifications": [
+            {
+                "page_number": c.page_number,
+                "domain": c.domain.value,
+                "confidence": c.confidence,
+                "matched_signals": c.matched_signals,
+            }
+            for c in classifications
+        ],
+    }
+    json_path = save_artifact(f"02_classified_{doc_prefix}.json", json_payload)
+
+    # Export Markdown table artifact
+    md_lines = [
+        f"# Financial Section Classification: {target_path.name}",
+        f"\nTotal Pages: **{len(classifications)}**\n",
+        "| Page | Classified Domain | Confidence | Top Matched Signals |",
+        "| :--- | :--- | :--- | :--- |",
+    ]
+    for c in classifications:
+        signals = ", ".join(c.matched_signals[:3]) if c.matched_signals else "None"
+        md_lines.append(
+            f"| **Page {c.page_number:02d}** | `{c.domain.value}` | **{c.confidence:.2f}** | {signals} |"
+        )
+
+    md_path = save_artifact(f"02_classified_{doc_prefix}.md", "\n".join(md_lines))
+
+    print(f"\n🎉 Saved artifacts:")
+    print(f"  • JSON: {json_path}")
+    print(f"  • MD:   {md_path}")
+    print("=" * 75)
