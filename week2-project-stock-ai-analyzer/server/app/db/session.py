@@ -123,11 +123,11 @@ if __name__ == "__main__":
         "status": "ready"
     }
 
-    json_path = artifact_dir / "04_database_init.json"
+    json_path = artifact_dir / "db_01_database_init.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(artifact_data, f, indent=2)
 
-    md_path = artifact_dir / "04_database_init.md"
+    md_path = artifact_dir / "db_01_database_init.md"
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("# 🗄️ Database Engine Initialization Artifact\n\n")
         f.write(f"- **Timestamp**: `{artifact_data['timestamp']}`\n")

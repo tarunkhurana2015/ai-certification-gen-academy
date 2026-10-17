@@ -337,11 +337,11 @@ if __name__ == "__main__":
         "status": "ready",
     }
 
-    json_path = artifact_dir / "05_database_models.json"
+    json_path = artifact_dir / "db_02_database_models.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(artifact_data, f, indent=2)
 
-    md_path = artifact_dir / "05_database_models.md"
+    md_path = artifact_dir / "db_02_database_models.md"
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("# 🗄️ Database ORM Models & Schema Artifact\n\n")
         f.write(f"- **Timestamp**: `{artifact_data['timestamp']}`\n")

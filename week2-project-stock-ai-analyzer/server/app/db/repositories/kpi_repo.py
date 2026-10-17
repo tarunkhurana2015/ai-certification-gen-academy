@@ -40,6 +40,27 @@ def get_kpis_by_quarter(
     return session.scalars(stmt).first()
 
 
+def get_kpis_by_document_id(
+    session: Session,
+    document_id: str,
+) -> Optional[FinancialKPIModel]:
+    """Fetch financial KPIs by parent Document ID."""
+    stmt = select(FinancialKPIModel).where(FinancialKPIModel.document_id == document_id)
+    return session.scalars(stmt).first()
+
+
+def list_all_kpis(
+    session: Session,
+    ticker: Optional[str] = None,
+) -> List[FinancialKPIModel]:
+    """List all available quarterly KPIs, ordered by year DESC, quarter DESC."""
+    stmt = select(FinancialKPIModel)
+    if ticker:
+        stmt = stmt.where(FinancialKPIModel.ticker == ticker.upper().strip())
+    stmt = stmt.order_by(FinancialKPIModel.fiscal_year.desc(), FinancialKPIModel.fiscal_quarter.desc())
+    return list(session.scalars(stmt).all())
+
+
 def get_kpi_time_series(
     session: Session,
     ticker: str,
@@ -262,11 +283,11 @@ if __name__ == "__main__":
             "status": "ready"
         }
 
-        json_path = artifact_dir / "06_kpi_repo_queries.json"
+        json_path = artifact_dir / "db_03_kpi_repo_queries.json"
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(artifact_data, f, indent=2)
 
-        md_path = artifact_dir / "06_kpi_repo_queries.md"
+        md_path = artifact_dir / "db_03_kpi_repo_queries.md"
         with open(md_path, "w", encoding="utf-8") as f:
             f.write("# 📊 Financial KPI Repository Queries Artifact\n\n")
             f.write(f"- **Timestamp**: `{artifact_data['timestamp']}`\n\n")

@@ -191,11 +191,11 @@ if __name__ == "__main__":
         "status": "extracted_ready_for_db"
     }
 
-    json_path = artifact_dir / f"07_extracted_kpis_{base_slug}.json"
+    json_path = artifact_dir / f"04_extracted_kpis_{base_slug}.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(artifact_data, f, indent=2)
 
-    md_path = artifact_dir / f"07_extracted_kpis_{base_slug}.md"
+    md_path = artifact_dir / f"04_extracted_kpis_{base_slug}.md"
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(f"# 📈 Structured Financial KPI Extraction Artifact: `{sample_pdf.name}`\n\n")
         f.write(f"- **Timestamp**: `{artifact_data['timestamp']}`\n")
@@ -282,11 +282,11 @@ if __name__ == "__main__":
             "status": "persisted_in_sqlite",
         }
 
-        json_persisted_path = artifact_dir / f"08_persisted_kpis_{base_slug}.json"
+        json_persisted_path = artifact_dir / f"05_persisted_kpis_{base_slug}.json"
         with open(json_persisted_path, "w", encoding="utf-8") as f:
             json.dump(persisted_artifact, f, indent=2)
 
-        md_persisted_path = artifact_dir / f"08_persisted_kpis_{base_slug}.md"
+        md_persisted_path = artifact_dir / f"05_persisted_kpis_{base_slug}.md"
         with open(md_persisted_path, "w", encoding="utf-8") as f:
             f.write(f"# 🗄️ Persisted SQLite Financial KPIs Artifact: `{sample_pdf.name}`\n\n")
             f.write(f"- **Timestamp**: `{persisted_artifact['timestamp']}`\n")

@@ -183,11 +183,11 @@ if __name__ == "__main__":
         "prompt": prompt,
     }
 
-    json_path = artifact_dir / "07a_sample_extraction_prompt.json"
+    json_path = artifact_dir / "04a_sample_extraction_prompt.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(artifact_data, f, indent=2)
 
-    md_path = artifact_dir / "07a_sample_extraction_prompt.md"
+    md_path = artifact_dir / "04a_sample_extraction_prompt.md"
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("# 📝 Composed LLM Extraction Prompt Artifact\n\n")
         f.write("## 1. Input Configuration\n\n")

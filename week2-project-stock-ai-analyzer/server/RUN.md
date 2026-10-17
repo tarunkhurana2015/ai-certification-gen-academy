@@ -2,8 +2,8 @@
 
 This guide provides copy-paste ready commands to run every component of the **GenStockFolio AI Analyst** backend.
 
-All commands are arranged in chronological pipeline order:
-`Parsers` ──▶ `Chunkers` ──▶ `Extractors` ──▶ `Database & Persistence` ──▶ `All Tests Master Runner`
+All commands are arranged in logical pipeline order:
+`Top-Level Ingestion Pipeline` ──▶ `Parsers` ──▶ `Chunkers` ──▶ `Extractors` ──▶ `Database & Persistence` ──▶ `All Tests Master Runner`
 
 ---
 
@@ -20,14 +20,37 @@ source .venv/bin/activate
 
 ---
 
-## 📑 1. Ingestion Validation (Header Bytes & SHA-256 Hashing)
+## 📑 1. Document Ingestion Pipeline & Validation (Top-Level)
 
-### A. Run CLI Component (Generates Checksum & Size)
+### A. Run Full Ingestion Pipeline CLI (End-to-End Orchestrator)
+Chains validation, 0.1ms instant deduplication, page layout extraction, GAAP section classification, dynamic LLM GAAP KPI extraction, semantic chunking, and SQLite persistence.
+When executed, generates inspection artifacts for every substep (`01_extracted_*`, `02_classified_*`, `03a_recursive_splits_*`, `03b_enriched_chunks_*`, `04_extracted_kpis_*`, `05_persisted_kpis_*`, and `06_pipeline_ingest_*`) in `server/.artifact/`:
+
+```bash
+# Meta Q2 2026 (demonstrates 0.1ms instant deduplication)
+python app/ingestion/pipeline.py tests/test_data/Meta-06-30-2026-Exhibit-99-1-FINAL.pdf
+
+# Tesla Q2 2026 (use --force to bypass deduplication cache and regenerate all substep artifacts)
+python app/ingestion/pipeline.py tests/test_data/TSLA-Q2-2026-Update.pdf --force
+
+# With optional explicit hints
+python app/ingestion/pipeline.py tests/test_data/TSLA-Q2-2026-Update.pdf --ticker TSLA --quarter Q2 --year 2026 --force
+```
+
+### B. Run Pipeline Unit Tests (Pure In-Memory Assertions)
+```bash
+python tests/ingestion/test_pipeline.py
+```
+
+---
+
+### C. Run Independent File: Validation & SHA-256 Hashing (`validator.py`)
+Runs standalone PDF header byte validation and SHA-256 fingerprinting:
 ```bash
 python app/ingestion/validator.py tests/test_data/Meta-06-30-2026-Exhibit-99-1-FINAL.pdf
 ```
 
-### B. Run Unit Tests (Pure Assertions)
+### D. Run Validation Unit Tests (Pure Assertions)
 ```bash
 python tests/ingestion/test_validator.py
 ```
@@ -97,18 +120,18 @@ python tests/ingestion/chunkers/test_metadata_enricher.py
 ## 🤖 4. Extractor & LLM Prompts (Structured GAAP KPIs & SQLite Persistence)
 
 ### A. Run LLM Extraction Prompts CLI
-Composes a grounded extraction prompt using realistic dummy financial statement pages (or custom data passed via CLI), applies the Wall Street auditor persona, injects GAAP extraction rules, and outputs artifact `07a_sample_extraction_prompt.[json|md]` in a clean `{"input": {}, "prompt": ""}` format:
+Composes a grounded extraction prompt using realistic dummy financial statement pages (or custom data passed via CLI), applies the Wall Street auditor persona, injects GAAP extraction rules, and outputs artifact `04a_sample_extraction_prompt.[json|md]` in a clean `{"input": {}, "prompt": ""}` format:
 ```bash
-# Default (uses 3 dummy statement pages for META Q2 2026)
+# Default dummy data
 python app/ingestion/extractor/llm_extraction_prompts.py
 
-# Optional custom data from the command line
-python app/ingestion/extractor/llm_extraction_prompts.py --ticker TSLA --quarter Q2 --year 2026 --text "Tesla, Inc. Statements of Operations\nTotal Revenues: $25,500M\nNet Income: $1,478M" --page 2
+# Custom data
+python app/ingestion/extractor/llm_extraction_prompts.py --ticker TSLA --quarter Q2 --year 2026
 ```
 
-### B. Run Live KPI Extractor CLI (Full End-to-End Extraction & Persistence)
+### B. Run KPI Extractor & Persistence CLI (OpenAI Structured Outputs)
 Filters document to financial statement pages, calls OpenAI `gpt-4o-mini` with structured JSON output, validates mathematical consistency (CapEx sign reconciliation, Free Cash Flow = OCF - CapEx, margin ratios), registers parent document, persists into SQLite (`data/stock_analyst.db`), and queries back to verify round-trip fidelity.
-Outputs artifacts `07_extracted_kpis_<doc>.[json|md]` and `08_persisted_kpis_<doc>.[json|md]`:
+Outputs artifacts `04_extracted_kpis_<doc>.[json|md]` and `05_persisted_kpis_<doc>.[json|md]`:
 
 ```bash
 # Meta Q2 2026
@@ -129,13 +152,13 @@ python tests/ingestion/extractor/test_kpi_extractor.py
 ## 🗄️ 5. Database Tier (SQLite & Repositories)
 
 ### A. Run Database Initialization & ORM Models CLI
-Initializes tables, creates indexes, tests cascade deletes, and outputs artifacts `04_database_init.[json|md]` and `05_database_models.[json|md]`:
+Initializes tables, creates indexes, tests cascade deletes, and outputs artifacts `db_01_database_init.[json|md]` and `db_02_database_models.[json|md]`:
 ```bash
 python app/db/models.py
 ```
 
 ### B. Run Deterministic Repository Queries CLI
-Demonstrates exact single quarter retrieval, multi-quarter chronological time series, peer company comparisons, and 0.1ms SHA-256 deduplication. Outputs artifact `06_kpi_repo_queries.[json|md]`:
+Demonstrates exact single quarter retrieval, multi-quarter chronological time series, peer company comparisons, and 0.1ms SHA-256 deduplication. Outputs artifact `db_03_kpi_repo_queries.[json|md]`:
 ```bash
 python app/db/repositories/kpi_repo.py
 ```
@@ -160,7 +183,7 @@ python tests/schemas/test_schemas.py
 
 ## 🏆 7. All-in-One Master Test Runner
 
-Run all **11 test suites** across the entire codebase in a single command:
+Run all **12 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -173,7 +196,8 @@ python tests/ingestion/parsers/test_section_classifier.py && \
 python tests/ingestion/chunkers/test_recursive_chunker.py && \
 python tests/ingestion/chunkers/test_metadata_enricher.py && \
 python tests/ingestion/extractor/test_llm_extraction_prompts.py && \
-python tests/ingestion/extractor/test_kpi_extractor.py
+python tests/ingestion/extractor/test_kpi_extractor.py && \
+python tests/ingestion/test_pipeline.py
 ```
 
 ---
@@ -184,15 +208,16 @@ When running scripts directly via CLI (`python app/...`), human-readable Markdow
 
 | Artifact Prefix | Generator CLI Script | Description |
 | :--- | :--- | :--- |
-| `01_extracted_<doc>` | `app/ingestion/parsers/pdf_extractor.py` | Page-by-page text, character counts, and blank page detection |
-| `02_classified_<doc>` | `app/ingestion/parsers/section_classifier.py` | Financial domain tagging (`profitability`, `balance_sheet`, `cash_flow`) |
-| `03a_recursive_splits_<doc>` | `app/ingestion/chunkers/recursive_chunker.py` | Raw character-bounded splits (1000 chars, 100 overlap) page-by-page |
-| `03b_enriched_chunks_<doc>` | `app/ingestion/chunkers/metadata_enricher.py` | 1000-char chunks enriched with ticker, quarter, year, page, and domain |
-| `04_database_init` | `app/db/models.py` | SQLite schema tables & foreign key verification |
-| `05_database_models` | `app/db/models.py` | 18+ GAAP metric column definitions & cascade tests |
-| `06_kpi_repo_queries` | `app/db/repositories/kpi_repo.py` | Time series, peer comparison, and 0.1ms deduplication queries |
-| `07a_sample_extraction_prompt` | `app/ingestion/extractor/llm_extraction_prompts.py` | Grounded extraction prompt composed from dummy financial statement pages |
-| `07_extracted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` | Structured Pydantic GAAP KPIs extracted via OpenAI `gpt-4o-mini` |
-| `08_persisted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` | SQLite persisted record verification and round-trip SQL query |
+| `01_extracted_<doc>` | `app/ingestion/parsers/pdf_extractor.py` or `pipeline.py` | Page-by-page text, character counts, and blank page detection |
+| `02_classified_<doc>` | `app/ingestion/parsers/section_classifier.py` or `pipeline.py` | Financial domain tagging (`profitability`, `balance_sheet`, `cash_flow`) |
+| `03a_recursive_splits_<doc>` | `app/ingestion/chunkers/recursive_chunker.py` or `pipeline.py` | Raw character-bounded splits (1000 chars, 100 overlap) page-by-page |
+| `03b_enriched_chunks_<doc>` | `app/ingestion/chunkers/metadata_enricher.py` or `pipeline.py` | 1000-char chunks enriched with ticker, quarter, year, page, and domain |
+| `04a_sample_extraction_prompt` | `app/ingestion/extractor/llm_extraction_prompts.py` | Grounded extraction prompt composed from dummy financial statement pages |
+| `04_extracted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` or `pipeline.py` | Structured Pydantic GAAP KPIs extracted via OpenAI `gpt-4o-mini` |
+| `05_persisted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` or `pipeline.py` | SQLite persisted record verification and round-trip SQL query |
+| `06_pipeline_ingest_<doc>` | `app/ingestion/pipeline.py` | End-to-end ingestion execution summary, timing, and persisted KPIs |
+| `db_01_database_init` | `app/db/session.py` or `models.py` | SQLite schema tables & foreign key verification |
+| `db_02_database_models` | `app/db/models.py` | 18+ GAAP metric column definitions & cascade tests |
+| `db_03_kpi_repo_queries` | `app/db/repositories/kpi_repo.py` | Time series, peer comparison, and 0.1ms deduplication queries |
 
 > **Note**: Unit tests (`tests/...`) **never** generate artifacts and run strictly in-memory.

@@ -81,6 +81,7 @@ def update_task_status(
     progress_percent: int,
     message: str,
     error_details: Optional[str] = None,
+    document_id: Optional[str] = None,
 ) -> Optional[IngestionTaskModel]:
     """Update task progress and state."""
     task = session.get(IngestionTaskModel, task_id)
@@ -91,6 +92,8 @@ def update_task_status(
     task.message = message
     if error_details:
         task.error_details = error_details
+    if document_id:
+        task.document_id = document_id
     session.commit()
     session.refresh(task)
     return task
