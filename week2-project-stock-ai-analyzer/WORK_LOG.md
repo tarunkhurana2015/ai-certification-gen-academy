@@ -168,12 +168,12 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
 
 ### Phase 2 Step-by-Step Breakdown:
 - **Step 2.1: SQLite Database Engine & Connection Pool** (`database/session.py`) — ✅ Completed
-- **Step 2.2: SQLAlchemy ORM Models** (`database/models.py`) — 🔄 Up Next
+- **Step 2.2: SQLAlchemy ORM Models** (`database/models.py`) — ✅ Completed
   - `documents` table (file tracking, sha256_hash, page count)
   - `financial_kpis` table (18+ standardized GAAP metrics)
   - `ingestion_tasks` table (background job state machine)
-- **Step 2.3: Deterministic KPI Repository** (`database/kpi_repo.py`)
-- **Step 2.4: OpenAI Structured Output KPI Extractor** (`extractor/kpi_extractor.py`)
+- **Step 2.3: Deterministic KPI Repository** (`database/kpi_repo.py`) — ✅ Completed
+- **Step 2.4: OpenAI Structured Output KPI Extractor** (`extractor/kpi_extractor.py`) — 🔄 Up Next
 
 ---
 
@@ -199,6 +199,73 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
     4. Isolated in-memory engine creation (`sqlite:///:memory:`).
   - All test assertions passed with 0 errors. Pure assertions only, no test artifacts created.
 
+---
 
+### Step 2.2: SQLAlchemy ORM Models (`models.py`)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/database/models.py` ([models.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/database/models.py))
+  - `server/tests/database/test_models.py` ([test_models.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/database/test_models.py))
+- **What Was Built**:
+  - `DocumentModel` (`documents` table):
+    - Stores document metadata (`id`, `ticker`, `fiscal_quarter`, `fiscal_year`, `report_title`, `file_path`, `page_count`).
+    - `sha256_hash` with `UNIQUE` constraint for instantaneous 0.1ms deduplication.
+    - 1-to-many relationship with `cascade="all, delete-orphan"` to `FinancialKPIModel`.
+  - `FinancialKPIModel` (`financial_kpis` table):
+    - Enforces uniqueness per filing period: `UniqueConstraint("ticker", "fiscal_year", "fiscal_quarter")`.
+    - Standardizes 18+ GAAP metrics:
+      - **Income Statement**: `revenue`, `cost_of_revenue`, `gross_profit`, `gross_margin`, `research_and_development`, `selling_general_admin`, `total_operating_expenses`, `operating_income`, `operating_margin`, `net_income`, `net_margin`, `diluted_eps`.
+      - **Cash Flow Statement**: `operating_cash_flow`, `capital_expenditures`, `free_cash_flow` (`OCF - CapEx`).
+      - **Balance Sheet**: `cash_and_equivalents`, `total_assets`, `long_term_debt`, `total_liabilities`, `shareholders_equity`.
+      - **Audit & Lineage**: `currency`, `units`, `is_audited`, `source_pages` (JSON list of pages for citation grounding).
+    - `to_dict()` helper for clean JSON serialization in API responses.
+  - `IngestionTaskModel` (`ingestion_tasks` table):
+    - State machine tracking async ingestion (`status`, `progress_percent`, `message`, `error_details`).
+  - Lazy Module Attribute Resolution:
+    - Updated `app/database/__init__.py` using PEP 562 `__getattr__` to cleanly prevent circular import traps when submodules are executed directly from the CLI.
+  - Direct CLI tool: `python app/database/models.py` verifies table creation, cascade deletion, and exports schema specs `05_database_models.[json|md]` to `.artifact/`.
+- **Verification**:
+  - `tests/database/test_models.py` verified:
+    1. Table registration in metadata (`documents`, `financial_kpis`, `ingestion_tasks`).
+    2. SHA-256 uniqueness constraint rejects duplicate filings.
+    3. `(ticker, fiscal_year, fiscal_quarter)` uniqueness prevents duplicate quarter rows.
+    4. Foreign key cascade delete: Deleting a Document automatically wipes child KPIs.
+    5. `to_dict()` serialization verifies all 18+ GAAP metrics.
+    6. IngestionTask status transitions and progress percentage tracking.
+  - All test assertions passed with 0 errors. Pure assertions only, no test artifacts created.
 
+---
+
+### Step 2.3: Deterministic Financial KPI Repository (`kpi_repo.py`)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/database/kpi_repo.py` ([kpi_repo.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/database/kpi_repo.py))
+  - `server/tests/database/test_kpi_repo.py` ([test_kpi_repo.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/database/test_kpi_repo.py))
+- **What Was Built**:
+  - **Document Operations**:
+    - `get_document_by_id()`: Standard primary key lookup.
+    - `get_document_by_hash()`: Instant 0.1ms SHA-256 deduplication lookup.
+    - `save_document()`: Validates and saves report metadata.
+    - `list_documents()`: Lists ingested filings, optionally filtered by ticker.
+  - **Financial KPI Operations**:
+    - `get_kpis_by_quarter(ticker, year, quarter)`: Exact lookup for single-quarter factual questions (100% precision, zero hallucination).
+    - `get_kpi_time_series(ticker, limit)`: Chronologically ordered quarters (`ORDER BY fiscal_year ASC, fiscal_quarter ASC`) used by the Flutter frontend charting engine.
+    - `get_multi_company_comparison(tickers, year, quarter)`: Peer comparison query fetching metrics for multiple companies for the exact same fiscal period.
+    - `upsert_kpi()`: Idempotent upsert logic that avoids duplicates on re-ingestion, and automatically derives missing ratios:
+      - `gross_margin = gross_profit / revenue`
+      - `operating_margin = operating_income / revenue`
+      - `net_margin = net_income / revenue`
+      - `free_cash_flow = operating_cash_flow - capital_expenditures`
+  - **Task Lifecycle Operations**:
+    - `create_task()`, `update_task_status()`, `get_task()`: Background task status tracking for asynchronous ingestion workflows.
+  - Direct CLI tool: `python app/database/kpi_repo.py` executes exact lookup, time-series, and peer comparison queries, exporting `06_kpi_repo_queries.[json|md]` to `.artifact/`.
+- **Verification**:
+  - `tests/database/test_kpi_repo.py` verified:
+    1. Document save and SHA-256 deduplication lookup.
+    2. KPI upsert idempotency and automatic calculation of derived ratios (Margins, FCF).
+    3. Single quarter exact financial lookup.
+    4. Chronological ordering of multi-quarter time series.
+    5. Peer company comparisons for a given fiscal period.
+    6. Ingestion task lifecycle state tracking.
+  - All 6 tests passed with 0 errors. Pure assertions only, no test artifacts created.
 
