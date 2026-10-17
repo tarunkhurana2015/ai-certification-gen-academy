@@ -167,13 +167,38 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
 - This guarantees **100% mathematical precision**, exact multi-quarter chart data, and zero hallucinations.
 
 ### Phase 2 Step-by-Step Breakdown:
-- **Step 2.1: SQLite Database Engine & Connection Pool** (`database/session.py`)
-- **Step 2.2: SQLAlchemy ORM Models** (`database/models.py`)
+- **Step 2.1: SQLite Database Engine & Connection Pool** (`database/session.py`) — ✅ Completed
+- **Step 2.2: SQLAlchemy ORM Models** (`database/models.py`) — 🔄 Up Next
   - `documents` table (file tracking, sha256_hash, page count)
   - `financial_kpis` table (18+ standardized GAAP metrics)
   - `ingestion_tasks` table (background job state machine)
 - **Step 2.3: Deterministic KPI Repository** (`database/kpi_repo.py`)
 - **Step 2.4: OpenAI Structured Output KPI Extractor** (`extractor/kpi_extractor.py`)
+
+---
+
+### Step 2.1: SQLite Database Engine & Session Management
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/database/session.py` ([session.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/database/session.py))
+  - `server/app/database/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/database/__init__.py))
+  - `server/tests/database/test_session.py` ([test_session.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/database/test_session.py))
+- **What Was Built**:
+  - `Base`: Modern SQLAlchemy 2.0 `DeclarativeBase` subclass for all ORM models.
+  - Foreign Key Enforcement: Registered connection listener executing `PRAGMA foreign_keys=ON;` on every connection (ensuring child table cascades and relational integrity, which SQLite disables by default).
+  - Thread Safety: Configured `connect_args={"check_same_thread": False}` for multi-threaded FastAPI workers.
+  - `SessionLocal`: Scoped session factory configured with `autocommit=False, autoflush=False`.
+  - `get_db()`: Generator pattern using `yield` and `finally: db.close()` for FastAPI dependency injection.
+  - `init_db()`: Helper function to initialize database tables on `Base.metadata`.
+  - Direct CLI tool: `python app/database/session.py` verifies SQLite version, PRAGMA flags, and exports `04_database_init.[json|md]` to `.artifact/`.
+- **Verification**:
+  - `tests/database/test_session.py` verified:
+    1. Foreign keys enabled (`PRAGMA foreign_keys = 1`).
+    2. Session opening, query execution, and closing.
+    3. `get_db()` generator lifecycle and automatic cleanup.
+    4. Isolated in-memory engine creation (`sqlite:///:memory:`).
+  - All test assertions passed with 0 errors. Pure assertions only, no test artifacts created.
+
 
 
 

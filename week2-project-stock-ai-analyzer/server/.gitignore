@@ -6,3 +6,7 @@ __pycache__/
 .artifact/
 tests/test_data/*.pdf
 !tests/test_data/apple_q3_fy24_financials.pdf
+*.db
+*.sqlite
+*.sqlite3
+data/
