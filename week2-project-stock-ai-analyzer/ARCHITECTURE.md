@@ -76,52 +76,70 @@
 
 ### 1.2 Core Agentic RAG Diagram
 
+[![Core Agentic RAG Diagram](assets/diagrams/01-core-agentic-rag.png)](assets/diagrams/01-core-agentic-rag.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TD
-    classDef input fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
-    classDef router fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
-    classDef tool fill:#F3E8FF,stroke:#9333EA,stroke-width:2px,color:#6B21A8
-    classDef fusion fill:#E0E7FF,stroke:#4F46E5,stroke-width:2px,color:#3730A3
-    classDef output fill:#ECFDF5,stroke:#10B981,stroke-width:2px,color:#065F46
-    classDef banner fill:#F8FAFC,stroke:#64748B,stroke-width:1px,color:#334155
+    classDef input fill:#353829,stroke:#B1BB89,stroke-width:2px,color:#F4EFE6
+    classDef router fill:#413526,stroke:#D7B77A,stroke-width:2px,color:#F4EFE6
+    classDef tool fill:#3C303B,stroke:#BC9AAF,stroke-width:2px,color:#F4EFE6
+    classDef fusion fill:#3A303B,stroke:#BAA0B7,stroke-width:2px,color:#F4EFE6
+    classDef output fill:#293B32,stroke:#99B89B,stroke-width:2px,color:#F4EFE6
+    classDef banner fill:#292621,stroke:#8F8679,stroke-width:1px,color:#F4EFE6
 
     UserPrompt(["1 · User Financial Query<br/>'What was the Free Cash Flow and why did it decline?'"]):::input
 
-    UserPrompt --> AgentRouter{"2 · Agentic Query Router<br/>Intent Classification & Tool Dispatch"}:::router
+    UserPrompt --> AgentRouter{"🤖 2 · Agentic Query Router<br/>Intent Classification & Tool Dispatch"}:::router
 
-    AgentRouter -->|Exact Number / KPI| ToolSQL["Tool A: Deterministic SQL Engine<br/>SQLite earnings.db<br/>• Instant numerical lookup<br/>• 100% precision · Zero hallucination"]:::tool
+    AgentRouter -->|Exact Number / KPI| ToolSQL["🗄️ Tool A: Deterministic SQL Engine<br/>SQLite earnings.db<br/>• Instant numerical lookup<br/>• 100% precision · Zero hallucination"]:::tool
 
-    AgentRouter -->|Qualitative / Narrative| ToolHybrid["Tool B: Hybrid RAG Pipeline<br/>ChromaDB (Dense) + BM25 (Sparse)<br/>• Layout-aware PDF context<br/>• Footnotes & Management commentary"]:::tool
+    AgentRouter -->|Qualitative / Narrative| ToolHybrid["🔎 Tool B: Hybrid RAG Pipeline<br/>ChromaDB (Dense) + BM25 (Sparse)<br/>• Layout-aware PDF context<br/>• Footnotes & Management commentary"]:::tool
 
-    AgentRouter -->|Multi-Period Comparison| ToolDecomp["Tool C: Query Decomposition Agent<br/>Sub-query planner across quarters<br/>• Parallel retrieval<br/>• Comparative table synthesis"]:::tool
+    AgentRouter -->|Multi-Period Comparison| ToolDecomp["📊 Tool C: Query Decomposition Agent<br/>Sub-query planner across quarters<br/>• Parallel retrieval<br/>• Comparative table synthesis"]:::tool
 
-    ToolSQL --> FusedContext["3 · Context Fusion & Grounding Guardrail<br/>• Correlate verified figures with narrative chunks<br/>• Validate page and section numbers"]:::fusion
+    ToolSQL --> FusedContext["🔗 3 · Context Fusion & Grounding Guardrail<br/>• Correlate verified figures with narrative chunks<br/>• Validate page and section numbers"]:::fusion
     ToolHybrid --> FusedContext
     ToolDecomp --> FusedContext
 
-    FusedContext --> LLMGen["4 · Generation Engine (gpt-4.1-mini)<br/>• Real-time SSE token stream<br/>• Markdown table formatting<br/>• Grounded citations: Page - [X], Section - [Y]"]:::output
+    FusedContext --> LLMGen["🤖 4 · Generation Engine (gpt-4.1-mini)<br/>• Real-time SSE token stream<br/>• Markdown table formatting<br/>• Grounded citations: Page - [X], Section - [Y]"]:::output
 
-    LLMGen --> VerifiedAns(["5 · Audit-Grade Grounded Response ✓<br/>Accurate financial answer with clickable citation pills"]):::output
+    LLMGen --> VerifiedAns(["💬 5 · Audit-Grade Grounded Response ✓<br/>Accurate financial answer with clickable citation pills"]):::output
 
     subgraph Banner["Core Agentic Principle"]
         direction LR
         BText["Deterministic SQL handles exact figures. Hybrid RAG handles narrative context. The Router fuses them into grounded truth."]:::banner
     end
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
+    VerifiedAns ~~~ Banner
 ```
+
+</details>
 
 ---
 
 ### 1.3 Query Lifecycle: Central Agent Orchestrator
 
+[![Query Lifecycle: Central Agent Orchestrator](assets/diagrams/02-agent-orchestration.png)](assets/diagrams/02-agent-orchestration.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
-flowchart LR
-    classDef inputNode fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
-    classDef classifyNode fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
-    classDef agentNode fill:#EDE9FE,stroke:#7C3AED,stroke-width:3px,color:#4C1D95,font-weight:bold
-    classDef toolNode fill:#F3E8FF,stroke:#9333EA,stroke-width:2px,color:#6B21A8
-    classDef retNode fill:#E0E7FF,stroke:#4F46E5,stroke-width:2px,color:#3730A3
-    classDef genNode fill:#F0FDF4,stroke:#16A34A,stroke-width:2px,color:#14532D
-    classDef banner fill:#F8FAFC,stroke:#64748B,stroke-width:1.5px,color:#334155
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
+flowchart TB
+    classDef inputNode fill:#353829,stroke:#B1BB89,stroke-width:2px,color:#F4EFE6
+    classDef classifyNode fill:#413526,stroke:#D7B77A,stroke-width:2px,color:#F4EFE6
+    classDef agentNode fill:#3C303B,stroke:#C1A0B7,stroke-width:3px,color:#F4EFE6,font-weight:bold
+    classDef toolNode fill:#3C303B,stroke:#BC9AAF,stroke-width:2px,color:#F4EFE6
+    classDef retNode fill:#3A303B,stroke:#BAA0B7,stroke-width:2px,color:#F4EFE6
+    classDef genNode fill:#293B32,stroke:#A8C0A0,stroke-width:2px,color:#F4EFE6
+    classDef banner fill:#292621,stroke:#8F8679,stroke-width:1.5px,color:#F4EFE6
 
     subgraph Stage1["1 · Input Stage"]
         direction TB
@@ -130,29 +148,29 @@ flowchart LR
 
     subgraph Stage2["2 · Classification Stage"]
         direction TB
-        Classifier["TypeSafe Jev / Intent Classifier<br/>• domain: cash_flow (0.98)<br/>• type: qualitative + quantitative"]:::classifyNode
+        Classifier["🎯 TypeSafe Jev / Intent Classifier<br/>• domain: cash_flow (0.98)<br/>• type: qualitative + quantitative"]:::classifyNode
     end
 
     subgraph Stage3["3 · Central Agent Orchestrator"]
         direction TB
-        AgentBrain["★ CENTRAL FINANCIAL AGENT ★<br/>Plan · Decide · Dispatch · Reflect<br/>(ReAct / Function Calling Loop)"]:::agentNode
+        AgentBrain["🤖 ★ CENTRAL FINANCIAL AGENT ★<br/>Plan · Decide · Dispatch · Reflect<br/>(ReAct / Function Calling Loop)"]:::agentNode
     end
 
     subgraph Stage4["4 · Tool Execution"]
         direction TB
-        ToolSQL["Tool 1: SQLite Tool<br/>SELECT fcf, ocf, capex FROM kpis"]:::toolNode
-        ToolRAG["Tool 2: Hybrid RAG Tool<br/>ChromaDB + BM25 + Rerank"]:::toolNode
+        ToolSQL["🗄️ Tool 1: SQLite Tool<br/>SELECT fcf, ocf, capex FROM kpis"]:::toolNode
+        ToolRAG["🔎 Tool 2: Hybrid RAG Tool<br/>ChromaDB + BM25 + Rerank"]:::toolNode
     end
 
     subgraph Stage5["5 · Retrieval & Context"]
         direction TB
-        RetData["Grounded Context Pool<br/>• Verified SQL metrics: $1,340M<br/>• Top-5 Footnotes & Page Chunks"]:::retNode
+        RetData["📚 Grounded Context Pool<br/>• Verified SQL metrics: $1,340M<br/>• Top-5 Footnotes & Page Chunks"]:::retNode
     end
 
     subgraph Stage6["6 · LLM & Generation"]
         direction TB
-        LLMSynth["LLM Synthesis (gpt-4.1-mini)<br/>Grounding & Faithfulness Guardrail"]:::genNode
-        StreamOut["Streaming SSE Generation ✓<br/>Token Stream + Citations [Page 5]"]:::genNode
+        LLMSynth["🤖 LLM Synthesis (gpt-4.1-mini)<br/>Grounding & Faithfulness Guardrail"]:::genNode
+        StreamOut["💬 Streaming SSE Generation ✓<br/>Token Stream + Citations [Page 5]"]:::genNode
         LLMSynth --> StreamOut
     end
 
@@ -172,22 +190,36 @@ flowchart LR
         direction LR
         BText["Query flows from Classifier → Central Agent → Tool Execution → Retrieved Grounding → LLM Streaming Generation"]:::banner
     end
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
+    %% Invisible links only guide placement; they are not data flow.
+    RetData ~~~ LLMSynth
+    StreamOut ~~~ StageBanner
 ```
+
+</details>
 
 ---
 
 ## 2. Overall System Design
 
-Inspired by the clean two-phase separation of [Metadata_Filter.png](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-rag/images/Metadata_Filter.png), the system topology is organized into **two strictly linear, non-overlapping execution tracks** bridged solely by the persistent storage tier. Nothing crosses over or loops backwards:
+Inspired by the clean two-phase separation of [Metadata_Filter.png](../week2-rag/images/Metadata_Filter.png), the system topology is organized into **two strictly linear, non-overlapping execution tracks** bridged solely by the persistent storage tier. Nothing crosses over or loops backwards:
+
+[![Overall System Design](assets/diagrams/03-overall-system-design.png)](assets/diagrams/03-overall-system-design.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TB
-    classDef doc fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
-    classDef ingest fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
-    classDef db fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#14532D
-    classDef agent fill:#EDE9FE,stroke:#7C3AED,stroke-width:2px,color:#4C1D95
-    classDef gen fill:#F0FDF4,stroke:#16A34A,stroke-width:2px,color:#14532D
-    classDef banner fill:#F8FAFC,stroke:#64748B,stroke-width:1px,color:#334155
+    classDef doc fill:#353829,stroke:#B1BB89,stroke-width:2px,color:#F4EFE6
+    classDef ingest fill:#413526,stroke:#D7B77A,stroke-width:2px,color:#F4EFE6
+    classDef db fill:#293B32,stroke:#99B89B,stroke-width:2px,color:#F4EFE6
+    classDef agent fill:#3C303B,stroke:#C1A0B7,stroke-width:2px,color:#F4EFE6
+    classDef gen fill:#293B32,stroke:#A8C0A0,stroke-width:2px,color:#F4EFE6
+    classDef banner fill:#292621,stroke:#8F8679,stroke-width:1px,color:#F4EFE6
 
     subgraph Track1["TRACK 1: OFFLINE INGESTION PIPELINE (Document Processing to Storage)"]
         direction LR
@@ -226,7 +258,12 @@ flowchart TB
         direction LR
         BText["Strict Two-Track Separation: Offline ingestion prepares dual stores (SQLite + ChromaDB). Online queries apply metadata filters and agentic routing. Zero cross-over confusion."]:::banner
     end
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
 ```
+
+</details>
 
 ---
 
@@ -359,14 +396,20 @@ Jev evaluates logprobs across predefined choices in a single parallel call, retu
 
 ### 5.1 Hybrid RAG Pipeline Flow
 
+[![Hybrid RAG Pipeline Flow](assets/diagrams/04-hybrid-retrieval.png)](assets/diagrams/04-hybrid-retrieval.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TB
-    classDef stepNum fill:#4F46E5,stroke:#312E81,stroke-width:2px,color:#FFFFFF,font-weight:bold
-    classDef branchBox fill:#FFFFFF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B
-    classDef subBox fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155
-    classDef fusionBox fill:#EDE9FE,stroke:#7C3AED,stroke-width:2px,color:#4C1D95
-    classDef resultBox fill:#F0FDF4,stroke:#16A34A,stroke-width:2px,color:#14532D
-    classDef banner fill:#EFF6FF,stroke:#3B82F6,stroke-width:1.5px,color:#1E40AF
+    classDef stepNum fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6,font-weight:bold
+    classDef branchBox fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6
+    classDef subBox fill:#292621,stroke:#8F8679,stroke-width:1px,color:#F4EFE6
+    classDef fusionBox fill:#3C303B,stroke:#C1A0B7,stroke-width:2px,color:#F4EFE6
+    classDef resultBox fill:#293B32,stroke:#A8C0A0,stroke-width:2px,color:#F4EFE6
+    classDef banner fill:#353829,stroke:#B1BB89,stroke-width:1.5px,color:#F4EFE6
 
     subgraph QueryInput["User Query Input"]
         direction TB
@@ -382,8 +425,8 @@ flowchart TB
         S1Title["Dense Semantic Search"]:::stepNum
         subgraph S1Details["Config & Parameters"]
             direction TB
-            S1Store["ChromaDB<br/>collection: 'earnings_chunks'<br/>metadata: {ticker: 'TSLA', quarter: 'Q2'}"]:::subBox
-            S1Embed["OpenAIEmbeddings<br/>model: text-embedding-3-small<br/>dimensions = 512"]:::subBox
+            S1Store["🗄️ ChromaDB<br/>collection: 'earnings_chunks'<br/>metadata: {ticker: 'TSLA', quarter: 'Q2'}"]:::subBox
+            S1Embed["🧠 OpenAIEmbeddings<br/>model: text-embedding-3-small<br/>dimensions = 512"]:::subBox
             S1K["Top-K: k = 5"]:::subBox
         end
         S1Note["✓ Finds meaning, even when wording differs"]
@@ -395,7 +438,7 @@ flowchart TB
         subgraph S2Details["Config & Parameters"]
             direction TB
             S2Docs["Document Chunks<br/>• chunk_size = 1000 chars<br/>• chunk_overlap = 100 chars<br/>• layout-aware table parser"]:::subBox
-            S2BM25["BM25Okapi Index<br/>Exact token & acronym matcher"]:::subBox
+            S2BM25["🔎 BM25Okapi Index<br/>Exact token & acronym matcher"]:::subBox
             S2K["Top-K: k = 5"]:::subBox
         end
         S2Note["✓ Finds exact words, dollar values, GAAP items, table rows"]
@@ -408,7 +451,7 @@ flowchart TB
             direction TB
             S3Weights["weights = [0.5, 0.5]<br/>weighted RRF (k = 60)"]:::subBox
             S3Merge["vector_docs (k=5) + bm25_docs (k=5)<br/>↓<br/>Merged Candidate Pool (10 chunks)"]:::subBox
-            S3Rerank["Cross-Encoder Reranker<br/>cross-encoder/ms-marco-MiniLM-L-6-v2<br/>Re-scores contextual relevance"]:::subBox
+            S3Rerank["🎯 Cross-Encoder Reranker<br/>cross-encoder/ms-marco-MiniLM-L-6-v2<br/>Re-scores contextual relevance"]:::subBox
         end
         S3Note["Hybrid retrieval lets each method rescue what the other misses"]
     end
@@ -424,13 +467,13 @@ flowchart TB
     subgraph Step5["5 · Build Grounded Context"]
         direction TB
         S5Title["Prompt Assembly"]:::stepNum
-        S5Context["Context Box:<br/>Retrieved Top Chunks + User Question + Strict Citation Instruction"]:::subBox
+        S5Context["📚 Context Box:<br/>Retrieved Top Chunks + User Question + Strict Citation Instruction"]:::subBox
     end
 
     subgraph Step6["6 · Generate Answer & Stream"]
         direction TB
         S6Title["OpenAI gpt-4.1-mini"]:::stepNum
-        S6Gen["Real-time SSE token stream + Citation generator"]:::subBox
+        S6Gen["🤖 Real-time SSE token stream + Citation generator"]:::subBox
         S6Out["✓ Grounded Financial Answer with Clickable Citations [Page 5]"]:::resultBox
     end
 
@@ -446,25 +489,50 @@ flowchart TB
         direction LR
         SText["✓ Vector search handles meaning. BM25 handles exact financial tokens. RRF & Reranker fuse the rankings."]:::banner
     end
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
+    %% Invisible links align the existing content inside each stage.
+    S1Title ~~~ S1Details
+    S1Details ~~~ S1Note
+    S1Store ~~~ S1Embed ~~~ S1K
+    S2Title ~~~ S2Details
+    S2Details ~~~ S2Note
+    S2Docs ~~~ S2BM25 ~~~ S2K
+    S3Title ~~~ S3Config
+    S3Weights ~~~ S3Merge ~~~ S3Rerank
+    S3Config ~~~ S3Note
+    S4Title ~~~ R1 ~~~ R2 ~~~ R3
+    S5Title ~~~ S5Context
+    S6Title ~~~ S6Gen ~~~ S6Out
+    Step6 ~~~ SummaryTakeaway
 ```
+
+</details>
 
 ---
 
 ### 5.2 Multi-Tier System Architecture
 
+[![Multi-Tier System Architecture](assets/diagrams/05-system-tiers.png)](assets/diagrams/05-system-tiers.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"BRANDES_KOEPF","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":44,"rankSpacing":80,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TB
-    classDef client fill:#DBEAFE,stroke:#1D4ED8,stroke-width:2px,color:#1E3A8A
-    classDef api fill:#CCFBF1,stroke:#0F766E,stroke-width:2px,color:#134E4A
-    classDef ingest fill:#FEF3C7,stroke:#B45309,stroke-width:2px,color:#78350F
-    classDef query fill:#FCE7F3,stroke:#BE185D,stroke-width:2px,color:#831843
-    classDef data fill:#EDE9FE,stroke:#6D28D9,stroke-width:2px,color:#4C1D95
-    classDef ops fill:#F1F5F9,stroke:#64748B,stroke-width:2px,stroke-dasharray:6 4,color:#334155
+    classDef client fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6
+    classDef api fill:#2D3831,stroke:#A1B69B,stroke-width:2px,color:#F4EFE6
+    classDef ingest fill:#413526,stroke:#D7B77A,stroke-width:2px,color:#F4EFE6
+    classDef query fill:#3A303B,stroke:#C1A0B7,stroke-width:2px,color:#F4EFE6
+    classDef data fill:#3C303B,stroke:#C1A0B7,stroke-width:2px,color:#F4EFE6
+    classDef ops fill:#302D28,stroke:#AAA294,stroke-width:2px,stroke-dasharray:6 4,color:#F4EFE6
 
     subgraph Tier1["1 · Presentation Tier (client/apps/gen_stock_folio)"]
         direction TB
-        FlutterApp["Flutter Host Shell (macOS · Web · iOS)<br/>Adaptive NavigationRail & Bottom NavigationBar"]:::client
-        AIAnalystPkg["packages/ai_analyst_feature<br/>• MVVM Pattern · Riverpod Providers<br/>• Scorecard Grid · FL Chart · Streaming Chat Sheet"]:::client
+        FlutterApp["📱 Flutter Host Shell (macOS · Web · iOS)<br/>Adaptive NavigationRail & Bottom NavigationBar"]:::client
+        AIAnalystPkg["📊 packages/ai_analyst_feature<br/>• MVVM Pattern · Riverpod Providers<br/>• Scorecard Grid · FL Chart · Streaming Chat Sheet"]:::client
         SSEClient["SSE Stream Consumer (fetch_client / http)"]:::client
         FlutterApp --> AIAnalystPkg
         AIAnalystPkg --> SSEClient
@@ -472,23 +540,23 @@ flowchart TB
 
     subgraph Tier2["2 · API Gateway Tier (server/app)"]
         direction TB
-        FastAPIServer["FastAPI Application (Port 8000)<br/>CORS Middleware · Pydantic v2 Validation · Rate Limiting"]:::api
-        QueryRouter["Agentic Query Router<br/>(Deterministic SQL vs. Hybrid RAG vs. Decomp)"]:::api
-        IngestWorker["Async Background Ingestion Worker<br/>Task Queue · Progress State Machine"]:::api
-        FastAPIServer --> QueryRouter
+        FastAPIServer["⚡ FastAPI Application (Port 8000)<br/>CORS Middleware · Pydantic v2 Validation · Rate Limiting"]:::api
+        QueryRouter["🤖 Agentic Query Router<br/>(Deterministic SQL vs. Hybrid RAG vs. Decomp)"]:::api
+        IngestWorker["⚙️ Async Background Ingestion Worker<br/>Task Queue · Progress State Machine"]:::api
         FastAPIServer --> IngestWorker
+        FastAPIServer --> QueryRouter
     end
 
     subgraph Tier3["3 · Ingestion & AI Engines"]
         direction TB
-        LlamaParser["LlamaIndex PyMuPDF Parser<br/>Extracts text, layout hierarchy & tabular grids"]:::ingest
-        LCSplitter["LangChain Recursive Splitter<br/>Chunk: 1000 chars · Overlap: 100 chars"]:::ingest
-        OpenAIEmbed["OpenAI text-embedding-3-small (512-dim)"]:::ingest
-        KPISchemaLLM["OpenAI gpt-4.1-mini (Structured Outputs)<br/>Extracts 18+ standardized financial metrics"]:::ingest
+        LlamaParser["📄 LlamaIndex PyMuPDF Parser<br/>Extracts text, layout hierarchy & tabular grids"]:::ingest
+        LCSplitter["✂️ LangChain Recursive Splitter<br/>Chunk: 1000 chars · Overlap: 100 chars"]:::ingest
+        OpenAIEmbed["🧠 OpenAI text-embedding-3-small (512-dim)"]:::ingest
+        KPISchemaLLM["🤖 OpenAI gpt-4.1-mini (Structured Outputs)<br/>Extracts 18+ standardized financial metrics"]:::ingest
 
-        HybridRetriever["Hybrid Retrieval Engine<br/>ChromaDB (Dense) + BM25Okapi (Sparse)"]:::query
-        Reranker["Cross-Encoder Reranker<br/>Weighted RRF (0.5/0.5) & Relevance Scoring"]:::query
-        AnswerEngine["OpenAI gpt-4.1-mini<br/>SSE token stream with citation grounding"]:::query
+        HybridRetriever["🔎 Hybrid Retrieval Engine<br/>ChromaDB (Dense) + BM25Okapi (Sparse)"]:::query
+        Reranker["🎯 Cross-Encoder Reranker<br/>Weighted RRF (0.5/0.5) & Relevance Scoring"]:::query
+        AnswerEngine["🤖 OpenAI gpt-4.1-mini<br/>SSE token stream with citation grounding"]:::query
     end
 
     subgraph Tier4["4 · Storage & State Tier (server/data)"]
@@ -500,9 +568,9 @@ flowchart TB
 
     subgraph Tier5["5 · Production Observability & Evaluation"]
         direction LR
-        OTel["OpenTelemetry Instrumentation<br/>Distributed latency tracing"]:::ops
-        Langfuse["Langfuse / LangSmith<br/>Token costs · trace waterfall · evals"]:::ops
-        Guardrail["Citation & Faithfulness Guardrail"]:::ops
+        OTel["📡 OpenTelemetry Instrumentation<br/>Distributed latency tracing"]:::ops
+        Langfuse["📈 Langfuse / LangSmith<br/>Token costs · trace waterfall · evals"]:::ops
+        Guardrail["🛡️ Citation & Faithfulness Guardrail"]:::ops
     end
 
     SSEClient <==>|HTTP REST & SSE Stream| FastAPIServer
@@ -526,18 +594,35 @@ flowchart TB
 
     FastAPIServer -.-> OTel
     AnswerEngine -.-> Langfuse
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
+    OTel ~~~ Guardrail ~~~ Langfuse
+    %% Colours distinguish existing ingestion, query, and return paths.
+    linkStyle 0,1,4 stroke:#A8C0A0,stroke-width:1.8px
+    linkStyle 2,5,6,7,8,9,10,11 stroke:#D7B77A,stroke-width:1.8px
+    linkStyle 3,12,13,14,15,16,17,18,19 stroke:#C1A0B7,stroke-width:1.8px
+    linkStyle 20 stroke:#A8C0A0,stroke-width:2px
 ```
+
+</details>
 
 ---
 
 ### 5.3 Client State Machine
 
+[![Client State Machine](assets/diagrams/06-client-state-machine.png)](assets/diagrams/06-client-state-machine.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TD
-    classDef stepNum fill:#4F46E5,stroke:#312E81,stroke-width:2px,color:#FFFFFF,font-weight:bold
-    classDef stateBox fill:#FFFFFF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B
-    classDef subBox fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155
-    classDef doneBox fill:#F0FDF4,stroke:#16A34A,stroke-width:2px,color:#14532D
+    classDef stepNum fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6,font-weight:bold
+    classDef stateBox fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6
+    classDef subBox fill:#292621,stroke:#8F8679,stroke-width:1px,color:#F4EFE6
+    classDef doneBox fill:#293B32,stroke:#A8C0A0,stroke-width:2px,color:#F4EFE6
 
     subgraph Phase1["1 · Ingestion & Status Lifecycle"]
         direction TB
@@ -567,45 +652,56 @@ flowchart TD
 
     S4 --> D1
     D3 --> C1
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
 ```
+
+</details>
 
 ---
 
 ### 5.4 Server Ingestion Pipeline
 
-```mermaid
-flowchart TD
-    classDef startNode fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
-    classDef processNode fill:#FFFFFF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B
-    classDef branchBox fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155
-    classDef doneNode fill:#F0FDF4,stroke:#16A34A,stroke-width:2px,color:#14532D
+[![Server Ingestion Pipeline](assets/diagrams/07-server-ingestion.png)](assets/diagrams/07-server-ingestion.svg)
 
-    ReqIn["1 · Client POST /api/v1/documents/ingest"]:::startNode
-    CheckHeader["2 · Validate URL & PDF Header Bytes"]:::processNode
-    RegisterDB["3 · Register Task in SQLite status PENDING"]:::processNode
-    SpawnThread["4 · Spawn Background Ingestion Worker Thread"]:::processNode
+<details>
+<summary>Editable Mermaid source</summary>
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
+flowchart TD
+    classDef startNode fill:#353829,stroke:#B1BB89,stroke-width:2px,color:#F4EFE6
+    classDef processNode fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6
+    classDef branchBox fill:#292621,stroke:#8F8679,stroke-width:1px,color:#F4EFE6
+    classDef doneNode fill:#293B32,stroke:#A8C0A0,stroke-width:2px,color:#F4EFE6
+
+    ReqIn["📥 1 · Client POST /api/v1/documents/ingest"]:::startNode
+    CheckHeader["🛡️ 2 · Validate URL & PDF Header Bytes"]:::processNode
+    RegisterDB["🗄️ 3 · Register Task in SQLite status PENDING"]:::processNode
+    SpawnThread["⚙️ 4 · Spawn Background Ingestion Worker Thread"]:::processNode
 
     ReqIn --> CheckHeader --> RegisterDB --> SpawnThread
 
     subgraph IngestionPipeline["5 · Parallel Worker Ingestion Pipeline"]
         direction TB
-        FetchPDF["Download PDF Stream to Uploads Directory"]:::processNode
-        ParseLayout["LlamaIndex PyMuPDF Parser<br/>Extract layout hierarchy, text & tables"]:::processNode
+        FetchPDF["📄 Download PDF Stream to Uploads Directory"]:::processNode
+        ParseLayout["📄 LlamaIndex PyMuPDF Parser<br/>Extract layout hierarchy, text & tables"]:::processNode
         FetchPDF --> ParseLayout
 
         subgraph BranchA["Branch A: Structured KPI Extraction"]
             direction TB
             Assemble["Assemble Financial Statements & Notes"]:::branchBox
-            CallLLM["OpenAI gpt-4.1-mini with strict JSON Schema"]:::branchBox
-            SaveSQL["Persist 18+ KPIs into SQLite earnings.db"]:::branchBox
+            CallLLM["🤖 OpenAI gpt-4.1-mini with strict JSON Schema"]:::branchBox
+            SaveSQL["🗄️ Persist 18+ KPIs into SQLite earnings.db"]:::branchBox
             Assemble --> CallLLM --> SaveSQL
         end
 
         subgraph BranchB["Branch B: Dual Hybrid Indexing"]
             direction TB
-            SplitText["LangChain Recursive Splitter chunk 1000 overlap 100"]:::branchBox
-            EmbedChroma["ChromaDB Vector Store text-embedding-3-small 512-dim"]:::branchBox
-            BuildBM25["Construct BM25Okapi Sparse Inverted Index"]:::branchBox
+            SplitText["✂️ LangChain Recursive Splitter chunk 1000 overlap 100"]:::branchBox
+            EmbedChroma["🧠 ChromaDB Vector Store text-embedding-3-small 512-dim"]:::branchBox
+            BuildBM25["🔎 Construct BM25Okapi Sparse Inverted Index"]:::branchBox
             SplitText --> EmbedChroma
             SplitText --> BuildBM25
         end
@@ -616,16 +712,27 @@ flowchart TD
 
     SpawnThread --> FetchPDF
 
-    UpdateDone["6 · Mark Task Status COMPLETED in SQLite 100%"]:::doneNode
+    UpdateDone["✅ 6 · Mark Task Status COMPLETED in SQLite 100%"]:::doneNode
     BranchA --> UpdateDone
     BranchB --> UpdateDone
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
 ```
+
+</details>
 
 ---
 
 ### 5.5 Client-Server SSE Protocol
 
+[![Client-Server SSE Protocol](assets/diagrams/08-sse-protocol.png)](assets/diagrams/08-sse-protocol.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","sequence":{"mirrorActors":false,"diagramMarginX":30,"diagramMarginY":24,"actorMargin":50,"messageMargin":42,"noteMargin":20,"useMaxWidth":true}}}%%
 sequenceDiagram
     autonumber
     actor User as Financial Analyst
@@ -674,17 +781,25 @@ sequenceDiagram
     Client->>User: Display completed response with clickable citation badges
 ```
 
+</details>
+
 ---
 
 ### 5.6 Jev Classification Filter Flow
 
+[![Jev Classification Filter Flow](assets/diagrams/09-query-classification.png)](assets/diagrams/09-query-classification.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TD
-    classDef stepNum fill:#4F46E5,stroke:#312E81,stroke-width:2px,color:#FFFFFF,font-weight:bold
-    classDef branchBox fill:#FFFFFF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B
-    classDef subBox fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155
-    classDef resultBox fill:#F0FDF4,stroke:#16A34A,stroke-width:2px,color:#14532D
-    classDef banner fill:#EFF6FF,stroke:#3B82F6,stroke-width:1.5px,color:#1E40AF
+    classDef stepNum fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6,font-weight:bold
+    classDef branchBox fill:#34302A,stroke:#C6AA76,stroke-width:2px,color:#F4EFE6
+    classDef subBox fill:#292621,stroke:#8F8679,stroke-width:1px,color:#F4EFE6
+    classDef resultBox fill:#293B32,stroke:#A8C0A0,stroke-width:2px,color:#F4EFE6
+    classDef banner fill:#353829,stroke:#B1BB89,stroke-width:1.5px,color:#F4EFE6
 
     subgraph Step1["1 · Incoming Financial Query"]
         direction TB
@@ -694,7 +809,7 @@ flowchart TD
 
     subgraph Step2["2 · TypeSafe Jev Decision Model"]
         direction TB
-        JevEngine["TypeSafeClassifier(jev-latest)<br/>ONE CALL · EVALUATED IN PARALLEL"]:::stepNum
+        JevEngine["🎯 TypeSafeClassifier(jev-latest)<br/>ONE CALL · EVALUATED IN PARALLEL"]:::stepNum
         
         subgraph Question1["Choice Question 1: financial_domain"]
             direction TB
@@ -716,14 +831,14 @@ flowchart TD
 
     subgraph Step3["3 · Typed Financial Filter Entity"]
         direction TB
-        FilterObj["FinancialQueryFilter<br/>ticker = 'TSLA'<br/>financial_domain = 'profitability'<br/>statement_type = 'income_statement'<br/>confidence = 0.96"]:::branchBox
+        FilterObj["🧩 FinancialQueryFilter<br/>ticker = 'TSLA'<br/>financial_domain = 'profitability'<br/>statement_type = 'income_statement'<br/>confidence = 0.96"]:::branchBox
         MapRule["Map low confidence (< 0.70) or 'general' to None"]:::subBox
         FilterObj --> MapRule
     end
 
     subgraph Step4["4 · Build ChromaDB Vector Filter"]
         direction TB
-        BuildFilter["build_chroma_filter(financial_filter)"]:::stepNum
+        BuildFilter["🔎 build_chroma_filter(financial_filter)"]:::stepNum
         FilterPayload["ChromaDB Where Clause:<br/>where = {<br/>  '$and': [<br/>    {'ticker': 'TSLA'},<br/>    {'financial_domain': {'$eq': 'profitability'}}<br/>  ]<br/>}"]:::resultBox
         ScopeNote["✓ Isolates 10-Q search to margin paragraphs and operations tables<br/>✓ Completely skips unrelated sections (legal, governance, factory footprint)"]:::subBox
         BuildFilter --> FilterPayload --> ScopeNote
@@ -738,7 +853,13 @@ flowchart TD
         direction LR
         JText["✓ LLM writes JSON token-by-token (slow). Jev picks from typed options with calibrated confidence. Zero hallucination, sub-80ms latency."]:::banner
     end
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
+    ScopeNote ~~~ JevBanner
 ```
+
+</details>
 
 ---
 
@@ -1042,26 +1163,32 @@ Each entry in `earnings_chunks` is composed of four elements:
 
 This diagram demonstrates how a single uploaded PDF report (e.g., Tesla Q2 2026 Update, 40 pages) is processed into both database stores without duplicate records:
 
+[![Schema Mapping: Single Report Lifecycle](assets/diagrams/10-report-lifecycle.png)](assets/diagrams/10-report-lifecycle.svg)
+
+<details>
+<summary>Editable Mermaid source</summary>
+
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#191816","primaryColor":"#34302A","primaryTextColor":"#F4EFE6","primaryBorderColor":"#C6AA76","secondaryColor":"#3C303B","secondaryTextColor":"#F4EFE6","secondaryBorderColor":"#BC9AAF","tertiaryColor":"#293B32","tertiaryTextColor":"#F4EFE6","tertiaryBorderColor":"#99B89B","lineColor":"#AAA294","textColor":"#F4EFE6","mainBkg":"#34302A","clusterBkg":"#22211E","clusterBorder":"#514B41","titleColor":"#ECE3D5","edgeLabelBackground":"#292620","actorBkg":"#34302A","actorBorder":"#C6AA76","actorTextColor":"#F4EFE6","actorLineColor":"#8F8679","signalColor":"#D6BA87","signalTextColor":"#ECE3D5","labelBoxBkgColor":"#3C303B","labelBoxBorderColor":"#BC9AAF","labelTextColor":"#F4EFE6","loopTextColor":"#E0CEDB","noteBkgColor":"#413526","noteTextColor":"#F1DEC0","noteBorderColor":"#D7B77A","activationBkgColor":"#293B32","activationBorderColor":"#99B89B","sequenceNumberColor":"#191816","fontFamily":"Arial, Helvetica, sans-serif","fontSize":"16px"},"themeCSS":"& { background-color: #191816; } .node rect, .node polygon, .node path, .node circle { stroke-width: 1.5px; } .node rect { rx: 9px; ry: 9px; } .cluster rect { rx: 12px; ry: 12px; } .cluster-label span { font-weight: 600; } .edgeLabel { color: #E9DECC; } .flowchart-link { stroke-width: 1.5px; } text, .label, .nodeLabel, .cluster-label, .edgeLabel, foreignObject, p, span { font-family: Arial, Helvetica, sans-serif !important; }","layout":"elk","elk":{"mergeEdges":true,"nodePlacementStrategy":"NETWORK_SIMPLEX","cycleBreakingStrategy":"GREEDY","forceNodeModelOrder":false},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":64,"padding":20,"wrappingWidth":340,"useMaxWidth":true,"htmlLabels":true}}}%%
 flowchart TD
-    classDef pdf fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
-    classDef worker fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
-    classDef sqlite fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#14532D
-    classDef chroma fill:#EDE9FE,stroke:#7C3AED,stroke-width:2px,color:#4C1D95
-    classDef app fill:#F1F5F9,stroke:#64748B,stroke-width:1.5px,color:#334155
+    classDef pdf fill:#353829,stroke:#B1BB89,stroke-width:2px,color:#F4EFE6
+    classDef worker fill:#413526,stroke:#D7B77A,stroke-width:2px,color:#F4EFE6
+    classDef sqlite fill:#293B32,stroke:#99B89B,stroke-width:2px,color:#F4EFE6
+    classDef chroma fill:#3C303B,stroke:#C1A0B7,stroke-width:2px,color:#F4EFE6
+    classDef app fill:#302D28,stroke:#AAA294,stroke-width:1.5px,color:#F4EFE6
 
-    PDF["Raw Earnings PDF (40 pages)<br/>TSLA-Q2-2026-Update.pdf<br/>SHA256: 7f83b1..."]:::pdf
+    PDF["📄 Raw Earnings PDF (40 pages)<br/>TSLA-Q2-2026-Update.pdf<br/>SHA256: 7f83b1..."]:::pdf
 
-    PDF --> IngestPipe["Async Ingestion Pipeline<br/>(LlamaIndex PyMuPDF + LangChain)"]:::worker
+    PDF --> IngestPipe["⚙️ Async Ingestion Pipeline<br/>(LlamaIndex PyMuPDF + LangChain)"]:::worker
 
     IngestPipe -->|Structured Extraction<br/>OpenAI gpt-4.1-mini| SQLiteStore
     IngestPipe -->|Recursive Chunking & 512-dim Embeddings<br/>text-embedding-3-small| ChromaStore
 
     subgraph SQLiteStore["SQLite: earnings.db (Relational Projection)"]
         direction TB
-        RowDoc["documents: Exactly 1 row<br/>{doc_id: 'doc_tsla_2026_q2', pages: 40, chunks: 85}"]:::sqlite
-        RowKPI["quarterly_kpis: Exactly 1 row<br/>{revenue: 25500.0, gross_margin: 17.95, fcf: 1340.0, debt: 5350.0}"]:::sqlite
-        RowTask["ingestion_tasks: 1 task status row"]:::sqlite
+        RowDoc["📄 documents: Exactly 1 row<br/>{doc_id: 'doc_tsla_2026_q2', pages: 40, chunks: 85}"]:::sqlite
+        RowKPI["📊 quarterly_kpis: Exactly 1 row<br/>{revenue: 25500.0, gross_margin: 17.95, fcf: 1340.0, debt: 5350.0}"]:::sqlite
+        RowTask["⚙️ ingestion_tasks: 1 task status row"]:::sqlite
     end
 
     subgraph ChromaStore["ChromaDB: earnings_chunks (Vector Projection)"]
@@ -1072,9 +1199,17 @@ flowchart TD
         C4["Chunk 0085: Risk Disclosures (Page 38)"]:::chroma
     end
 
-    RowKPI -->|Sub-10ms Relational Query| Dash["Tab 4 KPI Dashboard<br/>Scorecard Cards & FL Charts"]:::app
-    C3 -->|Hybrid Dense + Sparse Search| Chat["Conversational AI Copilot<br/>Streaming SSE with [Page 5] Citations"]:::app
+    RowKPI -->|Sub-10ms Relational Query| Dash["📊 Tab 4 KPI Dashboard<br/>Scorecard Cards & FL Charts"]:::app
+    C3 -->|Hybrid Dense + Sparse Search| Chat["💬 Conversational AI Copilot<br/>Streaming SSE with [Page 5] Citations"]:::app
+
+    classDef default fill:#34302A,stroke:#C6AA76,color:#F4EFE6
+    linkStyle default stroke:#AAA294
+    %% Invisible guides stack the original records and chunks.
+    RowDoc ~~~ RowKPI ~~~ RowTask
+    C1 ~~~ C2 ~~~ C3 ~~~ C4
 ```
+
+</details>
 
 ---
 
