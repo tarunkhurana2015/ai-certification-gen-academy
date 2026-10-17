@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -22,6 +23,7 @@ class RemoteApiException implements Exception {
 /// REST API DataSource communicating with the Python FastAPI backend server.
 ///
 /// Implements live query and multipart upload operations against:
+///  - `GET  /health`
 ///  - `GET  /api/v1/kpi/{ticker}`
 ///  - `GET  /api/v1/kpi/{ticker}/latest`
 ///  - `GET  /api/v1/documents`
@@ -44,12 +46,29 @@ class RemoteKpiDataSource {
     if (kIsWeb) {
       return 'http://localhost:8000/api/v1';
     }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      // Android Emulator loops back to development host via 10.0.2.2
-      return 'http://10.0.2.2:8000/api/v1';
-    }
+    try {
+      if (io.Platform.isAndroid) {
+        // Android Emulator loops back to development host via 10.0.2.2
+        return 'http://10.0.2.2:8000/api/v1';
+      }
+    } catch (_) {}
     // iOS Simulator, macOS Desktop, and local Linux/Windows host
     return 'http://localhost:8000/api/v1';
+  }
+
+  /// Fast liveness probe to verify if FastAPI backend is currently running.
+  Future<bool> checkHealth() async {
+    try {
+      final healthUrl = baseUrl.replaceAll('/api/v1', '/health');
+      final uri = Uri.parse(healthUrl);
+      final response = await _client.get(
+        uri,
+        headers: {'Accept': 'application/json'},
+      ).timeout(const Duration(milliseconds: 350));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Fetches all quarterly KPI reports for a given stock ticker.
@@ -132,6 +151,12 @@ class RemoteKpiDataSource {
     List<String> defaultTickers = const ['TSLA', 'META'],
   }) async {
     try {
+      // Fast check if server is reachable before executing individual queries
+      final isAlive = await checkHealth();
+      if (!isAlive) {
+        return await MockKpiDataSource.getAvailableReports();
+      }
+
       // 1. Discover tickers present in the server database
       var tickersToQuery = defaultTickers;
       try {

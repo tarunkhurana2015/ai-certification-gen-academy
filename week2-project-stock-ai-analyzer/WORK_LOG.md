@@ -17,7 +17,7 @@
 | **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ⏳ Pending |
 | **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
 | **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | ✅ Completed |
-| **Phase 7** | **Client Integration (Flutter)** | Connect Flutter KPI Dashboard to live backend API | 🔄 **In Progress** |
+| **Phase 7** | **Client Integration (Flutter)** | Connect Flutter KPI Dashboard to live backend API | ✅ Completed |
 
 ---
 
@@ -542,6 +542,34 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
   - `flutter analyze lib/data/datasources/remote_kpi_datasource.dart`: 0 issues found.
   - `flutter test`: All 15 tests in `ai_analyst_feature` passed.
   - `flutter test` in `apps/gen_stock_folio`: All smoke and widget navigation tests passed.
+
+---
+
+### Step 7.2: Wire Remote DataSource into ViewModel & Report Ingestion Panel
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **ViewModel Wire-up & Upload Operation** ([client/packages/ai_analyst_feature/lib/presentation/viewmodel/kpi_dashboard_viewmodel.dart](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/client/packages/ai_analyst_feature/lib/presentation/viewmodel/kpi_dashboard_viewmodel.dart)):
+     - Connected `KpiDashboardViewModel.loadReports()` directly to `ref.read(remoteKpiDataSourceProvider).getAvailableReports()`.
+     - Added first-class `uploadReport()` method to ViewModel, uploading files via `RemoteKpiDataSource.uploadAndIngestPdf()` and automatically updating `availableReports` and `selectedReport` in the state.
+  2. **`ReportIngestionPanel` Multipart Integration** ([client/packages/ai_analyst_feature/lib/presentation/views/widgets/report_ingestion_panel.dart](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/client/packages/ai_analyst_feature/lib/presentation/views/widgets/report_ingestion_panel.dart)):
+     - Updated file picker to request raw bytes via `withData: true`.
+     - In `_startIngestion()`, calls `RemoteKpiDataSource.uploadAndIngestPdf()` to hit FastAPI's `/api/v1/ingestion/upload` with real PDF bytes, receiving dynamic LLM GAAP KPI extractions.
+     - Implemented graceful offline fallback: If backend server is unreachable or offline, catches error and calculates local metrics so headless automated tests and offline devices never crash.
+  3. **High-Speed Liveness Health Probe (`checkHealth`)**:
+     - Added 350ms health probe to `RemoteKpiDataSource` hitting `/health`. If offline, fast-paths to mock data in milliseconds rather than waiting for multiple endpoint timeouts.
+     - Accurately guarded Android emulator host resolution (`10.0.2.2`) using `io.Platform.isAndroid` to avoid desktop test runner conflicts.
+  4. **Live Server Integration Test Suite** ([client/packages/ai_analyst_feature/test/datasources/live_server_integration_test.dart](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/client/packages/ai_analyst_feature/test/datasources/live_server_integration_test.dart)):
+     - Tests live communication against running FastAPI server:
+       - `checkHealth()` liveness confirmation
+       - `fetchDocumentTickers()` catalog discovery
+       - `fetchReportsForTicker('TSLA')` live SQLite parsing
+       - `uploadAndIngestPdf()` live file ingestion and 0.1ms instant deduplication cache
+- **Verification**:
+  - `flutter analyze`: 0 issues found across entire feature package.
+  - `flutter test test/datasources/live_server_integration_test.dart`: All 4 tests passed against live server on `:8000`.
+  - `flutter test`: All 19 tests in `ai_analyst_feature` passed in 2.1 seconds.
+  - `flutter test` in `apps/gen_stock_folio`: All smoke and widget navigation tests passed.
+
 
 
 

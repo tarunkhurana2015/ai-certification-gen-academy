@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/datasources/remote_kpi_datasource.dart';
 import '../../../domain/entities/quarterly_kpis.dart';
 import '../viewmodel/kpi_dashboard_viewmodel.dart';
 import 'widgets/ai_analyst_chat_window.dart';
@@ -133,6 +134,7 @@ class _KpiDashboardViewState extends ConsumerState<KpiDashboardView> {
                         );
                       },
                       onCancel: null,
+                      remoteDataSource: ref.read(remoteKpiDataSourceProvider),
                     ),
                   ],
                 ),
@@ -172,6 +174,7 @@ class _KpiDashboardViewState extends ConsumerState<KpiDashboardView> {
                     );
                   },
                   onCancel: () => setState(() => _showIngestionPanel = false),
+                  remoteDataSource: ref.read(remoteKpiDataSourceProvider),
                 ),
               ],
               const SizedBox(height: 16),
