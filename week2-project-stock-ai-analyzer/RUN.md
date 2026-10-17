@@ -252,6 +252,21 @@ python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py
 ```
 
+---
+
+## 📱 9. Flutter Client Execution & Tests
+
+### A. Run Feature Package Tests (`ai_analyst_feature`)
+```bash
+cd client/packages/ai_analyst_feature
+flutter test
+```
+
+### B. Run Main App Smoke & Navigation Tests (`gen_stock_folio`)
+```bash
+cd client/apps/gen_stock_folio
+flutter test
+```
 
 ---
 

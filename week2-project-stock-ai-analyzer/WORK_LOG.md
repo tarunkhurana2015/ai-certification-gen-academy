@@ -16,7 +16,7 @@
 | **Phase 3** | **Dual Hybrid Indexing** | ChromaDB dense embeddings + BM25 sparse keyword index | ⏳ Pending |
 | **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ⏳ Pending |
 | **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
-| **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | 🔄 **In Progress** |
+| **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | ✅ Completed |
 | **Phase 7** | **Client Integration (Flutter)** | Connect Flutter KPI Dashboard to live backend API | 🔄 **In Progress** |
 
 ---
@@ -513,5 +513,35 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
   - Executed duplicate upload without `--force`: Returned in 0.01s with `"is_duplicate": true`.
   - Executed live queries: `curl http://localhost:8000/health`, `curl http://localhost:8000/api/v1/kpi/TSLA?quarter=Q2&year=2026`, `curl http://localhost:8000/api/v1/kpi/META`.
   - **All 15 master test suites passed cleanly.**
+
+---
+
+### Step 7.1: Flutter Client Remote REST DataSource (`RemoteKpiDataSource`)
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **HTTP Client Dependency Integration**:
+     - Added `http: ^1.6.0` to [client/packages/ai_analyst_feature/pubspec.yaml](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/client/packages/ai_analyst_feature/pubspec.yaml) following the `flutter-use-http-package` best practices.
+  2. **`RemoteKpiDataSource` Implementation** ([client/packages/ai_analyst_feature/lib/data/datasources/remote_kpi_datasource.dart](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/client/packages/ai_analyst_feature/lib/data/datasources/remote_kpi_datasource.dart)):
+     - **Dynamic Cross-Platform Host Resolution**: Automatically routes to `http://10.0.2.2:8000/api/v1` on Android Emulator, `http://localhost:8000/api/v1` on iOS Simulator, macOS Desktop, and Web via `defaultTargetPlatform` without platform-specific crashes.
+     - **API Consumer Operations**:
+       - `fetchReportsForTicker(String ticker)`: Calls `GET /api/v1/kpi/{ticker}`, deserializes `client_reports` list via `QuarterlyKpis.fromJson()`.
+       - `fetchLatestReport(String ticker)`: Calls `GET /api/v1/kpi/{ticker}/latest`, deserializes the most recent quarter.
+       - `fetchDocumentTickers()`: Calls `GET /api/v1/documents` catalog to discover active tickers.
+       - `getAvailableReports()`: Aggregates reports across tickers, with seamless fallback to `MockKpiDataSource.getAvailableReports()` if the server is offline or unreachable.
+       - `uploadAndIngestPdf()`: Sends multipart POST request to `/api/v1/ingestion/upload` with raw bytes, filename, and metadata flags.
+     - **Cross-Platform Exception**: Defined `RemoteApiException` with status code and URI context, avoiding `dart:io` limitations on web.
+     - **Dependency Injection**: Exported `remoteKpiDataSourceProvider` for Riverpod state management.
+  3. **Unit Test Suite** ([client/packages/ai_analyst_feature/test/datasources/remote_kpi_datasource_test.dart](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/client/packages/ai_analyst_feature/test/datasources/remote_kpi_datasource_test.dart)):
+     - Implemented 5 unit tests with `MockClient`:
+       - Time series `client_reports` JSON parsing
+       - Latest single report parsing
+       - Document catalog ticker discovery
+       - Resilient offline fallback to mock data on network error
+       - Multipart upload with field assertions and response parsing
+- **Verification**:
+  - `flutter analyze lib/data/datasources/remote_kpi_datasource.dart`: 0 issues found.
+  - `flutter test`: All 15 tests in `ai_analyst_feature` passed.
+  - `flutter test` in `apps/gen_stock_folio`: All smoke and widget navigation tests passed.
+
 
 

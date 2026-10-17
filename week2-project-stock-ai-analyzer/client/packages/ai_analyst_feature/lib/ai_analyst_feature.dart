@@ -5,6 +5,7 @@ export 'domain/entities/quarterly_kpis.dart';
 
 // Data
 export 'data/datasources/mock_kpi_datasource.dart';
+export 'data/datasources/remote_kpi_datasource.dart';
 
 // Presentation State & ViewModel
 export 'presentation/state/kpi_dashboard_state.dart';
