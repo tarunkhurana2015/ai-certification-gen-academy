@@ -159,19 +159,27 @@ if __name__ == "__main__":
     }
 
     json_path = artifact_dir / f"03_chunks_{base_slug}.json"
+    json_b_path = artifact_dir / f"03b_enriched_chunks_{base_slug}.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(artifact_data, f, indent=2)
+    with open(json_b_path, "w", encoding="utf-8") as f:
+        json.dump(artifact_data, f, indent=2)
+
+    md_content = f"# 🧩 Semantic Chunks & Facets Artifact: `{test_pdf.name}`\n\n"
+    md_content += f"- **Timestamp**: `{artifact_data['timestamp']}`\n"
+    md_content += f"- **Ticker / Period**: `META` (`Q2 2026`)\n"
+    md_content += f"- **Total Source Pages**: `{res.total_pages}`\n"
+    md_content += f"- **Total Chunks Produced**: `{len(chunks)}`\n\n"
+    for c in chunks:
+        md_content += f"### Chunk `{c.chunk_id}`\n"
+        md_content += f"- **Domain**: `{c.financial_domain}` | **Page**: `{c.page_number}` | **Length**: `{c.char_count}` chars\n\n"
+        md_content += "```text\n" + c.text + "\n```\n\n"
 
     md_path = artifact_dir / f"03_chunks_{base_slug}.md"
+    md_b_path = artifact_dir / f"03b_enriched_chunks_{base_slug}.md"
     with open(md_path, "w", encoding="utf-8") as f:
-        f.write(f"# 🧩 Semantic Chunks & Facets Artifact: `{test_pdf.name}`\n\n")
-        f.write(f"- **Timestamp**: `{artifact_data['timestamp']}`\n")
-        f.write(f"- **Ticker / Period**: `META` (`Q2 2026`)\n")
-        f.write(f"- **Total Source Pages**: `{res.total_pages}`\n")
-        f.write(f"- **Total Chunks Produced**: `{len(chunks)}`\n\n")
-        for c in chunks:
-            f.write(f"### Chunk `{c.chunk_id}`\n")
-            f.write(f"- **Domain**: `{c.financial_domain}` | **Page**: `{c.page_number}` | **Length**: `{c.char_count}` chars\n\n")
-            f.write("```text\n" + c.text + "\n```\n\n")
+        f.write(md_content)
+    with open(md_b_path, "w", encoding="utf-8") as f:
+        f.write(md_content)
 
-    print(f"📄 Saved Artifacts:\n  • {json_path}\n  • {md_path}")
+    print(f"📄 Saved Artifacts:\n  • {json_b_path}\n  • {md_b_path}\n  • {json_path}\n  • {md_path}")

@@ -65,13 +65,145 @@ def build_extraction_prompt(
 
 
 if __name__ == "__main__":
-    dummy_page = ExtractedPage(
-        page_number=5,
-        text="Condensed Consolidated Statements of Income\nRevenue: $47,510M\nNet Income: $15,848M",
-        char_count=85,
-        is_blank=False,
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description="Compose grounded GAAP KPI extraction prompt.")
+    parser.add_argument("--ticker", type=str, default="META", help="Stock ticker symbol (default: META)")
+    parser.add_argument("--quarter", type=str, default="Q2", help="Fiscal quarter (default: Q2)")
+    parser.add_argument("--year", type=int, default=2026, help="Fiscal year (default: 2026)")
+    parser.add_argument("--text", type=str, default=None, help="Custom financial text (if omitted, uses default dummy pages)")
+    parser.add_argument("--page", type=int, default=1, help="Page number for custom text (default: 1)")
+    args = parser.parse_args()
+
+    print("🚀 Composing GAAP KPI Extraction Prompt...")
+    print(f"🎯 Target Hints: Ticker={args.ticker}, Quarter={args.quarter}, Year={args.year}")
+
+    if args.text:
+        sample_pages = [
+            ExtractedPage(
+                page_number=args.page,
+                text=args.text,
+                char_count=len(args.text),
+                is_blank=False,
+            )
+        ]
+        print(f"📄 Using custom CLI text for Page {args.page} ({len(args.text):,} characters)")
+    else:
+        sample_pages = [
+            ExtractedPage(
+                page_number=5,
+                text=(
+                    "Meta Platforms, Inc.\n"
+                    "CONDENSED CONSOLIDATED STATEMENTS OF INCOME\n"
+                    "(In millions, except per share amounts)\n"
+                    "Three Months Ended June 30, 2026\n"
+                    "--------------------------------------------------\n"
+                    "Revenue: $47,510\n"
+                    "Costs and expenses:\n"
+                    "  Cost of revenue: $8,552\n"
+                    "  Research and development: $12,380\n"
+                    "  Marketing and sales: $3,210\n"
+                    "  General and administrative: $3,520\n"
+                    "Total costs and expenses: $27,662\n"
+                    "Income from operations: $19,848\n"
+                    "Net income: $15,848\n"
+                    "Diluted earnings per share: $6.15\n"
+                ),
+                char_count=450,
+                is_blank=False,
+            ),
+            ExtractedPage(
+                page_number=6,
+                text=(
+                    "Meta Platforms, Inc.\n"
+                    "CONDENSED CONSOLIDATED BALANCE SHEETS\n"
+                    "(In millions)\n"
+                    "June 30, 2026\n"
+                    "--------------------------------------------------\n"
+                    "Cash and cash equivalents: $41,200\n"
+                    "Marketable securities: $23,500\n"
+                    "Total assets: $258,400\n"
+                    "Long-term debt: $28,400\n"
+                    "Total liabilities: $84,200\n"
+                    "Total stockholders' equity: $174,200\n"
+                ),
+                char_count=350,
+                is_blank=False,
+            ),
+            ExtractedPage(
+                page_number=7,
+                text=(
+                    "Meta Platforms, Inc.\n"
+                    "CONDENSED CONSOLIDATED STATEMENTS OF CASH FLOWS\n"
+                    "(In millions)\n"
+                    "Three Months Ended June 30, 2026\n"
+                    "--------------------------------------------------\n"
+                    "Net cash provided by operating activities: $24,150\n"
+                    "Purchases of property and equipment (CapEx): $8,470\n"
+                    "Principal payments on finance leases: $410\n"
+                    "Free cash flow: $15,680\n"
+                ),
+                char_count=380,
+                is_blank=False,
+            ),
+        ]
+        print(f"📄 Using {len(sample_pages)} default dummy financial statement pages (Income Statement, Balance Sheet, Cash Flow)")
+
+    prompt = build_extraction_prompt(
+        selected_pages=sample_pages,
+        ticker_hint=args.ticker,
+        quarter_hint=args.quarter,
+        year_hint=args.year,
     )
-    prompt = build_extraction_prompt([dummy_page], ticker_hint="META", quarter_hint="Q2", year_hint=2026)
-    print("🚀 Sample Generated Extraction Prompt:")
+
+    estimated_tokens = len(prompt) // 4
+    print(f"✨ Successfully Composed Prompt: {len(prompt):,} characters (~{estimated_tokens:,} tokens)")
     print("-" * 60)
-    print(prompt[:400] + "\n...[truncated]...")
+    print(prompt[:500] + "\n...[truncated for console display]...")
+    print("-" * 60)
+
+    # Save simple {"input": {}, "prompt": ""} artifact
+    artifact_dir = _SERVER_ROOT / ".artifact"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    artifact_data = {
+        "input": {
+            "ticker": args.ticker,
+            "quarter": args.quarter,
+            "year": args.year,
+            "pages": [
+                {
+                    "page_number": p.page_number,
+                    "text": p.text,
+                }
+                for p in sample_pages
+            ],
+        },
+        "prompt": prompt,
+    }
+
+    json_path = artifact_dir / "07a_sample_extraction_prompt.json"
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(artifact_data, f, indent=2)
+
+    md_path = artifact_dir / "07a_sample_extraction_prompt.md"
+    with open(md_path, "w", encoding="utf-8") as f:
+        f.write("# 📝 Composed LLM Extraction Prompt Artifact\n\n")
+        f.write("## 1. Input Configuration\n\n")
+        f.write(f"- **Ticker**: `{args.ticker}`\n")
+        f.write(f"- **Quarter**: `{args.quarter}`\n")
+        f.write(f"- **Year**: `{args.year}`\n")
+        f.write(f"- **Pages Count**: `{len(sample_pages)}`\n\n")
+
+        f.write("### Input Pages Content\n\n")
+        for p in sample_pages:
+            f.write(f"#### 📄 Page {p.page_number} ({len(p.text):,} chars)\n\n")
+            f.write("```text\n" + p.text + "\n```\n\n")
+
+        f.write("## 2. Full Composed Extraction Prompt\n\n")
+        f.write("```text\n")
+        f.write(prompt)
+        f.write("\n```\n")
+
+    print(f"\n📄 Saved Artifacts:\n  • {json_path}\n  • {md_path}")

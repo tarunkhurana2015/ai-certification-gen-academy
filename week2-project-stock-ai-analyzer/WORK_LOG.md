@@ -412,7 +412,32 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
      - `kpi_extractor.py` now purely focuses on orchestrating the LangChain structured LLM call and database persistence.
   3. **1:1 Mirror Test Suite**:
      - Created [server/tests/ingestion/extractor/test_llm_extraction_prompts.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/extractor/test_llm_extraction_prompts.py) testing rule assertions, prompt interpolation, and edge-cases without hints.
+  4. **Self-Contained Dummy CLI & Composed Prompt Artifact**:
+     - Configured CLI `__main__` entrypoint with realistic dummy financial statement pages (Income Statement, Balance Sheet, Cash Flow).
+     - Composes full prompt with auditor persona, extraction rules, and page markers (`--- PAGE 5 ---`, etc.).
+     - Outputs inspectable artifacts in `server/.artifact/`:
+       - `07a_sample_extraction_prompt.json`
+       - `07a_sample_extraction_prompt.md`
 - **Verification**:
-  - Ran all 11 unit test suites sequentially.
-  - **100% assertions passed with zero errors and zero test artifacts.**
+  - Ran all 11 unit test suites sequentially (100% assertions, 0 disk artifacts).
+  - Executed CLI directly (`python app/ingestion/extractor/llm_extraction_prompts.py`) to generate `07a_sample_extraction_prompt.[json|md]`.
+
+---
+
+### Step 2.4.5: Recursive Chunker PDF Input & Artifact Generation (`recursive_chunker.py`)
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **Direct PDF CLI Ingestion**:
+     - Upgraded `server/app/ingestion/chunkers/recursive_chunker.py` CLI `__main__` entrypoint to accept an optional `pdf_path` argument (defaulting to `Meta-06-30-2026-Exhibit-99-1-FINAL.pdf` if omitted).
+     - Directly integrates `pdf_extractor.extract_text_by_pages()` to extract text page-by-page.
+     - Iterates through all non-blank pages and calls `split_page_text()` per page with configurable `--chunk-size` (default: 1000) and `--chunk-overlap` (default: 100).
+  2. **Inspectable Artifact Generation**:
+     - Generates both machine-readable JSON (`03a_recursive_splits_<slug>.json`) and human-readable Markdown (`03a_recursive_splits_<slug>.md`) in `server/.artifact/`.
+     - Displays page-by-page breakdown with split index, character counts, and text chunks.
+  3. **Playbook & Playbook Synchronization**:
+     - Updated `RUN.md` and `server/RUN.md` with explicit commands for Meta (9 pages -> 24 raw splits) and Tesla (33 pages -> 66 raw splits).
+- **Verification**:
+  - Ran CLI for Meta: Generated 24 raw splits across 9 pages, saved `03a_recursive_splits_meta_06_30_2026_exhibit_99_1_final.[json|md]`.
+  - Ran CLI for Tesla: Generated 66 raw splits across 32 non-blank pages, saved `03a_recursive_splits_tsla_q2_2026_update.[json|md]`.
+  - Ran unit tests `tests/ingestion/chunkers/test_recursive_chunker.py` (all tests passed with 0 disk artifacts).
 
