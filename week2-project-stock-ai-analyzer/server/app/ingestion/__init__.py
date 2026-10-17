@@ -7,5 +7,16 @@ Ingestion Pipeline Module:
 """
 
 from app.ingestion.validator import PDFValidationResult, validate_and_hash_pdf
+from app.ingestion.pdf_extractor import (
+    ExtractedPage,
+    PDFExtractionResult,
+    extract_text_by_pages,
+)
 
-__all__ = ["PDFValidationResult", "validate_and_hash_pdf"]
+__all__ = [
+    "PDFValidationResult",
+    "validate_and_hash_pdf",
+    "ExtractedPage",
+    "PDFExtractionResult",
+    "extract_text_by_pages",
+]

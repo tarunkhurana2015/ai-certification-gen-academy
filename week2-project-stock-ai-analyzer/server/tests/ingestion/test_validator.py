@@ -3,21 +3,21 @@ Interactive Learning Test: Step 1.1 - PDF File Validator & SHA-256 Hasher
 =========================================================================
 
 Run from server directory:
-    python tests/test_validator.py
+    python tests/ingestion/test_validator.py
 or
-    uv run python tests/test_validator.py
+    uv run python tests/ingestion/test_validator.py
 """
 
 import sys
 from pathlib import Path
 from pypdf import PdfWriter
 
-# Ensure the server root is in sys.path so 'from app...' imports cleanly from any directory
-SERVER_ROOT = Path(__file__).resolve().parent.parent
+# Ensure the server root is in sys.path so 'from app...' works cleanly
+SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(SERVER_ROOT))
 
-# Import our newly built validator component from app.ingestion
+# Import our validator component from app.ingestion
 from app.ingestion.validator import validate_and_hash_pdf
 
 
@@ -35,8 +35,8 @@ def main():
     print("🎓 LEARNING TEST: STEP 1.1 - PDF VALIDATION & SHA-256 HASHING")
     print("=" * 70)
 
-    # Put all test data inside tests/test_data/
-    test_dir = Path(__file__).resolve().parent / "test_data"
+    # Use shared test data directory at tests/test_data/
+    test_dir = Path(__file__).resolve().parent.parent / "test_data"
     test_dir.mkdir(exist_ok=True)
 
     # 1. Test a valid PDF

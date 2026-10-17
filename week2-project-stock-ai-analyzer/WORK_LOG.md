@@ -1,6 +1,8 @@
 # Stock AI Analyst — Developer Work Log & Learning Journal
 
 > **Purpose**: A clear, beginner-friendly trace of every step, component, and architectural decision built in this project. Use this document whenever you need to see what was done, why it was done, and what comes next.
+>
+> 💡 **Concept & Architecture FAQ**: Check [FAQ.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/FAQ.md) for detailed explanations of why we made specific design decisions (e.g., SQLite vs files, `__init__.py`, LLM structured outputs across different PDF formats).
 
 ---
 
@@ -78,8 +80,8 @@ To learn this thoroughly, we break the Ingestion Pipeline down into small, diges
 - **Status**: ✅ Completed
 - **Files Created**:
   - `server/app/ingestion/validator.py` ([validator.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/validator.py))
-  - `server/tests/test_validator.py` ([test_validator.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/test_validator.py))
-  - `server/tests/test_data/` (isolated sandbox for temporary test files)
+  - `server/tests/ingestion/test_validator.py` ([test_validator.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/test_validator.py))
+  - `server/tests/test_data/` (isolated sandbox for shared test PDFs)
 - **Environment Note**:
   - Discovered that the global Anaconda Python (`/opt/anaconda3/bin/python`) caused macOS `SIGKILL` (signal 9 / exit 137).
   - Pinned `3.12` in `.python-version` and rebuilt `.venv` cleanly with Apple Silicon native Python 3.12 via `uv sync`.
@@ -94,9 +96,34 @@ To learn this thoroughly, we break the Ingestion Pipeline down into small, diges
 ---
 
 ### Step 1.2: PDF Text & Page Extractor (pypdf)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/ingestion/pdf_extractor.py` ([pdf_extractor.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/pdf_extractor.py))
+  - `server/tests/ingestion/test_pdf_extractor.py` ([test_pdf_extractor.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/test_pdf_extractor.py))
+- **What Was Built**:
+  - `ExtractedPage`: Immutable dataclass representing a page with 1-indexed `page_number`, cleaned `text`, `char_count`, and `is_blank` detection.
+  - `PDFExtractionResult`: Container holding the entire document's extracted pages, total character count, blank page count, and document metadata.
+  - `extract_text_by_pages()`: Sequentially traverses `reader.pages`, handling empty passwords, blank separator pages, and font corruptions without failing the entire document.
+- **Verification**:
+  - Generated realistic 3-page earnings report (`apple_q3_fy24_financials.pdf`) via ReportLab.
+  - Tested live against user's actual **9-page Meta Q2 2026 Earnings Release** (`Meta-06-30-2026-Exhibit-99-1-FINAL.pdf`): extracted 18,960 characters across all 9 pages with exact headings.
+  - Verified graceful handling of blank pages and missing files.
+  - All test cases passed with exit code 0.
+
+---
+
+### Step 1.3: Financial Section Tagging (Heuristic Domain Classifier)
 - **Status**: ⏳ Pending / Next Up
-- **Target File**: `server/app/ingestion/pdf_extractor.py`
+- **Target File**: `server/app/ingestion/section_classifier.py`
 - **Why this component?**:
-  - In RAG systems, answers must be strictly grounded with page-level citations (e.g., *"Gross margin was 45.4% [Page 14]"*).
-  - This component reads pages sequentially using `pypdf`, extracts the clean text, tracks the total page count, and bundles each page with its 1-indexed page number and character count.
+  - In financial RAG, generic semantic search often returns chunks from the wrong financial statement (e.g. searching for "cash" returns operating cash flow narrative when the user wants balance sheet cash).
+  - This component scans page headings and tables to classify each page into a `FinancialDomain`:
+    - `profitability` (Statements of Operations, Income Statement, Revenues, EPS)
+    - `balance_sheet` (Assets, Liabilities, Shareholders' Equity)
+    - `cash_flow` (Operating, Investing, Financing cash flows)
+    - `guidance_outlook` (Future expectations, fiscal outlook, full-year targets)
+    - `risk_factors` (Item 1A risk disclosures)
+    - `general` (Executive quotes, highlights, cover)
+  - These domain tags become **hard metadata filters** in our vector store!
+
 
