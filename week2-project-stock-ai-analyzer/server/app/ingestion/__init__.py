@@ -12,6 +12,12 @@ from app.ingestion.pdf_extractor import (
     PDFExtractionResult,
     extract_text_by_pages,
 )
+from app.ingestion.section_classifier import (
+    FinancialDomain,
+    PageClassification,
+    classify_page,
+    classify_document_pages,
+)
 
 __all__ = [
     "PDFValidationResult",
@@ -19,4 +25,8 @@ __all__ = [
     "ExtractedPage",
     "PDFExtractionResult",
     "extract_text_by_pages",
+    "FinancialDomain",
+    "PageClassification",
+    "classify_page",
+    "classify_document_pages",
 ]

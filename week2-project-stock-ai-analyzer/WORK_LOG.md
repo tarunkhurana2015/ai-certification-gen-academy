@@ -113,17 +113,29 @@ To learn this thoroughly, we break the Ingestion Pipeline down into small, diges
 ---
 
 ### Step 1.3: Financial Section Tagging (Heuristic Domain Classifier)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/ingestion/section_classifier.py` ([section_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/section_classifier.py))
+  - `server/tests/ingestion/test_section_classifier.py` ([test_section_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/test_section_classifier.py))
+- **What Was Built**:
+  - `FinancialDomain`: Standardized enum (`PROFITABILITY`, `BALANCE_SHEET`, `CASH_FLOW`, `GUIDANCE_OUTLOOK`, `RISK_FACTORS`, `GENERAL`).
+  - `PageClassification`: Result dataclass with `domain`, `confidence`, and `matched_signals`.
+  - `normalize_header_text()`: Typography normalization collapsing spaced header font (e.g. `'B A L A N C E  S H E E T'` -> `'BALANCESHEET'`).
+  - Universal GAAP Anchor Dictionaries: Strict mapping based on SEC Regulation S-X accounting terms.
+  - Multi-signal scoring engine: Weighs top-5 lines header patterns (3x) and GAAP body keywords (1x) with calibrated confidence.
+- **Verification**:
+  - Tested live against **Meta Q2 2026** (9-page press release): accurately tagged Statements of Income (Page 5), Balance Sheet (Page 6), Cash Flows (Page 7), CFO Outlook (Page 2), and Risk Factors (Page 4).
+  - Tested live against **Tesla Q2 2026** (33-page slide deck): successfully normalized spaced typography `'O U T L O O K'` (Page 10) and `'B A L A N C E  S H E E T'` (Page 28), and tagged Cybercab/Optimus photo slides as `GENERAL`.
+  - Verified 100% test pass rate with 0 external API calls in < 2ms.
+
+---
+
+### Step 1.4: Semantic Chunking & Metadata Enrichment (LangChain)
 - **Status**: ⏳ Pending / Next Up
-- **Target File**: `server/app/ingestion/section_classifier.py`
+- **Target File**: `server/app/ingestion/chunker.py`
 - **Why this component?**:
-  - In financial RAG, generic semantic search often returns chunks from the wrong financial statement (e.g. searching for "cash" returns operating cash flow narrative when the user wants balance sheet cash).
-  - This component scans page headings and tables to classify each page into a `FinancialDomain`:
-    - `profitability` (Statements of Operations, Income Statement, Revenues, EPS)
-    - `balance_sheet` (Assets, Liabilities, Shareholders' Equity)
-    - `cash_flow` (Operating, Investing, Financing cash flows)
-    - `guidance_outlook` (Future expectations, fiscal outlook, full-year targets)
-    - `risk_factors` (Item 1A risk disclosures)
-    - `general` (Executive quotes, highlights, cover)
-  - These domain tags become **hard metadata filters** in our vector store!
+  - LLMs have finite context windows, and dense vector embeddings lose semantic sharpness if chunks are too large (e.g. 5,000 chars).
+  - This component uses LangChain's `RecursiveCharacterTextSplitter` (1000 characters with 100 overlap) to split each page while respecting paragraphs, tables, and sentence boundaries.
+  - Each chunk is stamped with rich, typed metadata (`chunk_id`, `ticker`, `quarter`, `year`, `page_number`, `financial_domain`), which makes hard metadata pre-filtering possible in Pinecone and BM25!
 
 
