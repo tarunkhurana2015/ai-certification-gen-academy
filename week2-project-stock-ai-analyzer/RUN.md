@@ -181,9 +181,58 @@ python tests/schemas/test_schemas.py
 
 ---
 
-## 🏆 7. All-in-One Master Test Runner
+## ⚡ 7. FastAPI Gateway Server & REST Endpoints
 
-Run all **12 test suites** across the entire codebase in a single command:
+### A. Start FastAPI Development Server
+Starts the high-performance ASGI server on port 8000 with CORS enabled and auto-reloading:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Interactive Swagger / OpenAPI documentation is immediately available at:
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### B. Sample API Invocations via cURL
+
+```bash
+# 1. Health Probe
+curl -s http://localhost:8000/health
+
+# 2. Upload & Ingest PDF Filing (Multipart Form)
+curl -s -X POST "http://localhost:8000/api/v1/ingestion/upload" \
+  -F "file=@tests/test_data/TSLA-Q2-2026-Update.pdf" \
+  -F "force=true"
+
+# 3. Retrieve Exact Single Quarter KPIs (TSLA Q2 2026)
+curl -s "http://localhost:8000/api/v1/kpi/TSLA?quarter=Q2&year=2026"
+
+# 4. Retrieve Chronological Time Series for Charts (META)
+curl -s "http://localhost:8000/api/v1/kpi/META"
+
+# 5. Retrieve Most Recent Reported Quarter
+curl -s "http://localhost:8000/api/v1/kpi/META/latest"
+
+# 6. Peer Company Comparison (META vs TSLA in Q2 2026)
+curl -s "http://localhost:8000/api/v1/kpi/compare?tickers=META&tickers=TSLA&quarter=Q2&year=2026"
+
+# 7. List Ingested Documents Catalog
+curl -s "http://localhost:8000/api/v1/documents"
+```
+
+### C. Run API Unit & Integration Tests (Pure Assertions)
+```bash
+python tests/api/test_health.py
+python tests/api/test_kpis_api.py
+python tests/api/test_documents_api.py
+```
+
+---
+
+## 🏆 8. All-in-One Master Test Runner
+
+Run all **15 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -197,8 +246,12 @@ python tests/ingestion/chunkers/test_recursive_chunker.py && \
 python tests/ingestion/chunkers/test_metadata_enricher.py && \
 python tests/ingestion/extractor/test_llm_extraction_prompts.py && \
 python tests/ingestion/extractor/test_kpi_extractor.py && \
-python tests/ingestion/test_pipeline.py
+python tests/ingestion/test_pipeline.py && \
+python tests/api/test_health.py && \
+python tests/api/test_kpis_api.py && \
+python tests/api/test_documents_api.py
 ```
+
 
 ---
 

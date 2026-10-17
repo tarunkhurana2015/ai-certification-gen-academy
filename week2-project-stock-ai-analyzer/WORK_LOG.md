@@ -12,12 +12,12 @@
 | :--- | :--- | :--- | :--- |
 | **Phase 0** | **Environment Setup** | Python 3.11+, virtualenv (`uv`), dependencies, `.env` | ✅ Completed |
 | **Phase 1** | **PDF Ingestion Pipeline** | PDF validation, text extraction, section parsing, chunking | ✅ Completed |
-| **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | 🔄 **In Progress** |
-| **Phase 3** | **Dual Hybrid Indexing** | Pinecone dense embeddings + BM25 sparse keyword index | ⏳ Pending |
+| **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | ✅ Completed |
+| **Phase 3** | **Dual Hybrid Indexing** | ChromaDB dense embeddings + BM25 sparse keyword index | ⏳ Pending |
 | **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ⏳ Pending |
 | **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
-| **Phase 6** | **FastAPI Server & SSE** | Async REST endpoints, Server-Sent Events streaming | ⏳ Pending |
-| **Phase 7** | **Client Integration (Flutter)** | Connect Flutter UI to live backend API & SSE stream | ⏳ Pending |
+| **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | 🔄 **In Progress** |
+| **Phase 7** | **Client Integration (Flutter)** | Connect Flutter KPI Dashboard to live backend API | 🔄 **In Progress** |
 
 ---
 
@@ -440,4 +440,78 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
   - Ran CLI for Meta: Generated 24 raw splits across 9 pages, saved `03a_recursive_splits_meta_06_30_2026_exhibit_99_1_final.[json|md]`.
   - Ran CLI for Tesla: Generated 66 raw splits across 32 non-blank pages, saved `03a_recursive_splits_tsla_q2_2026_update.[json|md]`.
   - Ran unit tests `tests/ingestion/chunkers/test_recursive_chunker.py` (all tests passed with 0 disk artifacts).
+
+---
+
+### Step 2.4.6: End-to-End Ingestion Pipeline Orchestrator & Sequential Artifacts (`pipeline.py`)
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **Central Ingestion Orchestrator** ([server/app/ingestion/pipeline.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/pipeline.py)):
+     - Chains all multi-stage ETL components into a single coherent flow:
+       1. **Header Validation & SHA-256 Fingerprinting**: Magic byte check (`%PDF-`) and checksum computation.
+       2. **0.1ms Instant Deduplication**: Indexed lookup against `documents.sha256_hash` to reject already processed filings without burning LLM tokens.
+       3. **Page Layout & Text Extraction**: Page-by-page extraction, character counts, and blank page detection.
+       4. **Financial Section Classification**: Categorizes statements into GAAP domains (`profitability`, `balance_sheet`, `cash_flow`, `guidance_outlook`, `risk_factors`).
+       5. **Dynamic LLM GAAP KPI Extraction**: Dynamic prompt composition using auditor persona. Extracts 18+ GAAP metrics; auto-reconciles negative CapEx signs, verifies `FCF = OCF - CapEx`, and calculates margin ratios. Completely dynamic (removed all hardcoded ticker matching).
+       6. **Semantic Chunking**: Recursive 1,000-character chunks with domain metadata facets attached.
+       7. **SQLite Persistence & Lineage**: Records document metadata and audited KPIs in SQLite (`stock_analyst.db`), tracking task state.
+     - Added `--force` flag to bypass deduplication cache and re-process filings end-to-end.
+  2. **Sequential Artifact Renumbering (`server/.artifact/`)**:
+     - Renumbered artifacts strictly sequentially without number skipping:
+       - `01_extracted_<doc>`: Page text layouts and character metrics
+       - `02_classified_<doc>`: GAAP financial domain classification tags
+       - `03a_recursive_splits_<doc>`: Raw character-bounded splits
+       - `03b_enriched_chunks_<doc>`: Enriched semantic chunks with metadata facets
+       - `04_extracted_kpis_<doc>`: Structured GAAP KPIs extracted by LLM
+       - `05_persisted_kpis_<doc>`: SQLite persisted record & round-trip query
+       - `06_pipeline_ingest_<doc>`: End-to-end pipeline run summary
+       - `04a_sample_extraction_prompt`: Standalone prompt generator sample
+       - `db_01_database_init`, `db_02_database_models`, `db_03_kpi_repo_queries`: DB tier verification artifacts
+  3. **1:1 Mirror Unit Test Suite**:
+     - Created [server/tests/ingestion/test_pipeline.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/test_pipeline.py) covering validation failure, instant deduplication, and full mocked pipeline execution with pure in-memory SQLite assertions and zero disk artifacts.
+- **Verification**:
+  - Executed `python app/ingestion/pipeline.py tests/test_data/TSLA-Q2-2026-Update.pdf --force`.
+  - Generated all sequential artifacts (`01` through `06`) in `server/.artifact/`.
+  - All 12 master test suites passed.
+
+---
+
+### Step 6.1: FastAPI Gateway Server, REST Endpoints, & Flutter Client Entity Adapter
+- **Status**: ✅ Completed
+- **What Was Built**:
+  1. **Schema Contracts & Flutter Client Entity Adapter** ([server/app/schemas/ingestion.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/schemas/ingestion.py), [server/app/schemas/kpis.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/schemas/kpis.py)):
+     - `IngestionResponse` and `IngestionUploadRequest` DTOs.
+     - `KpiTimeSeriesResponse` and `KpiComparisonResponse` DTOs.
+     - `format_kpi_for_client()`: Direct 1:1 adapter mapping database records into the nested JSON structure expected by Flutter client's `QuarterlyKpis.fromJson()` (`profitability`, `cash_flow`, `balance_sheet`, `summary`).
+  2. **Thin API Controller Layer** ([server/app/api/v1/](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/api/v1/)):
+     - `endpoints/health.py`: `GET /health` liveness probe.
+     - `endpoints/documents.py`:
+       - `POST /api/v1/ingestion/upload` and alias `POST /api/v1/documents/ingest`: Multipart PDF upload, persistent raw PDF cache in `server/data/uploads/`, and automatic sequential artifact generation (`save_artifacts=True`).
+       - `GET /api/v1/documents`: Document catalog listing with optional ticker filter.
+       - `GET /api/v1/documents/{document_id}`: Document metadata retrieval by UUID.
+       - `GET /api/v1/documents/tasks/{task_id}`: Task lifecycle status and progress polling.
+     - `endpoints/kpis.py`:
+       - `GET /api/v1/kpi/{ticker}`: Exact single quarter (when `?quarter=Q2&year=2026`) or chronological time series for dashboard charts.
+       - `GET /api/v1/kpi/{ticker}/latest`: Most recent reported quarter convenience route.
+       - `GET /api/v1/kpi/compare`: Side-by-side peer company benchmarking (e.g. META vs TSLA in Q2 2026).
+       - `GET /api/v1/kpi/document/{document_id}`: KPI retrieval by parent Document ID.
+     - `router.py`: Aggregates all sub-routers under `/api/v1`.
+  3. **FastAPI Server Factory & Lifespan** ([server/app/main.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/main.py)):
+     - Automatic database table creation via lifespan context manager.
+     - CORS middleware enabled for Flutter Web, macOS Desktop, iOS, and Android.
+     - Top-level `/health` and root `/` documentation routes.
+  4. **1:1 Mirror Test Suites** ([server/tests/api/](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/api/)):
+     - `test_health.py`: Tests `/health`, `/api/v1/health`, and `/`.
+     - `test_kpis_api.py`: Tests single quarter, time series, latest quarter, peer comparison, 404s, and validates Flutter entity dictionary compatibility.
+     - `test_documents_api.py`: Tests document catalog, task status polling, non-PDF rejection (400), and upload endpoint aliases.
+     - Pure assertions using in-memory SQLite (`StaticPool`) and zero disk artifacts during tests.
+  5. **Playbook & Playbook Synchronization**:
+     - Updated both `server/RUN.md` and root `RUN.md` with Section 7 (FastAPI Server & cURL commands) and upgraded the All-in-One Master Test Runner to all 15 suites.
+- **Verification**:
+  - Tested live FastAPI server on port 8000.
+  - Executed `curl -s -X POST "http://localhost:8000/api/v1/ingestion/upload" -F "file=@tests/test_data/TSLA-Q2-2026-Update.pdf" -F "force=true"`: Succeeded in 4.2s, generated all sequential artifacts `01` through `06` in `server/.artifact/`.
+  - Executed duplicate upload without `--force`: Returned in 0.01s with `"is_duplicate": true`.
+  - Executed live queries: `curl http://localhost:8000/health`, `curl http://localhost:8000/api/v1/kpi/TSLA?quarter=Q2&year=2026`, `curl http://localhost:8000/api/v1/kpi/META`.
+  - **All 15 master test suites passed cleanly.**
+
 

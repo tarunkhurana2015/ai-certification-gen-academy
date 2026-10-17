@@ -90,6 +90,11 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+# Alias for dependency injection
+get_db_session = get_db
+
+
+
 def init_db(target_engine: Engine = engine) -> None:
     """
     Initializes database tables by creating all tables registered on Base.metadata.
