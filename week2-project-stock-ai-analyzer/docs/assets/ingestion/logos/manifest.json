@@ -1,0 +1,50 @@
+{
+  "notes": "Technology marks identify the actual tools; standard icons identify files, code and future work. Marks are recoloured only in the composed SVGs for contrast.",
+  "assets": [
+    {
+      "file": "fa-circle-arrow-right.svg",
+      "source": "https://github.com/FortAwesome/Font-Awesome/blob/7.3.1/svgs/solid/circle-arrow-right.svg",
+      "sha256": "e0f41598cb04de4d3134d6f913c98586f140fa5d16f26d02c7c9105955951450"
+    },
+    {
+      "file": "fa-code.svg",
+      "source": "https://github.com/FortAwesome/Font-Awesome/blob/7.3.1/svgs/solid/code.svg",
+      "sha256": "fa140aa3486ea1081bf441791833a547f04ba69cae0ba24375346ee8a6c961ab"
+    },
+    {
+      "file": "fa-folder-open.svg",
+      "source": "https://github.com/FortAwesome/Font-Awesome/blob/7.3.1/svgs/solid/folder-open.svg",
+      "sha256": "aff3c50819cdb466c1025555b84a577885cd1b4de93f8d11fc055977712000db"
+    },
+    {
+      "file": "fastapi.svg",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/fastapi.svg",
+      "sha256": "af0bdd5fd3f16a49e341089049418af7b02a04eefdc088b2e26c4524fa8b75d1"
+    },
+    {
+      "file": "flutter.svg",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/flutter.svg",
+      "sha256": "3f268e6fd52e538478ec299cef53cfd85a1c3454b5eb4c7997dd2e21e6b7d741"
+    },
+    {
+      "file": "langchain.svg",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/langchain.svg",
+      "sha256": "6d8347547ea7e96b9d183d28a0a4068d329250724aecd260674d09339a6b5fcf"
+    },
+    {
+      "file": "openai.svg",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/openai.svg",
+      "sha256": "2b4a04ddc2395b20d168694d3850ce2050a702c4a0cdeb4d8b31b9a970481a8c"
+    },
+    {
+      "file": "python.svg",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/python.svg",
+      "sha256": "ad9468e1c4903f73ae7eebfbe980f0f727a10db695be3d914e7d8bd25356a862"
+    },
+    {
+      "file": "sqlite.svg",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/sqlite.svg",
+      "sha256": "71d4153bc9661dfe6b92dad70f737ec2b6c7c839311e502b4ca66fe664fe12b6"
+    }
+  ]
+}
