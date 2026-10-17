@@ -1,0 +1,42 @@
+{
+  "@@locale": "en",
+  "tabTitle": "Portfolio Ingestion",
+  "welcomeTitle": "Welcome to GenStockFolio",
+  "welcomeSubtitle": "Get started by loading a mock diversified portfolio, uploading your CSV holdings, or adding positions manually.",
+  "loadDemoButton": "Load Demo Portfolio",
+  "uploadCsvButton": "Upload CSV File",
+  "addPositionButton": "Add Position Manually",
+  "clearPortfolio": "Clear Portfolio",
+  "dropZonePrompt": "Drag & drop your CSV file here, or click to browse",
+  "previewTitle": "CSV Import Preview",
+  "validRows": "Valid Rows",
+  "flaggedIssues": "Issues Flagged",
+  "confirmImport": "Confirm Import",
+  "importValidOnly": "Import Valid Rows Only",
+  "cancel": "Cancel",
+  "save": "Save",
+  "symbol": "Ticker Symbol",
+  "shares": "Shares Quantity",
+  "costBasis": "Average Cost Basis",
+  "companyName": "Company Name",
+  "sector": "Sector",
+  "positionsCount": "{count, plural, =0{No positions} =1{1 position} other{{count} positions}}",
+  "@positionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plaidSectionTitle": "Plaid Financial Integration",
+  "plaidConnectPrompt": "Link your brokerage via Plaid (Fidelity, Schwab, Vanguard, etc.) to automatically sync investment holdings.",
+  "plaidStatusDisconnected": "No Brokerage Linked",
+  "plaidConnectedStatus": "Connected via Plaid",
+  "plaidConnectTitle": "Link Brokerage via Plaid",
+  "plaidModeSandbox": "Plaid Sandbox",
+  "plaidModeLive": "API Credentials",
+  "plaidConnectAction": "Connect Account",
+  "plaidSyncButton": "Sync Now",
+  "plaidDisconnectButton": "Disconnect",
+  "cancelButton": "Cancel"
+}

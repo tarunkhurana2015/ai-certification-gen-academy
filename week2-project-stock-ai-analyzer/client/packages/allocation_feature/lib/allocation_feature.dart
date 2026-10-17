@@ -1,0 +1,9 @@
+export 'l10n/allocation_localizations.dart';
+export 'domain/entities/sector_allocation.dart';
+export 'presentation/router/router.config.dart';
+export 'presentation/state/allocation_state.dart';
+export 'presentation/viewmodel/allocation_viewmodel.dart';
+export 'presentation/views/allocation_view.dart';
+export 'presentation/views/widgets/allocation_pie_chart.dart';
+export 'presentation/views/widgets/holdings_breakdown_table.dart';
+export 'presentation/views/widgets/position_detail_sheet.dart';

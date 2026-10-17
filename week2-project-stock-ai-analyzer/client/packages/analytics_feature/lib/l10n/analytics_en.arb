@@ -1,0 +1,22 @@
+{
+  "@@locale": "en",
+  "tabTitle": "Performance & Risk",
+  "performanceHeader": "Historical Trajectory & Lifetime Analytics",
+  "lifetimeInvested": "Lifetime Invested",
+  "currentValuation": "Current Valuation",
+  "netProfit": "Net Lifetime Profit",
+  "totalReturn": "Cumulative Return",
+  "equityGrowth": "Equity Growth Trajectory",
+  "timeframe1M": "1M",
+  "timeframe3M": "3M",
+  "timeframe6M": "6M",
+  "timeframe1Y": "1Y",
+  "timeframeAll": "ALL",
+  "riskSection": "Risk & Portfolio Health",
+  "betaLabel": "Portfolio Beta",
+  "betaDesc": "Market volatility sensitivity (vs S&P 500)",
+  "sharpeLabel": "Sharpe Ratio",
+  "sharpeDesc": "Risk-adjusted performance indicator",
+  "diversificationScore": "Diversification Score",
+  "diversificationDesc": "Sector concentration and balance rating (0-100)"
+}

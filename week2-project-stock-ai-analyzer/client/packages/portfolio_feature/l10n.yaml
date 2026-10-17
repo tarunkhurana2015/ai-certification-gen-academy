@@ -1,0 +1,5 @@
+arb-dir: lib/l10n
+template-arb-file: portfolio_en.arb
+output-localization-file: portfolio_localizations.dart
+output-class: PortfolioLocalizations
+output-dir: lib/l10n

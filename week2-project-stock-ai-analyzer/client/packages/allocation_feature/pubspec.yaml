@@ -1,0 +1,28 @@
+name: allocation_feature
+description: Asset Allocation and Holdings Breakdown Feature Package
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  flutter_riverpod: ^3.3.2
+  go_router: ^17.5.0
+  fl_chart: ^1.1.1
+  portfolio_feature:
+    path: ../portfolio_feature
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  generate: true
