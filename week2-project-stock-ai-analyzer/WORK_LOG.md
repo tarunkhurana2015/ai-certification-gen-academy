@@ -578,7 +578,8 @@ With the deterministic KPI database, FastAPI gateway, and Flutter client complet
 Per user direction, we decouple the dense and sparse pipelines into three isolated, modular milestones:
 1. **Step 3.1: OpenAI Embeddings Factory & Cosine Math** (`indexing/embeddings.py`) — ✅ Completed
 2. **Step 3.2: ChromaDB Vector Store Ingestion & Metadata Filtering** (`indexing/vector_store.py`) — ✅ Completed
-3. **Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index** (`indexing/bm25_index.py`) — 🔄 Up Next
+3. **Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index** (`indexing/bm25_index.py`) — ✅ Completed
+4. **Step 3.4: Ingestion Pipeline Dual Indexing & Hybrid Retrieval Engine** (`retrieval/`) — 🔄 Up Next
 
 ---
 
@@ -646,3 +647,45 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
 - **Verification**:
   - Ran `python tests/indexing/test_vector_store.py`: All 5 test cases passed.
   - Ran All-in-One Master Test Runner (17 test suites): All 17 suites passed cleanly with 0 errors.
+
+---
+
+### Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index (`bm25_index.py`)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/indexing/bm25_index.py` ([bm25_index.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/bm25_index.py))
+  - `server/tests/indexing/test_bm25_index.py` ([test_bm25_index.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/indexing/test_bm25_index.py))
+  - `server/data/bm25/bm25_index.pkl` (Serialized index cache)
+  - `server/.artifact/idx_03_bm25_sample.json` ([idx_03_bm25_sample.json](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_03_bm25_sample.json))
+  - `server/.artifact/idx_03_bm25_sample.md` ([idx_03_bm25_sample.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_03_bm25_sample.md))
+- **What Was Built**:
+  1. **Financial Tokenizer (`financial_tokenize`)**:
+     - Preserves numbers, currency symbols, percentages, and commas (`$1,340`, `1,340`, `18.5%`, `18.5`).
+     - Preserves hyphenated terms and accounting acronyms (`non-gaap`, `year-over-year`, `EBITDA`, `CapEx`).
+     - Normalizes plurals (`revenues` -> `revenue`, `expenditures` -> `expenditure`) so search queries match both grammatical forms.
+  2. **`BM25KeywordIndex` Class**:
+     - In-memory `rank_bm25.BM25Okapi` inverted index (`k1=1.5`, `b=0.75`).
+     - Positive IDF floor enforcement: Prevents zero-score drops when terms appear across >=50% of chunks in small corpora.
+     - `add_chunks(chunks: List[EnrichedChunk])`: Tokenizes and deduplicates chunks by `chunk_id`.
+     - `search(query, k, ...)`: Vectorized BM25 scoring with metadata pre-filtering by `ticker`, `fiscal_quarter`, `fiscal_year`, and `financial_domain`. Filters out zero-match scores (`score <= min_score`).
+     - `delete_by_ticker(ticker)` and `reset()`: Lifecycle index maintenance.
+     - `save(path)` / `load(path)`: Fast binary pickle serialization to `server/data/bm25/bm25_index.pkl`.
+  3. **Standalone CLI Runner & Observable Inspection Artifacts**:
+     - Ingested 66 real chunks from Tesla Q2 2026.
+     - Executed searches:
+       - `"Free cash flow $1,340M"` -> Top score: 7.0875 on Page 31.
+       - `"automotive gross margin 18.5%"` -> Top score: 7.7176 on Page 30.
+       - `"GAAP operating income $0.4B"` -> Top score: 11.6525 on Page 3.
+     - Generated `idx_03_bm25_sample.[json|md]`.
+  4. **1:1 Mirror Unit Test Suite (`tests/indexing/test_bm25_index.py`)**:
+     - Tests financial tokenization rules (currency, percentages, acronyms, casing).
+     - Tests duplicate chunk rejection.
+     - Tests exact keyword matches and top ranking.
+     - Tests metadata pre-filtering across tickers, quarters, and domains.
+     - Tests deletion by ticker and reset operations.
+     - Tests serialization roundtrip using temporary directories.
+     - 100% in-memory with zero external API calls.
+- **Verification**:
+  - Ran `python tests/indexing/test_bm25_index.py`: All 6 test cases passed.
+  - Ran All-in-One Master Test Runner (18 test suites): All 18 suites passed cleanly with 0 errors.
+

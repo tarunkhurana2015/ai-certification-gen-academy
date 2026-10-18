@@ -254,11 +254,22 @@ python app/indexing/vector_store.py
 python tests/indexing/test_vector_store.py
 ```
 
+### E. Run BM25 Sparse Keyword Index Self-Test (CLI & Artifact Generation)
+Ingests real chunks into BM25Okapi, executes exact keyword/acronym searches, serializes index to `server/data/bm25/bm25_index.pkl`, and exports `server/.artifact/idx_03_bm25_sample.[json|md]`:
+```bash
+python app/indexing/bm25_index.py
+```
+
+### F. Run BM25 Keyword Index Unit Tests (Pure In-Memory Assertions)
+```bash
+python tests/indexing/test_bm25_index.py
+```
+
 ---
 
 ## 🏆 9. All-in-One Master Test Runner
 
-Run all **17 test suites** across the entire codebase in a single command:
+Run all **18 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -277,7 +288,8 @@ python tests/api/test_health.py && \
 python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py && \
 python tests/indexing/test_embeddings.py && \
-python tests/indexing/test_vector_store.py
+python tests/indexing/test_vector_store.py && \
+python tests/indexing/test_bm25_index.py
 ```
 
 ---
