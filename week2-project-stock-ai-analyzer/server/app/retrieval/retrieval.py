@@ -109,6 +109,35 @@ def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
                     "tag": f"[{target_ticker} Audited Financials]",
                 }
             )
+        # Smart fallback to Hybrid RAG if SQL financial table does not contain the metric asked
+        missing_indicators = ["does not include", "cannot provide", "not available", "data notice"]
+        if any(ind in answer.lower() for ind in missing_indicators):
+            chunks = search_filings.invoke(
+                {
+                    "query": query,
+                    "ticker": target_ticker,
+                    "financial_domain": domain,
+                    "k": 3,
+                }
+            )
+            if chunks:
+                answer = synthesize_hybrid_rag(query=query, chunks=chunks, mock=mock)
+                route = "hybrid_rag"
+                citations = []
+                for c in chunks:
+                    citations.append(
+                        {
+                            "source": f"{c.get('ticker', 'SEC')} 10-Q",
+                            "ticker": c.get("ticker", ""),
+                            "page_number": c.get("page_number", 1),
+                            "section_name": str(c.get("financial_domain", "Filing")).title(),
+                            "financial_domain": c.get("financial_domain", "general"),
+                            "snippet": c.get("text", "")[:200],
+                            "citation": c.get("citation", f"[Page - {c.get('page_number', 1)}]"),
+                            "tag": c.get("citation", f"[Page - {c.get('page_number', 1)}]"),
+                        }
+                    )
+                raw_data = {"retrieved_chunks_count": len(chunks), "fallback_from": "sql_kpi"}
 
     elif route == "hybrid_rag":
         target_ticker = ticker if ticker and ticker not in ("none", "multiple") else None

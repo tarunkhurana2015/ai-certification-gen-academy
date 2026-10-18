@@ -1044,4 +1044,41 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
   - `python tests/api/test_analyst_api.py`: 7/7 tests passed.
   - Master Test Runner: All **24 test suites** across the entire project passed cleanly with 0 errors!
 
+---
+
+### Step 5.8: Query Routing Disambiguation & Dynamic RAG Fallback (Operational vs. GAAP Metrics)
+- **Date**: Oct 18, 2026
+- **Context & Problem Statement**:
+  - During chat interaction, querying operational/volume metrics like `"Storage deployed (GWh) ?"` resulted in an empty SQL response:
+    > *"The audited financial data for TSLA in Q3 2026 does not include specific figures for storage deployed (GWh). Therefore, I cannot provide that information."* with the badge `Exact GAAP (SQL)`.
+  - **Root Cause Analysis**:
+    1. *JEV Choice Criteria Over-generalization*: The `sql_kpi` prompt criteria previously accepted any question asking for exact "numbers/metrics". Because "GWh" represents a numerical quantity, the classifier routed it to SQL rather than Hybrid RAG.
+    2. *Domain Boundary Mismatch*: The SQLite database exclusively stores the 18 standardized core GAAP financial statement line items (Revenue, Gross Profit, Operating Income, CapEx, FCF, Net Debt, Cash, etc.). Operational, volume, and business metrics (Energy storage GWh, Megapack shipments, vehicle production/deliveries, active users, headcount) live in investor deck presentations and 10-Q filing narrative tables (indexed in ChromaDB and BM25).
+    3. *Lack of Fallback*: When SQL synthesis found no matching column for storage deployed, it terminated with a missing-data notice instead of searching filing chunks.
+- **Architectural Fixes Implemented**:
+  1. *JEV Criteria Refinement (`app/retrieval/classifier/jev_classifier.py`)*:
+     - `sql_kpi`: Explicitly restricted to standard audited GAAP financial statement items. Added explicit negative constraint: *"Does NOT include operational metrics or product volumes."*
+     - `hybrid_rag`: Explicitly expanded to encompass *"qualitative explanations, narrative context, commentary, risks, or ANY operational / business volume metrics found in the filing text (e.g. storage deployed in GWh, vehicle deliveries/production, Megapack shipments, active users, headcount)"*.
+     - Updated deterministic mock classifier `_mock_classify` to align with the new criteria.
+  2. *Smart Hybrid RAG Fallback in Retrieval Router (`app/retrieval/retrieval.py`)*:
+     - Added a self-healing fallback: If a query routes to `sql_kpi` but the synthesized answer contains missing-data notices (*"does not include"*, *"cannot provide"*, *"not available"*), `run_retrieval()` automatically falls back to `search_filings` (BM25 + ChromaDB) and `synthesize_hybrid_rag`.
+     - Ensures the system never dead-ends on operational or peripheral metrics even if edge-case queries slip into `sql_kpi`.
+  3. *Unit Tests & Synthetic Verification*:
+     - Verified all 5 test intent patterns:
+       - *"What was Tesla Q3 2026 revenue and free cash flow?"* ➔ `sql_kpi` (confidence: 1.00)
+       - *"Why did operating margin compress this quarter?"* ➔ `hybrid_rag` (confidence: 0.98)
+       - *"Compare Meta and Tesla operating margins"* ➔ `comparison` (confidence: 1.00)
+       - *"Storage deployed (GWh) ?"* ➔ `hybrid_rag` (confidence: 1.00, retrieves Page 5, 6, 3 with exact quarterly GWh trend)
+       - *"How many vehicle deliveries did Tesla make in Q2?"* ➔ `hybrid_rag` (confidence: 1.00)
+- **Files Modified**:
+  - `server/app/retrieval/classifier/jev_classifier.py` ([jev_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/classifier/jev_classifier.py))
+  - `server/app/retrieval/retrieval.py` ([retrieval.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/retrieval.py))
+- **Verification Results**:
+  - `tests/retrieval/test_classifier.py`: All 8 unit tests passed.
+  - `tests/retrieval/test_retrieval.py`: All unit tests passed.
+  - `tests/retrieval/test_retrieval_router.py`: All unit tests passed.
+  - `tests/retrieval/test_tools.py`: All unit tests passed.
+  - Live query test for `"Storage deployed (GWh) ?"`: Successfully returned `hybrid_rag` with Page 5 citations and exact historical deployments (13.5 GWh in Q2-2026, +41% YoY).
+
+
 

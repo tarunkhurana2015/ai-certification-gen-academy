@@ -59,6 +59,9 @@ def search_filings(
         if clean_domain:
             filter_dict["financial_domain"] = clean_domain
         docs = engine.bm25_index.search(query=query, k=k, filter=filter_dict or None)
+        if not docs and clean_domain and clean_ticker:
+            # Fallback to ticker-only filter if strict financial domain produced zero hits
+            docs = engine.bm25_index.search(query=query, k=k, filter={"ticker": clean_ticker})
 
     results = []
     for d in docs:

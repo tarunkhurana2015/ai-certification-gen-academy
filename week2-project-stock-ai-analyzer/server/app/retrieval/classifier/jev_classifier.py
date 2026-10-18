@@ -68,8 +68,8 @@ def get_jev_questions() -> Dict[str, Any]:
         "query_type": Choice(
             instructions="What is the primary objective of this financial query?",
             criteria={
-                "sql_kpi": "Asks for exact, audited financial metrics, numbers, or balance sheet / cash flow figures for a specific quarter",
-                "hybrid_rag": "Asks for qualitative explanations, narrative context, business reasons, management commentary, or risks",
+                "sql_kpi": "Asks strictly for standard audited GAAP financial statement line items (revenue, gross profit, operating income, net income, EPS, free cash flow, CapEx, debt, cash balance). Does NOT include operational metrics or product volumes.",
+                "hybrid_rag": "Asks for qualitative explanations, narrative context, commentary, risks, or ANY operational / business volume metrics found in the filing text (e.g. storage deployed in GWh, vehicle deliveries/production, Megapack shipments, active users, headcount).",
                 "comparison": "Compares metrics between multiple companies or analyzes trends across multiple quarters",
             },
         ),
@@ -115,6 +115,22 @@ def _mock_classify(query: str) -> QueryClassification:
             "risks",
             "outlook",
             "guidance",
+            "storage",
+            "gwh",
+            "megapack",
+            "delivery",
+            "deliveries",
+            "production",
+            "units",
+            "headcount",
+            "users",
+            "dap",
+            "daily active",
+            "services",
+            "segment",
+            "highlights",
+            "strategy",
+            "initiatives",
         ]
     ):
         q_type = "hybrid_rag"
