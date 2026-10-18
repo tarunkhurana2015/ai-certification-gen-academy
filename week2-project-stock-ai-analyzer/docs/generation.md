@@ -6,7 +6,7 @@ Demo sequence: [Ingestion and indexing](ingestion.md) → [Retrieval](retrieval.
 
 ## Presentation graphics
 
-Use the **3840 × 2160 PNGs** in presentation slides, the SVGs for scalable artwork, or the [two-slide generation PDF](assets/generation/generation-slides.pdf). The [combined PDF](assets/rag-pipeline-slides.pdf) contains all seven pipeline slides.
+Use the **3840 × 2160 PNGs** in presentation slides, the SVGs for scalable artwork, or the [two-slide generation PDF](assets/generation/generation-slides.pdf). The [combined PDF](assets/rag-pipeline-slides.pdf) contains all eight pipeline slides.
 
 | Slide | PNG | SVG |
 |---|---|---|

@@ -1,4 +1,4 @@
-"""Build the seven implementation-backed RAG pipeline slides; no API calls."""
+"""Build the eight RAG pipeline slides, labeling proposed orchestration; no API calls."""
 import importlib.util
 import json
 from pathlib import Path
@@ -116,12 +116,12 @@ def grounded_generation():
 
 
 if __name__ == "__main__":
-    art.overview();art.rag_preparation();art.indexing();art.manifest()
+    art.overview();art.response_indexing();art.rag_preparation();art.indexing();art.manifest()
     retrieval_routes();hybrid_retrieval();generation_routes();grounded_generation()
     groups=[
-        {"pipeline":"ingestion","slides":["ingestion-overview","ingestion-rag-preparation","ingestion-indexing"]},
+        {"pipeline":"ingestion","slides":["ingestion-overview","ingestion-response-indexing","ingestion-rag-preparation","ingestion-indexing"]},
         {"pipeline":"retrieval","slides":["retrieval-overview","retrieval-hybrid"]},
         {"pipeline":"generation","slides":["generation-overview","generation-grounded"]},
     ]
     (HERE/"slides.json").write_text(json.dumps(groups,indent=2)+'\n')
-    print("Built 7 SVGs: ingestion (3), retrieval (2), generation (2).")
+    print("Built 8 SVGs: ingestion (4), retrieval (2), generation (2).")

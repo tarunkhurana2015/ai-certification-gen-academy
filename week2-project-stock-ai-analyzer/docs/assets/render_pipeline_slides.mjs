@@ -56,5 +56,5 @@ try{
   }
   await toPdf(pages,path.join(here,'rag-pipeline-slides.pdf'));
   if(failures.length)throw new Error('Label overflow detected; review the rendered previews.');
-  console.log('PASS: 7 slide previews at 3840×2160; 3 pipeline PDFs and the combined 7-page PDF.');
+  console.log(`PASS: ${pages.length} slide previews at 3840×2160; ${groups.length} pipeline PDFs and the combined ${pages.length}-page PDF.`);
 }finally{await browser.close();}

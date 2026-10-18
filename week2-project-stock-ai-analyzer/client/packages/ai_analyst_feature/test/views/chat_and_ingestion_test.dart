@@ -53,6 +53,35 @@ void main() {
       expect(find.textContaining('TSLA reported a Gross Margin of 17.95%'), findsOneWidget);
       expect(find.textContaining('Shareholder Deck Pg. 4, Item 1'), findsOneWidget);
     });
+
+    testWidgets('Tapping citation chip opens CitationViewerModal with source provenance and verbatim snippet', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AiAnalystChatWindow(report: sampleReport),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap citation chip on initial assistant welcome message
+      final citationFinder = find.textContaining('[Page - 1, Section - Financial Statements]');
+      expect(citationFinder, findsOneWidget);
+      await tester.tap(citationFinder);
+      await tester.pumpAndSettle();
+
+      // Verify CitationViewerModal elements
+      expect(find.text('Ground Truth Filing Citation'), findsOneWidget);
+      expect(find.text('Audited source excerpt from official SEC report'), findsOneWidget);
+      expect(find.text('Page 1'), findsOneWidget);
+      expect(find.text('Audited Financial Statements'), findsOneWidget);
+      expect(find.textContaining('audited filings indexed into SQLite & ChromaDB'), findsOneWidget);
+      expect(find.text('Copy Excerpt'), findsOneWidget);
+    });
   });
 
   group('ReportIngestionPanel Widget Tests', () {

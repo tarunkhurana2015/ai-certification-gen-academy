@@ -1,28 +1,41 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+
+import '../../../domain/entities/analyst_response.dart';
 import '../../../domain/entities/quarterly_kpis.dart';
+import '../../../data/datasources/remote_kpi_datasource.dart';
+import 'citation_viewer_modal.dart';
 
 class ChatMessage {
   final String text;
   final bool isUser;
   final String? citation;
+  final List<AnalystCitation> citations;
+  final String? routeUsed;
   final DateTime timestamp;
+  final double durationSeconds;
 
   const ChatMessage({
     required this.text,
     required this.isUser,
     this.citation,
+    this.citations = const [],
+    this.routeUsed,
     required this.timestamp,
+    this.durationSeconds = 0.0,
   });
 }
 
 class AiAnalystChatWindow extends StatefulWidget {
   final QuarterlyKpis report;
   final VoidCallback? onClose;
+  final RemoteKpiDataSource? remoteDataSource;
 
   const AiAnalystChatWindow({
     super.key,
     required this.report,
     this.onClose,
+    this.remoteDataSource,
   });
 
   @override
@@ -33,8 +46,9 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  bool _isLoading = false;
 
-  final List<String> _suggestedPrompts = [
+  List<String> _suggestedPrompts = [
     'Why did operating margin compress this quarter?',
     'Break down CapEx spending on AI compute',
     'How does Free Cash Flow compare to last quarter?',
@@ -45,15 +59,41 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
   void initState() {
     super.initState();
     _initDefaultConversation();
+    _loadDynamicPrompts();
+  }
+
+  void _loadDynamicPrompts() async {
+    if (widget.remoteDataSource != null) {
+      try {
+        final prompts = await widget.remoteDataSource!.fetchSuggestedPrompts();
+        if (mounted && prompts.isNotEmpty) {
+          setState(() {
+            _suggestedPrompts = prompts;
+          });
+        }
+      } catch (_) {}
+    }
   }
 
   void _initDefaultConversation() {
     _messages.clear();
     _messages.add(
       ChatMessage(
-        text: 'Hello! I am your AI Earnings Analyst Copilot for ${widget.report.companyName} (${widget.report.ticker}) ${widget.report.fiscalPeriodDisplay}.\n\nI have parsed the quarterly report into layout-aware semantic chunks and verified the 18+ standardized financial KPIs.\n\nAsk me anything about revenue drivers, cost pressures, capital expenditures, or liquidity.',
+        text:
+            'Hello! I am your AI Earnings Analyst Copilot for ${widget.report.companyName} (${widget.report.ticker}) ${widget.report.fiscalPeriodDisplay}.\n\nI have parsed the quarterly report into layout-aware semantic chunks and verified the 18+ standardized financial KPIs.\n\nAsk me anything about revenue drivers, cost pressures, capital expenditures, or liquidity.',
         isUser: false,
         citation: 'SEC 10-Q & Shareholder Update · SQLite Index',
+        citations: [
+          AnalystCitation(
+            source: '${widget.report.ticker} 10-Q',
+            pageNumber: 1,
+            sectionName: 'Audited Financial Statements',
+            snippet:
+                '${widget.report.companyName} ${widget.report.fiscalPeriodDisplay} audited filings indexed into SQLite & ChromaDB.',
+            tag: '[Page - 1, Section - Financial Statements]',
+          ),
+        ],
+        routeUsed: 'Financial RAG',
         timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
       ),
     );
@@ -75,7 +115,7 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
   }
 
   void _sendMessage(String userText) {
-    if (userText.trim().isEmpty) return;
+    if (userText.trim().isEmpty || _isLoading) return;
 
     final trimmed = userText.trim();
     _textController.clear();
@@ -88,19 +128,55 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
           timestamp: DateTime.now(),
         ),
       );
+      _isLoading = true;
     });
 
     _scrollToBottom();
+    _fetchAnalystResponse(trimmed);
+  }
 
-    // Generate grounded contextual response
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      final answer = _generateContextualAnswer(trimmed);
-      setState(() {
-        _messages.add(answer);
-      });
-      _scrollToBottom();
+  Future<void> _fetchAnalystResponse(String query) async {
+    if (widget.remoteDataSource != null) {
+      try {
+        final isAlive = await widget.remoteDataSource!.checkHealth();
+        if (isAlive) {
+          final res = await widget.remoteDataSource!.queryAnalyst(
+            query: query,
+            ticker: widget.report.ticker,
+          );
+          if (mounted) {
+            setState(() {
+              _messages.add(
+                ChatMessage(
+                  text: res.answer,
+                  isUser: false,
+                  citation: res.citations.isNotEmpty ? res.citations.first.displayTag : null,
+                  citations: res.citations,
+                  routeUsed: res.routeDisplayName,
+                  timestamp: DateTime.now(),
+                  durationSeconds: res.durationSeconds,
+                ),
+              );
+              _isLoading = false;
+            });
+            _scrollToBottom();
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('[AiAnalystChatWindow] Remote query fallback ($e)');
+      }
+    }
+
+    // Offline / simulated response fallback
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    final answer = _generateContextualAnswer(query);
+    setState(() {
+      _messages.add(answer);
+      _isLoading = false;
     });
+    _scrollToBottom();
   }
 
   ChatMessage _generateContextualAnswer(String query) {
@@ -109,30 +185,78 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
 
     if (q.contains('margin') || q.contains('compress') || q.contains('gross')) {
       return ChatMessage(
-        text: '${rep.ticker} reported a Gross Margin of ${rep.profitability.grossMarginPct.toStringAsFixed(2)}% and Operating Margin of ${rep.profitability.operatingMarginPct.toStringAsFixed(2)}% in ${rep.fiscalPeriodDisplay}.\n\nAccording to the shareholder update, margin compression was driven by:\n1. Lower vehicle average selling prices (ASPs) due to attractive financing incentives.\n2. Increased R&D spend and compute hardware procurement for next-gen autonomous systems.\n3. One-off restructuring expenses.',
+        text:
+            '${rep.ticker} reported a Gross Margin of ${rep.profitability.grossMarginPct.toStringAsFixed(2)}% and Operating Margin of ${rep.profitability.operatingMarginPct.toStringAsFixed(2)}% in ${rep.fiscalPeriodDisplay}.\n\nAccording to the shareholder update, margin compression was driven by:\n1. Lower vehicle average selling prices (ASPs) due to attractive financing incentives.\n2. Increased R&D spend and compute hardware procurement for next-gen autonomous systems.\n3. One-off restructuring expenses.',
         isUser: false,
         citation: 'Shareholder Deck Pg. 4, Item 1 (Financial Summary)',
+        citations: [
+          AnalystCitation(
+            source: 'Shareholder Deck Pg. 4, Item 1',
+            pageNumber: 4,
+            sectionName: 'Financial Summary',
+            snippet:
+                'Gross Margin: ${rep.profitability.grossMarginPct.toStringAsFixed(2)}%, Operating Margin: ${rep.profitability.operatingMarginPct.toStringAsFixed(2)}%.',
+            tag: 'Shareholder Deck Pg. 4, Item 1 (Financial Summary)',
+          ),
+        ],
+        routeUsed: 'Exact GAAP (SQL)',
         timestamp: DateTime.now(),
       );
     } else if (q.contains('capex') || q.contains('compute') || q.contains('ai')) {
       return ChatMessage(
-        text: 'In ${rep.fiscalPeriodDisplay}, Capital Expenditures (CapEx) totaled \$${(rep.cashFlow.capitalExpendituresMillions / 1000).toStringAsFixed(2)}B.\n\nManagement emphasized aggressive reinvestment into expanding Megapack manufacturing lines and deploying next-generation AI training clusters.',
+        text:
+            'In ${rep.fiscalPeriodDisplay}, Capital Expenditures (CapEx) totaled \$${(rep.cashFlow.capitalExpendituresMillions / 1000).toStringAsFixed(2)}B.\n\nManagement emphasized aggressive reinvestment into expanding Megapack manufacturing lines and deploying next-generation AI training clusters.',
         isUser: false,
         citation: 'Statement of Cash Flows · Item 1.02 CapEx Schedule',
+        citations: [
+          AnalystCitation(
+            source: 'Statement of Cash Flows',
+            pageNumber: 5,
+            sectionName: 'Item 1.02 CapEx Schedule',
+            snippet:
+                'Capital expenditures for the quarter ended were \$${(rep.cashFlow.capitalExpendituresMillions / 1000).toStringAsFixed(2)} billion.',
+            tag: '[Page - 5, Section - Statement of Cash Flows]',
+          ),
+        ],
+        routeUsed: 'Hybrid RAG (Dense + BM25)',
         timestamp: DateTime.now(),
       );
     } else if (q.contains('cash') || q.contains('liquidity') || q.contains('balance')) {
       return ChatMessage(
-        text: 'Balance sheet liquidity is fortress-strong with \$${(rep.balanceSheet.cashAndEquivalentsMillions / 1000).toStringAsFixed(2)}B in Cash & Equivalents versus \$${(rep.balanceSheet.totalDebtMillions / 1000).toStringAsFixed(2)}B in Total Debt.\n\nThis yields a robust Net Cash position of +\$${(rep.balanceSheet.netCashMillions / 1000).toStringAsFixed(2)}B with a conservative Debt-to-Equity ratio of ${rep.balanceSheet.debtToEquityRatio?.toStringAsFixed(3) ?? "N/A"}.',
+        text:
+            'Balance sheet liquidity is fortress-strong with \$${(rep.balanceSheet.cashAndEquivalentsMillions / 1000).toStringAsFixed(2)}B in Cash & Equivalents versus \$${(rep.balanceSheet.totalDebtMillions / 1000).toStringAsFixed(2)}B in Total Debt.\n\nThis yields a robust Net Cash position of +\$${(rep.balanceSheet.netCashMillions / 1000).toStringAsFixed(2)}B with a conservative Debt-to-Equity ratio of ${rep.balanceSheet.debtToEquityRatio?.toStringAsFixed(3) ?? "N/A"}.',
         isUser: false,
         citation: 'Consolidated Balance Sheets · 10-Q Part I',
+        citations: [
+          AnalystCitation(
+            source: 'Consolidated Balance Sheets',
+            pageNumber: 3,
+            sectionName: '10-Q Part I',
+            snippet:
+                'Cash and cash equivalents: \$${(rep.balanceSheet.cashAndEquivalentsMillions / 1000).toStringAsFixed(2)}B. Total Debt: \$${(rep.balanceSheet.totalDebtMillions / 1000).toStringAsFixed(2)}B.',
+            tag: '[Page - 3, Section - Balance Sheet]',
+          ),
+        ],
+        routeUsed: 'Exact GAAP (SQL)',
         timestamp: DateTime.now(),
       );
     } else {
       return ChatMessage(
-        text: 'Based on ${rep.companyName}\'s ${rep.fiscalPeriodDisplay} earnings report: Total Revenue was \$${(rep.profitability.totalRevenueMillions / 1000).toStringAsFixed(2)}B with Free Cash Flow of \$${(rep.cashFlow.freeCashFlowMillions / 1000).toStringAsFixed(2)}B and diluted GAAP EPS of \$${rep.profitability.epsDilutedGaap.toStringAsFixed(2)}.\n\nAll metrics are verified from official SEC filing tables.',
+        text:
+            'Based on ${rep.companyName}\'s ${rep.fiscalPeriodDisplay} earnings report: Total Revenue was \$${(rep.profitability.totalRevenueMillions / 1000).toStringAsFixed(2)}B with Free Cash Flow of \$${(rep.cashFlow.freeCashFlowMillions / 1000).toStringAsFixed(2)}B and diluted GAAP EPS of \$${rep.profitability.epsDilutedGaap.toStringAsFixed(2)}.\n\nAll metrics are verified from official SEC filing tables.',
         isUser: false,
         citation: 'SEC 10-Q Summary Table & Footnotes',
+        citations: [
+          AnalystCitation(
+            source: 'SEC 10-Q Summary Table',
+            pageNumber: 2,
+            sectionName: 'Financial Results',
+            snippet:
+                'Revenue: \$${(rep.profitability.totalRevenueMillions / 1000).toStringAsFixed(2)}B. Free Cash Flow: \$${(rep.cashFlow.freeCashFlowMillions / 1000).toStringAsFixed(2)}B.',
+            tag: '[Page - 2, Section - Financial Results]',
+          ),
+        ],
+        routeUsed: 'Hybrid RAG (Dense + BM25)',
         timestamp: DateTime.now(),
       );
     }
@@ -275,9 +399,13 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
             child: ListView.separated(
               controller: _scrollController,
               padding: const EdgeInsets.all(14),
-              itemCount: _messages.length,
+              itemCount: _messages.length + (_isLoading ? 1 : 0),
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
+                if (index == _messages.length) {
+                  return _buildLoadingBubble(colorScheme);
+                }
+
                 final msg = _messages[index];
                 return Align(
                   alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -304,6 +432,35 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (!msg.isUser && msg.routeUsed != null) ...[
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: colorScheme.secondaryContainer.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _routeIcon(msg.routeUsed!),
+                                    size: 11,
+                                    color: colorScheme.onSecondaryContainer,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    msg.routeUsed!,
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           Text(
                             msg.text,
                             style: TextStyle(
@@ -312,35 +469,7 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
                               color: msg.isUser ? colorScheme.onPrimary : colorScheme.onSurface,
                             ),
                           ),
-                          if (msg.citation != null) ...[
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.link, size: 11, color: Colors.purple),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      msg.citation!,
-                                      style: const TextStyle(
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.purple,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          _buildCitations(msg, context),
                         ],
                       ),
                     ),
@@ -421,5 +550,117 @@ class _AiAnalystChatWindowState extends State<AiAnalystChatWindow> {
         ],
       ),
     );
+  }
+
+  Widget _buildLoadingBubble(ColorScheme colorScheme) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 320),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Retrieving filings via Hybrid RAG...',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCitations(ChatMessage msg, BuildContext context) {
+    final List<AnalystCitation> citationItems = [];
+    if (msg.citations.isNotEmpty) {
+      citationItems.addAll(msg.citations);
+    } else if (msg.citation != null && msg.citation!.isNotEmpty) {
+      citationItems.add(
+        AnalystCitation(
+          source: '${widget.report.companyName} (${widget.report.fiscalPeriodDisplay})',
+          snippet: msg.text,
+          tag: msg.citation!,
+          sectionName: 'Financial Summary',
+        ),
+      );
+    }
+
+    if (citationItems.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: citationItems.map((c) {
+          final label = c.tag.isNotEmpty ? c.tag : c.displayTag;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: GestureDetector(
+              onTap: () => CitationViewerModal.show(context, c),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.link, size: 11, color: Colors.purple),
+                    const SizedBox(width: 4),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 240),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        }).toList(),
+      ),
+    );
+  }
+
+  IconData _routeIcon(String route) {
+    if (route.contains('SQL')) return Icons.table_chart_outlined;
+    if (route.contains('Comparison')) return Icons.compare_arrows_outlined;
+    return Icons.search_outlined;
   }
 }

@@ -2,15 +2,18 @@
 
 The implemented pipeline accepts an earnings PDF from Flutter, extracts structured financial KPIs, prepares chunks with source metadata, indexes those chunks in **Chroma and BM25**, and returns a report to the dashboard. This document follows the working-tree code reviewed on October 18, 2026.
 
-Follow the complete demo: **Ingestion → [Retrieval](retrieval.md) → [Generation](generation.md)**. The [combined presentation](assets/rag-pipeline-slides.pdf) contains all seven slides.
+**Presentation update:** the overview is split into **PDF processing** and **response/background indexing** so each slide has room for readable cards and clear connectors. The second slide and indexing detail show the **proposed background-indexing flow**: after report/KPI persistence, the response and indexing paths proceed independently. The current server still performs indexing inline before returning; the diagrams describe the intended orchestration change, not an implemented background worker.
+
+Follow the complete demo: **Ingestion → [Retrieval](retrieval.md) → [Generation](generation.md)**. The [combined presentation](assets/rag-pipeline-slides.pdf) contains all eight slides.
 
 ## Presentation graphics
 
-The three visuals use a **16:9 slide layout**, real technology marks, and labeled component boundaries. Insert the **3840 × 2160 PNGs** into PowerPoint, Keynote, or Google Slides. Use the SVGs for scalable artwork, or open the [three-slide ingestion PDF](assets/ingestion/ingestion-slides.pdf).
+The four visuals use a **16:9 slide layout**, real technology marks, and labeled component boundaries. Insert the **3840 × 2160 PNGs** into PowerPoint, Keynote, or Google Slides. Use the SVGs for scalable artwork, or open the [four-slide ingestion PDF](assets/ingestion/ingestion-slides.pdf).
 
 | Slide | PNG for presentations | Scalable SVG |
 |---|---|---|
-| Client → server → client | [Download PNG](assets/ingestion/ingestion-overview.png) | [Open SVG](assets/ingestion/ingestion-overview.svg) |
+| 01 · PDF → saved report | [Download PNG](assets/ingestion/ingestion-overview.png) | [Open SVG](assets/ingestion/ingestion-overview.svg) |
+| 02 · Response and background indexing | [Download PNG](assets/ingestion/ingestion-response-indexing.png) | [Open SVG](assets/ingestion/ingestion-response-indexing.svg) |
 | Preparing evidence for RAG | [Download PNG](assets/ingestion/ingestion-rag-preparation.png) | [Open SVG](assets/ingestion/ingestion-rag-preparation.svg) |
 | Vector embedding and BM25 indexing | [Download PNG](assets/ingestion/ingestion-indexing.png) | [Open SVG](assets/ingestion/ingestion-indexing.svg) |
 
@@ -18,11 +21,22 @@ The three visuals use a **16:9 slide layout**, real technology marks, and labele
 
 [![Client-to-server earnings PDF ingestion flow](assets/ingestion/ingestion-overview.png)](assets/ingestion/ingestion-overview.svg)
 
-Read steps **01–04 left to right**, **05–08 right to left**, then **09–12 left to right**. The path shows a successful upload that is processed rather than served from the duplicate cache.
+The first slide follows a three-row path: **01–03 left to right**, **04–06 right to left**, then **07a → 07b → 08 left to right**. Wider cards and open connector gutters keep each component within one row without crossing lines.
 
-Labeled bounding boxes identify **Parser**, **Extractor**, **Chunker**, and **Indexer**. The overview preserves the current execution order: SQLite persistence precedes vector indexing, which precedes BM25 indexing.
+The second slide repeats **08 · Save report & KPIs** as the handoff and gives the two branches separate horizontal lanes:
 
-| Step | What the code does | Source |
+[![Saved report forks into an immediate response and independent background indexing](assets/ingestion/ingestion-response-indexing.png)](assets/ingestion/ingestion-response-indexing.svg)
+
+- **Immediate response:** **09 · Return the result → 10 · Refresh the dashboard**. This path does not wait for index completion.
+- **Background indexing:** **11 · Embed & store in Chroma → 12 · Build the BM25 index**. The dashed connector denotes independent background execution; this path does not rejoin the response path.
+
+Labeled bounding boxes identify **Parser**, **Extractor**, **Chunker**, and **Background Indexer**. Vector and BM25 operations can still execute sequentially within the background worker. The parallelism here is between **returning the saved report** and **preparing retrieval indexes**.
+
+Within the **Chunker** boundary, **07a · Recursive Chunker → 07b · Metadata Enrichment** separates text splitting from attaching financial and source metadata.
+
+The table maps each displayed stage to its existing code. Background dispatch, an early HTTP return, and separate index-readiness tracking remain proposed changes.
+
+| Step | Responsibility and current implementation | Source |
 |---|---|---|
 | 01 · Choose PDF | Flutter's file picker reads PDF bytes. The panel submits the ticker, selected fiscal quarter, and year with the file. | [ReportIngestionPanel](../client/packages/ai_analyst_feature/lib/presentation/views/widgets/report_ingestion_panel.dart) |
 | 02 · Upload | `RemoteKpiDataSource` sends multipart `POST /api/v1/ingestion/upload`. FastAPI checks the `.pdf` extension and saves the file under `server/data/uploads/`. | [Client HTTP request](../client/packages/ai_analyst_feature/lib/data/datasources/remote_kpi_datasource.dart), [upload endpoint](../server/app/api/v1/endpoints/documents.py) |
@@ -30,14 +44,15 @@ Labeled bounding boxes identify **Parser**, **Extractor**, **Chunker**, and **In
 | 04 · Extract text | `pypdf.PdfReader` extracts each page's text. `ExtractedPage` retains its **1-based page number**, character count, and blank-page flag. | [PDF extractor](../server/app/ingestion/parsers/pdf_extractor.py) |
 | 05 · Classify | Python rules score page headers and body keywords to assign financial domains, confidence scores, and matched signals. | [Section classifier](../server/app/ingestion/parsers/section_classifier.py) |
 | 06 · Extract KPIs | LangChain `ChatOpenAI(model="gpt-4o-mini", temperature=0.0)` receives selected statement pages and uses `with_structured_output(FinancialReportKPIs)`. Python then normalizes CapEx signs and derives missing FCF and margins where inputs are available. The extracted ticker and period become the canonical chunk metadata. | [KPI extractor](../server/app/ingestion/extractor/kpi_extractor.py), [prompt](../server/app/ingestion/extractor/llm_extraction_prompts.py), [math reconciliation](../server/app/ingestion/extractor/kpi_validator.py) |
-| 07 · Prepare chunks | LangChain splits **all non-blank pages** within their page boundaries: **1,000 characters**, **100-character overlap**. Python attaches financial and source metadata to each split. | [Splitter](../server/app/ingestion/chunkers/recursive_chunker.py), [metadata enrichment](../server/app/ingestion/chunkers/metadata_enricher.py), [pipeline orchestration](../server/app/ingestion/pipeline.py) |
+| 07a · Recursive Chunker | LangChain splits **all non-blank pages** within their page boundaries: **1,000 characters**, **100-character overlap**. | [Recursive chunker](../server/app/ingestion/chunkers/recursive_chunker.py), [pipeline orchestration](../server/app/ingestion/pipeline.py) |
+| 07b · Metadata Enrichment | Python attaches ticker, fiscal quarter/year, page number, financial domain, chunk position, and a deterministic chunk ID to each text split. | [Metadata enrichment](../server/app/ingestion/chunkers/metadata_enricher.py) |
 | 08 · Persist | SQLAlchemy saves or updates `documents` and `financial_kpis` in SQLite, with the default database at `server/data/stock_analyst.db`. `ingestion_tasks` records progress throughout. When enabled, inspection artifacts are written after processing. | [Database configuration](../server/app/db/session.py), [models](../server/app/db/models.py), [pipeline](../server/app/ingestion/pipeline.py) |
-| 09 · Embed and persist vectors | `VectorIndex.add_chunks()` converts chunks into LangChain `Document` objects. `OpenAIEmbeddings(model="text-embedding-3-small", dimensions=512)` supplies embeddings; Chroma persists text, vectors, and metadata in `earnings_chunks`. | [Vector index](../server/app/ingestion/indexing/vector_index.py) |
-| 10 · Build BM25 | The same chunks become a lexical corpus. `BM25Retriever.from_documents()` builds ranking, and `data/bm25/documents.json` stores text and metadata for reconstruction on reload. | [BM25 index](../server/app/ingestion/indexing/bm25_index.py) |
-| 11 · Complete and return | The pipeline marks the task completed after indexing attempts. The endpoint returns `task_id`, `document_id`, `status`, raw `kpis`, and dashboard-shaped `client_kpis`. | [Pipeline](../server/app/ingestion/pipeline.py), [response schema](../server/app/schemas/ingestion.py), [endpoint](../server/app/api/v1/endpoints/documents.py) |
-| 12 · Update dashboard | Flutter decodes `client_kpis` with `QuarterlyKpis.fromJson`. The panel callback calls Riverpod's `addAndSelectReport`, replacing or adding the report and selecting it for display. | [Dashboard callback](../client/packages/ai_analyst_feature/lib/presentation/views/kpi_dashboard_view.dart), [ViewModel](../client/packages/ai_analyst_feature/lib/presentation/viewmodel/kpi_dashboard_viewmodel.dart) |
+| 09 · Return result | **Proposed:** return the persisted report and KPIs without waiting for indexing. **Current:** the pipeline completes both indexing attempts before the endpoint returns `task_id`, `document_id`, `status`, `kpis`, and `client_kpis`. | [Pipeline](../server/app/ingestion/pipeline.py), [response schema](../server/app/schemas/ingestion.py), [endpoint](../server/app/api/v1/endpoints/documents.py) |
+| 10 · Update dashboard | Flutter decodes `client_kpis` with `QuarterlyKpis.fromJson`. The panel callback calls Riverpod's `addAndSelectReport`, replacing or adding the report and selecting it for display. | [Dashboard callback](../client/packages/ai_analyst_feature/lib/presentation/views/kpi_dashboard_view.dart), [ViewModel](../client/packages/ai_analyst_feature/lib/presentation/viewmodel/kpi_dashboard_viewmodel.dart) |
+| 11 · Embed and persist vectors | `VectorIndex.add_chunks()` converts chunks into LangChain `Document` objects. `OpenAIEmbeddings(model="text-embedding-3-small", dimensions=512)` supplies embeddings; Chroma persists text, vectors, and metadata in `earnings_chunks`. Moving this existing work to the background is proposed. | [Vector index](../server/app/ingestion/indexing/vector_index.py) |
+| 12 · Build BM25 | The same chunks become a lexical corpus. `BM25Retriever.from_documents()` builds ranking, and `data/bm25/documents.json` stores text and metadata for reconstruction on reload. Moving this existing work to the background is proposed. | [BM25 index](../server/app/ingestion/indexing/bm25_index.py) |
 
-**Suggested narration:** “We upload an earnings PDF from Flutter. The server validates it, preserves page boundaries, labels financial sections, extracts typed KPIs, and prepares chunks with source metadata. We save KPIs in SQLite, embed the chunks into Chroma for semantic search, and build BM25 for keyword search. The response refreshes the dashboard, while both indexes supply evidence for retrieval.”
+**Suggested narration for the proposed flow:** “After parsing, extraction, and chunk preparation, we save the report and KPIs in SQLite. The flow then splits: one path returns the saved result so the dashboard can load, while the other builds the Chroma and BM25 indexes in the background. The report can be available before RAG search is ready.”
 
 ## 2. Preparing evidence for RAG
 
@@ -58,7 +73,7 @@ Each chunk receives a deterministic ID:
 {TICKER}_{QUARTER}_{YEAR}_p{PAGE}_c{ZERO_BASED_CHUNK_INDEX}
 ```
 
-The second slide uses metadata from the existing [Tesla enriched-chunk artifact](../server/.artifact/03b_enriched_chunks_tsla_q2_2026_update.json): `TSLA_Q2_2026_p3_c0`, financial domain `cash_flow`, 943 characters, and chunk index 0 among four chunks on that page.
+The third slide uses metadata previously captured from `03b_enriched_chunks_tsla_q2_2026_update.json`: `TSLA_Q2_2026_p3_c0`, financial domain `cash_flow`, 943 characters, and chunk index 0 among four chunks on that page. Inspection artifacts are generated outputs and may be regenerated or removed between demo runs.
 
 The orchestrator now passes those enriched chunks into both index implementations. Artifacts remain useful for inspecting each stage; the persistent indexes serve the later retrieval pipeline.
 
@@ -66,7 +81,9 @@ The orchestrator now passes those enriched chunks into both index implementation
 
 [![Vector embedding and BM25 indexing flow](assets/ingestion/ingestion-indexing.png)](assets/ingestion/ingestion-indexing.svg)
 
-The two lanes show **two consumers of the same chunks**. The Python orchestrator attempts them sequentially: vector indexing first, then BM25.
+The two lanes show **two consumers of the same chunks inside the proposed background worker**. They can remain sequential there: vector indexing first, then BM25. The response path does not depend on their completion.
+
+In that design, report persistence and index readiness need separate status tracking. Index failures should affect retrieval readiness without reversing the already-persisted report or delaying its response. The current implementation still runs both index operations within `pipeline.run()` and returns afterward.
 
 | Detail | Dense vector index | Sparse keyword index |
 |---|---|---|

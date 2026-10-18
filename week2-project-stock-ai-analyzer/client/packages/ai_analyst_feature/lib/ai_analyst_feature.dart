@@ -2,6 +2,7 @@ library ai_analyst_feature;
 
 // Domain Entities
 export 'domain/entities/quarterly_kpis.dart';
+export 'domain/entities/analyst_response.dart';
 
 // Data
 export 'data/datasources/mock_kpi_datasource.dart';
@@ -20,6 +21,7 @@ export 'presentation/views/widgets/margin_trend_chart.dart';
 export 'presentation/views/widgets/report_selector_header.dart';
 export 'presentation/views/widgets/report_ingestion_panel.dart';
 export 'presentation/views/widgets/ai_analyst_chat_window.dart';
+export 'presentation/views/widgets/citation_viewer_modal.dart';
 
 // Router
 export 'presentation/router/router.config.dart';

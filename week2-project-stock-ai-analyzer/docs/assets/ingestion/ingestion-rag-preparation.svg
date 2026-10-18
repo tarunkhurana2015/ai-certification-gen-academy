@@ -5,7 +5,7 @@
 <text x="70" y="66" font-size="16" fill="#D5B77C" font-weight="700" font-family="Arial, Helvetica, sans-serif">INGESTION PIPELINE  /  GENSTOCKFOLIO  /  RAG DEMO</text>
 <text x="70" y="129" font-size="48" fill="#F4F0E8" font-weight="700" font-family="Arial, Helvetica, sans-serif">What makes ingestion useful for RAG?</text>
 <text x="70" y="174" font-size="23" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">Keep small, traceable pieces of evidence that the vector and keyword indexes can search.</text>
-<text x="1770" y="66" font-size="16" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">02 / 03</text>
+<text x="1770" y="66" font-size="16" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">03 / 04</text>
 <path d="M70 205 H1850" stroke="#494339" stroke-width="1"/>
 <g data-component="parser">
 <rect x="55" y="253" width="715" height="278" rx="22" fill="#211F1B" stroke="#9FB59D" stroke-width="1.4"/>
@@ -58,7 +58,7 @@
 <text x="1234" y="339" font-size="14" fill="#BFB7AA" font-weight="700" font-family="Arial, Helvetica, sans-serif">LANGCHAIN</text>
 <circle cx="1454" cy="334" r="17" fill="#BAA0C6"/>
 <text x="1445" y="340" font-size="15" fill="#191816" font-weight="700" font-family="Arial, Helvetica, sans-serif">04</text>
-<text x="1186" y="391" font-size="23" fill="#F4F0E8" font-weight="700" font-family="Arial, Helvetica, sans-serif">Split within each page</text>
+<text x="1186" y="391" font-size="23" fill="#F4F0E8" font-weight="700" font-family="Arial, Helvetica, sans-serif">Recursive Chunker</text>
 <text x="1186" y="428" font-size="18.5" fill="#F4F0E8" font-weight="400" font-family="Arial, Helvetica, sans-serif">RecursiveCharacterTextSplitter</text>
 <text x="1186" y="455" font-size="18.5" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">1,000 characters per chunk</text>
 <text x="1186" y="482" font-size="18.5" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">100-character overlap</text>
@@ -68,7 +68,7 @@
 <text x="1599" y="339" font-size="14" fill="#BFB7AA" font-weight="700" font-family="Arial, Helvetica, sans-serif">PYTHON ENRICHMENT</text>
 <circle cx="1819" cy="334" r="17" fill="#BAA0C6"/>
 <text x="1810" y="340" font-size="15" fill="#191816" font-weight="700" font-family="Arial, Helvetica, sans-serif">05</text>
-<text x="1551" y="391" font-size="23" fill="#F4F0E8" font-weight="700" font-family="Arial, Helvetica, sans-serif">Attach source metadata</text>
+<text x="1551" y="391" font-size="23" fill="#F4F0E8" font-weight="700" font-family="Arial, Helvetica, sans-serif">Metadata Enrichment</text>
 <text x="1551" y="428" font-size="18.5" fill="#F4F0E8" font-weight="400" font-family="Arial, Helvetica, sans-serif">Stable chunk ID + text</text>
 <text x="1551" y="455" font-size="18.5" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">Ticker, period, page + domain</text>
 <text x="1551" y="482" font-size="18.5" fill="#BFB7AA" font-weight="400" font-family="Arial, Helvetica, sans-serif">Chunk position + char count</text>

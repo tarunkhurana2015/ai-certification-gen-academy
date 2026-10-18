@@ -2,19 +2,21 @@
 
 These documents and slides trace the implemented earnings-PDF RAG demo, reviewed against the working-tree code on October 18, 2026.
 
+The ingestion overview spans two slides: PDF processing, then the response/indexing fork. The fork and indexing detail show the **proposed background-indexing orchestration**: return the persisted report/KPIs while indexing continues independently. They are labeled as proposed because the current server indexes inline before returning.
+
 | Pipeline | Documentation | PDF slides |
 |---|---|---|
-| Ingestion, parsing, extraction, chunking, and indexing | [Ingestion pipeline](ingestion.md) | [3 slides](assets/ingestion/ingestion-slides.pdf) |
+| Ingestion, parsing, extraction, chunking, and indexing | [Ingestion pipeline](ingestion.md) | [4 slides](assets/ingestion/ingestion-slides.pdf) |
 | Classification, tool routing, and hybrid retrieval | [Retrieval pipeline](retrieval.md) | [2 slides](assets/retrieval/retrieval-slides.pdf) |
 | Evidence-based answer synthesis and formatting | [Generation pipeline](generation.md) | [2 slides](assets/generation/generation-slides.pdf) |
 
-**[Open the combined seven-slide presentation](assets/rag-pipeline-slides.pdf).** Each document also links its 4K PNGs and standalone SVGs. All slides use 16:9 dimensions, technology logos, a warm charcoal palette, and labeled component boundaries.
+**[Open the combined eight-slide presentation](assets/rag-pipeline-slides.pdf).** Each document also links its 4K PNGs and standalone SVGs. All slides use 16:9 dimensions, technology logos, a warm charcoal palette, and labeled component boundaries.
 
 The ingestion flow is connected to the Flutter upload UI. Retrieval and generation are implemented as backend Python / CLI flows; the current Flutter chat widget uses local responses.
 
 ## Regenerating the presentation
 
-Rebuild the seven SVGs using Python's standard library:
+Rebuild the eight SVGs using Python's standard library:
 
 ```sh
 python3 week2-project-stock-ai-analyzer/docs/assets/build_pipeline_slides.py

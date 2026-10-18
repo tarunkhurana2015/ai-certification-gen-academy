@@ -3,6 +3,7 @@
     "pipeline": "ingestion",
     "slides": [
       "ingestion-overview",
+      "ingestion-response-indexing",
       "ingestion-rag-preparation",
       "ingestion-indexing"
     ]

@@ -34,6 +34,7 @@ class _KpiDashboardViewState extends ConsumerState<KpiDashboardView> {
             return AiAnalystChatWindow(
               report: report,
               onClose: () => Navigator.pop(context),
+              remoteDataSource: ref.read(remoteKpiDataSourceProvider),
             );
           },
         );
@@ -244,6 +245,7 @@ class _KpiDashboardViewState extends ConsumerState<KpiDashboardView> {
                       padding: const EdgeInsets.all(16.0),
                       child: AiAnalystChatWindow(
                         report: report,
+                        remoteDataSource: ref.read(remoteKpiDataSourceProvider),
                       ),
                     ),
                   ),
