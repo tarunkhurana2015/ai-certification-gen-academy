@@ -1021,4 +1021,27 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
   - `python tests/test_artifact_saver.py`: All 4 unit tests passed.
   - Master Test Runner: All **23 test suites** across the entire project passed cleanly with 0 errors!
 
+---
+
+### Step 5.7: Financial Analyst & Chat FastAPI Controller
+- **Date**: Oct 18, 2026
+- **Context & Design Philosophy**:
+  - Exposes the full three-stage RAG pipeline (**Ingestion ──▶ Retrieval ──▶ Generation**) as production-ready, validated FastAPI REST endpoints.
+  - Thin controller architecture: FastAPI handles validation, serialization, error mapping, and latency timing, delegating business logic to `app.retrieval.run_retrieval()` and `app.generation`.
+  - Endpoints provided:
+    1. `POST /api/v1/analyst/query`: Main entrypoint executing Jev intent classification, tool retrieval (`sql_tool`, `rag_tool`, `comparison_tool`), and grounded generation with citation chips `[Page - X, Section - Y]`.
+    2. `POST /api/v1/chat`: Conversational alias to `/analyst/query` providing drop-in compatibility for chat interfaces.
+    3. `GET /api/v1/analyst/classify`: Diagnostic route to inspect intent classification confidence scores, detected ticker, and compiled metadata filters without running full retrieval.
+    4. `GET /api/v1/analyst/routes`: Catalog of supported routing modes and starter prompt suggestions for UI chips.
+- **Files Created / Modified**:
+  - `server/app/schemas/analyst.py` ([analyst.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/schemas/analyst.py)): Pydantic models `AnalystQueryRequest`, `AnalystQueryResponse`, `CitationItem`, `RouteInfo`, `AnalystRoutesResponse`.
+  - `server/app/schemas/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/schemas/__init__.py)): Re-exports analyst schemas.
+  - `server/app/api/v1/endpoints/analyst.py` ([analyst.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/api/v1/endpoints/analyst.py)): FastAPI router mounted at `/api/v1`.
+  - `server/app/api/v1/router.py` ([router.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/api/v1/router.py)): Included `analyst.router`.
+  - `server/tests/api/test_analyst_api.py` ([test_analyst_api.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/api/test_analyst_api.py)): 7 pure in-memory test cases covering SQL routing, Hybrid RAG routing, Comparison routing, chat alias, classification inspect, routes catalog, and 422 empty query validation.
+  - `server/RUN.md` & `RUN.md`: Updated Section 7 (cURL commands & test suite) and Section 11 (24 test suites).
+- **Verification Results**:
+  - `python tests/api/test_analyst_api.py`: 7/7 tests passed.
+  - Master Test Runner: All **24 test suites** across the entire project passed cleanly with 0 errors!
+
 

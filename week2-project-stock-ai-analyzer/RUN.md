@@ -218,7 +218,23 @@ curl -s "http://localhost:8000/api/v1/kpi/META/latest"
 curl -s "http://localhost:8000/api/v1/kpi/compare?tickers=META&tickers=TSLA&quarter=Q2&year=2026"
 
 # 7. List Ingested Documents Catalog
-curl -s "http://localhost:8000/api/v1/documents"
+curl -s http://localhost:8000/api/v1/documents
+
+# 8. Query Financial Analyst RAG (Intent Routing -> Tool Retrieval -> Synthesized Answer)
+curl -s -X POST "http://localhost:8000/api/v1/analyst/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What was Tesla Q2 2026 revenue and free cash flow?", "mock": true}'
+
+# 9. Conversational Chat Alias Endpoint
+curl -s -X POST "http://localhost:8000/api/v1/chat" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Compare Meta and Tesla operating margins over the last year", "mock": true}'
+
+# 10. Inspect Intent Classification & Metadata Filters
+curl -s "http://localhost:8000/api/v1/analyst/classify?q=What%20was%20Meta%20net%20income?&mock=true"
+
+# 11. List Supported Routing Modes & Sample Prompt Chips
+curl -s "http://localhost:8000/api/v1/analyst/routes"
 ```
 
 ### C. Run API Unit & Integration Tests (Pure Assertions)
@@ -226,6 +242,7 @@ curl -s "http://localhost:8000/api/v1/documents"
 python tests/api/test_health.py
 python tests/api/test_kpis_api.py
 python tests/api/test_documents_api.py
+python tests/api/test_analyst_api.py
 ```
 
 ---
@@ -350,7 +367,7 @@ python tests/retrieval/test_retrieval_router.py
 
 ## 🏆 11. All-in-One Master Test Runner
 
-Run all **23 test suites** across the entire codebase in a single command:
+Run all **24 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -368,6 +385,7 @@ python tests/ingestion/test_pipeline.py && \
 python tests/api/test_health.py && \
 python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py && \
+python tests/api/test_analyst_api.py && \
 python tests/indexing/test_vector_index.py && \
 python tests/indexing/test_bm25_index.py && \
 python tests/retrieval/test_retrieval.py && \

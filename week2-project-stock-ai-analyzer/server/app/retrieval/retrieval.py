@@ -82,17 +82,33 @@ def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
         raw_data = kpis
         if "source_pages" in kpis and kpis["source_pages"]:
             try:
-                pages = json.loads(kpis["source_pages"])
+                pages = json.loads(kpis["source_pages"]) if isinstance(kpis["source_pages"], str) else kpis["source_pages"]
                 for p in pages:
                     citations.append(
                         {
+                            "source": "sqlite://financial_kpis",
+                            "ticker": target_ticker,
                             "page_number": p,
+                            "section_name": "Financial Statements",
                             "financial_domain": "Financial Statements",
                             "citation": f"[Page - {p}, Section - Financial Statements]",
+                            "tag": f"[Page - {p}, Section - Financial Statements]",
                         }
                     )
             except Exception:
                 pass
+        if not citations and kpis and "revenue" in kpis:
+            citations.append(
+                {
+                    "source": "sqlite://financial_kpis",
+                    "ticker": target_ticker,
+                    "page_number": 1,
+                    "section_name": "Financial Statements",
+                    "financial_domain": "Financial Statements",
+                    "citation": f"[{target_ticker} Audited Financials]",
+                    "tag": f"[{target_ticker} Audited Financials]",
+                }
+            )
 
     elif route == "hybrid_rag":
         target_ticker = ticker if ticker and ticker not in ("none", "multiple") else None
@@ -105,7 +121,19 @@ def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
             }
         )
         answer = synthesize_hybrid_rag(query=query, chunks=chunks, mock=mock)
-        citations = chunks
+        for c in chunks:
+            citations.append(
+                {
+                    "source": f"{c.get('ticker', 'SEC')} 10-Q",
+                    "ticker": c.get("ticker", ""),
+                    "page_number": c.get("page_number", 1),
+                    "section_name": str(c.get("financial_domain", "Filing")).title(),
+                    "financial_domain": c.get("financial_domain", "general"),
+                    "snippet": c.get("text", "")[:200],
+                    "citation": c.get("citation", f"[Page - {c.get('page_number', 1)}]"),
+                    "tag": c.get("citation", f"[Page - {c.get('page_number', 1)}]"),
+                }
+            )
         raw_data = {"retrieved_chunks_count": len(chunks)}
 
     elif route == "comparison":
@@ -119,13 +147,59 @@ def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
         )
         answer = synthesize_comparison(query=query, comp_data=comp_res, mock=mock)
         raw_data = comp_res
+        if "companies" in comp_res:
+            for tick, kpi_dict in comp_res["companies"].items():
+                sp = kpi_dict.get("source_pages")
+                added_for_tick = False
+                if sp:
+                    try:
+                        pages = json.loads(sp) if isinstance(sp, str) else sp
+                        for p in pages:
+                            citations.append(
+                                {
+                                    "source": f"{tick} 10-Q",
+                                    "ticker": tick,
+                                    "page_number": p,
+                                    "section_name": "Financial Statements",
+                                    "financial_domain": "Financial Statements",
+                                    "citation": f"[{tick} Page - {p}, Section - Financial Statements]",
+                                    "tag": f"[{tick} Page - {p}, Section - Financial Statements]",
+                                }
+                            )
+                            added_for_tick = True
+                    except Exception:
+                        pass
+                if not added_for_tick:
+                    citations.append(
+                        {
+                            "source": f"sqlite://financial_kpis/{tick}",
+                            "ticker": tick,
+                            "page_number": 0,
+                            "section_name": "Audited KPIs",
+                            "financial_domain": "Financial Statements",
+                            "citation": f"[{tick} Audited Financials]",
+                            "tag": f"[{tick} Audited Financials]",
+                        }
+                    )
 
     else:
         # Fallback to Hybrid RAG
         route = "hybrid_rag"
         chunks = search_filings.invoke({"query": query, "k": 3})
         answer = synthesize_hybrid_rag(query=query, chunks=chunks, mock=mock)
-        citations = chunks
+        for c in chunks:
+            citations.append(
+                {
+                    "source": f"{c.get('ticker', 'SEC')} 10-Q",
+                    "ticker": c.get("ticker", ""),
+                    "page_number": c.get("page_number", 1),
+                    "section_name": str(c.get("financial_domain", "Filing")).title(),
+                    "financial_domain": c.get("financial_domain", "general"),
+                    "snippet": c.get("text", "")[:200],
+                    "citation": c.get("citation", f"[Page - {c.get('page_number', 1)}]"),
+                    "tag": c.get("citation", f"[Page - {c.get('page_number', 1)}]"),
+                }
+            )
         raw_data = {"retrieved_chunks_count": len(chunks)}
 
     return AnalystResponse(
