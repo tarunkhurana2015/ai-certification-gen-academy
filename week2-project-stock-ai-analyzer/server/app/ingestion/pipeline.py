@@ -90,13 +90,35 @@ class IngestionPipeline:
         llm: Optional[Any] = None,
         vector_store: Optional[Any] = None,
         bm25_index: Optional[Any] = None,
+        enable_indexing: bool = True,
         progress_callback: Optional[Callable[[str, int, str], None]] = None,
     ):
         self.session_factory = session_factory
         self.llm = llm
-        self.vector_store = vector_store
-        self.bm25_index = bm25_index
+        self.enable_indexing = enable_indexing
         self.progress_callback = progress_callback
+
+        if enable_indexing:
+            if vector_store is not None:
+                self.vector_store = vector_store
+            else:
+                try:
+                    from app.ingestion.indexing.vector_index import VectorIndex
+                    self.vector_store = VectorIndex()
+                except Exception:
+                    self.vector_store = None
+
+            if bm25_index is not None:
+                self.bm25_index = bm25_index
+            else:
+                try:
+                    from app.ingestion.indexing.bm25_index import BM25Index
+                    self.bm25_index = BM25Index()
+                except Exception:
+                    self.bm25_index = None
+        else:
+            self.vector_store = vector_store
+            self.bm25_index = bm25_index
 
     def _notify(
         self,
@@ -357,18 +379,24 @@ class IngestionPipeline:
             vector_count = 0
             bm25_count = 0
             if self.vector_store is not None and hasattr(self.vector_store, "add_chunks"):
-                if force_reprocess and hasattr(self.vector_store, "delete_by_ticker"):
-                    self.vector_store.delete_by_ticker(canonical_ticker)
-                vector_count = self.vector_store.add_chunks(chunks)
-                if save_artifacts and hasattr(self.vector_store, "save_artifact"):
-                    self.vector_store.save_artifact(ticker=canonical_ticker)
+                try:
+                    if force_reprocess and hasattr(self.vector_store, "delete_by_ticker"):
+                        self.vector_store.delete_by_ticker(canonical_ticker)
+                    vector_count = self.vector_store.add_chunks(chunks)
+                    if save_artifacts and hasattr(self.vector_store, "save_artifact"):
+                        self.vector_store.save_artifact(ticker=canonical_ticker)
+                except Exception as e:
+                    print(f"[IngestionPipeline] Vector indexing notice: {e}")
 
             if self.bm25_index is not None and hasattr(self.bm25_index, "add_chunks"):
-                if force_reprocess and hasattr(self.bm25_index, "delete_by_ticker"):
-                    self.bm25_index.delete_by_ticker(canonical_ticker)
-                bm25_count = self.bm25_index.add_chunks(chunks)
-                if save_artifacts and hasattr(self.bm25_index, "save_artifact"):
-                    self.bm25_index.save_artifact(ticker=canonical_ticker)
+                try:
+                    if force_reprocess and hasattr(self.bm25_index, "delete_by_ticker"):
+                        self.bm25_index.delete_by_ticker(canonical_ticker)
+                    bm25_count = self.bm25_index.add_chunks(chunks)
+                    if save_artifacts and hasattr(self.bm25_index, "save_artifact"):
+                        self.bm25_index.save_artifact(ticker=canonical_ticker)
+                except Exception as e:
+                    print(f"[IngestionPipeline] BM25 indexing notice: {e}")
 
             # -------------------------------------------------------------
             # Step 9: Completion (100%)

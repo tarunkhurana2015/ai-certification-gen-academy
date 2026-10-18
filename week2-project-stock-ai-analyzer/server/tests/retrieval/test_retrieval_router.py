@@ -1,5 +1,5 @@
 """
-Unit tests for Financial Analyst Router & Synthesizer (Option 2).
+Unit tests for Financial Retrieval Router & Synthesizer.
 Tests SQL KPI routing, Hybrid RAG routing, Peer Comparison routing, and citation grounding.
 Runs 100% in-memory without external network dependencies.
 """
@@ -17,10 +17,13 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.agent.analyst import (
+from app.retrieval.retrieval import (
     AnalystResponse,
+    RetrievalResponse,
     run_analyst,
+    run_retrieval,
     save_analyst_artifact,
+    save_retrieval_artifact,
 )
 
 
@@ -38,12 +41,15 @@ def test_analyst_response_model():
     assert resp.ticker == "TSLA"
     assert len(resp.citations) == 1
     assert "28,236.0M" in resp.answer
+    assert RetrievalResponse is AnalystResponse
+    assert run_retrieval is run_analyst
+    assert save_retrieval_artifact is save_analyst_artifact
 
 
 def test_analyst_sql_route():
     """Validates that quantitative queries route to SQL KPI tool."""
     query = "What was Tesla Q2 2026 revenue and free cash flow?"
-    resp = run_analyst(query, mock=True)
+    resp = run_retrieval(query, mock=True)
 
     assert resp.route_used == "sql_kpi"
     assert resp.ticker == "TSLA"
@@ -55,7 +61,7 @@ def test_analyst_sql_route():
 def test_analyst_hybrid_rag_route():
     """Validates that qualitative narrative queries route to Hybrid RAG tool."""
     query = "Why did automotive gross margin decline sequentially in Q2 2026?"
-    resp = run_analyst(query, mock=True)
+    resp = run_retrieval(query, mock=True)
 
     assert resp.route_used == "hybrid_rag"
     assert resp.financial_domain == "profitability"
@@ -70,7 +76,7 @@ def test_analyst_hybrid_rag_route():
 def test_analyst_comparison_route():
     """Validates that cross-company comparison queries route to Comparison tool."""
     query = "Compare Meta and Tesla operating margins over the last year"
-    resp = run_analyst(query, mock=True)
+    resp = run_retrieval(query, mock=True)
 
     assert resp.route_used == "comparison"
     assert resp.ticker == "multiple"
@@ -93,7 +99,7 @@ def test_save_analyst_artifact():
                 financial_domain="profitability",
             )
         ]
-        saved = save_analyst_artifact(sample_responses, output_path=art_path)
+        saved = save_retrieval_artifact(sample_responses, output_path=art_path)
         assert saved.exists()
         content = saved.read_text(encoding="utf-8")
         assert "Financial Analyst Intent Router Artifact (`agent_02`)" in content
@@ -102,7 +108,7 @@ def test_save_analyst_artifact():
 
 
 if __name__ == "__main__":
-    print("\nRunning test_analyst.py...")
+    print("\nRunning test_retrieval_router.py...")
     test_analyst_response_model()
     print("  ✓ test_analyst_response_model passed")
 
@@ -118,4 +124,4 @@ if __name__ == "__main__":
     test_save_analyst_artifact()
     print("  ✓ test_save_analyst_artifact passed")
 
-    print("\nAll 5 analyst router unit tests passed successfully!\n")
+    print("\nAll 5 retrieval router unit tests passed successfully!\n")

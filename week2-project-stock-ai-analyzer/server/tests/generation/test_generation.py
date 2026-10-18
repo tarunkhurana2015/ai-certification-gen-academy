@@ -1,5 +1,5 @@
 """
-Unit tests for Financial Generation Module (Phase 5.2).
+Unit tests for Financial Generation Module.
 Tests synthesize_sql_kpi, synthesize_hybrid_rag, and synthesize_comparison.
 Runs 100% in-memory without external network dependencies.
 """
@@ -16,7 +16,7 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.agent.generation import (
+from app.generation import (
     synthesize_comparison,
     synthesize_hybrid_rag,
     synthesize_sql_kpi,

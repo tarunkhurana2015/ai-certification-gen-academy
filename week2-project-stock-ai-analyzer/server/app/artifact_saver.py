@@ -1,7 +1,7 @@
 """
 Artifact Exporter Utility
 =========================
-Saves intermediate pipeline outputs (extracted text, section domains, chunks)
+Saves intermediate pipeline, indexing, retrieval, and generation outputs
 into the local '.artifact/' directory (ignored by git) for inspection and debugging.
 """
 
@@ -12,7 +12,7 @@ from typing import Any, Union
 
 def get_artifact_dir() -> Path:
     """Returns the .artifact/ directory at the server root, creating it if needed."""
-    server_root = Path(__file__).resolve().parent.parent.parent
+    server_root = Path(__file__).resolve().parent.parent
     artifact_dir = server_root / ".artifact"
     artifact_dir.mkdir(exist_ok=True)
     return artifact_dir
@@ -23,7 +23,7 @@ def save_artifact(file_name: str, content: Union[str, dict, list]) -> Path:
     Saves content to the .artifact/ directory with appropriate formatting.
 
     Args:
-        file_name: Target file name (e.g. '01_extracted_meta_q2_2026.json').
+        file_name: Target file name (e.g. '01_extracted_meta_q2_2026.json', 'agent_01_tools_sample.md').
         content: String, dict, or list to be written.
 
     Returns:

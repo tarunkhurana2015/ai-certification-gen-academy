@@ -1,5 +1,5 @@
 """
-Unit tests for Financial Analyst Tools (Phase 5.1).
+Unit tests for Financial Retrieval Tools.
 Tests deterministic SQL KPI lookup, Hybrid RAG search, peer comparison, and time-series tools.
 Runs 100% in-memory without external network dependencies.
 """
@@ -19,7 +19,9 @@ if str(_SERVER_ROOT) not in sys.path:
 
 from langchain_core.documents import Document
 
-from app.agent.tools import (
+from app.ingestion.indexing.bm25_index import BM25Index
+from app.retrieval.hybrid_engine import HybridEngine
+from app.retrieval.tools import (
     ANALYST_TOOLS,
     compare_tickers,
     get_kpis,
@@ -27,8 +29,6 @@ from app.agent.tools import (
     save_tools_artifact,
     search_filings,
 )
-from app.indexing.bm25_index import BM25Index
-from app.retrieval.hybrid_engine import HybridEngine
 
 
 def test_analyst_tools_bundle():
@@ -130,11 +130,11 @@ def test_save_tools_artifact():
 
 
 def test_modular_tool_imports():
-    """Validates that tools can be imported directly from their individual submodules."""
-    from app.agent.tools.sql_tool import get_kpis as sql_get_kpis, get_time_series as sql_get_time_series
-    from app.agent.tools.rag_tool import search_filings as rag_search_filings, get_default_engine
-    from app.agent.tools.comparison_tool import compare_tickers as comp_tool
-    from app.agent.tools.comparasion_tool import compare_tickers as comp_alias_tool
+    """Validates that tools can be imported directly from app.retrieval.tools."""
+    from app.retrieval.tools.sql_tool import get_kpis as sql_get_kpis, get_time_series as sql_get_time_series
+    from app.retrieval.tools.rag_tool import search_filings as rag_search_filings, get_default_engine
+    from app.retrieval.tools.comparison_tool import compare_tickers as comp_tool
+    from app.retrieval.tools.comparasion_tool import compare_tickers as comp_alias_tool
 
     assert sql_get_kpis.name == "get_kpis"
     assert sql_get_time_series.name == "get_time_series"
@@ -176,5 +176,4 @@ if __name__ == "__main__":
     test_save_tools_artifact()
     print("  ✓ test_save_tools_artifact passed")
 
-    print("\nAll 10 analyst tools unit tests passed successfully!\n")
-
+    print("\nAll 10 retrieval tools unit tests passed successfully!\n")

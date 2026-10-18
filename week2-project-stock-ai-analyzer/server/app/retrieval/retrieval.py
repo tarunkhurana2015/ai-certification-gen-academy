@@ -1,10 +1,10 @@
 """
-Financial Analyst Router & Synthesizer (Option 2) - Phase 5.2.
+Financial Retrieval Router & Synthesizer - Phase 5.2.
 
 Fast intent-based router:
 1. Classifies query using Jev (TypeSafeClassifier) from Phase 4.
-2. Routes directly to the specialized analyst tool (SQL KPI, Hybrid RAG, or Peer Comparison) from app.agent.tools.
-3. Delegates grounded response synthesis to app.agent.generation with [Page - X, Section - Y] citations.
+2. Routes directly to the specialized retrieval tool (SQL KPI, Hybrid RAG, or Peer Comparison) from app.retrieval.tools.
+3. Delegates grounded response synthesis to app.generation with [Page - X, Section - Y] citations.
 """
 
 import json
@@ -22,13 +22,13 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.agent.generation import (
+from app.retrieval.classifier import QueryClassification, classify_query
+from app.generation import (
     synthesize_comparison,
     synthesize_hybrid_rag,
     synthesize_sql_kpi,
 )
-from app.agent.tools import compare_tickers, get_kpis, search_filings
-from app.classifier.jev_classifier import QueryClassification, classify_query
+from app.retrieval.tools import compare_tickers, get_kpis, search_filings
 
 load_dotenv()
 
@@ -38,7 +38,7 @@ DEFAULT_ARTIFACT_PATH = (
 
 
 class AnalystResponse(BaseModel):
-    """Structured response from the Financial Analyst."""
+    """Structured response from the Financial Retrieval / Analyst Router."""
 
     query: str
     route_used: str  # "sql_kpi", "hybrid_rag", "comparison"
@@ -47,6 +47,9 @@ class AnalystResponse(BaseModel):
     ticker: Optional[str] = None
     financial_domain: Optional[str] = None
     raw_data: Optional[Dict[str, Any]] = None
+
+
+RetrievalResponse = AnalystResponse
 
 
 # ============================================================================
@@ -59,8 +62,8 @@ def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
     Fast Intent Router and Synthesizer.
 
     1. Runs Jev classifier (TypeSafe decision model).
-    2. Routes directly to the specialized tool (SQL KPI, Hybrid RAG, or Peer Comparison).
-    3. Synthesizes a grounded response with audit citations via generation.py.
+    2. Routes directly to the specialized retrieval tool (SQL KPI, Hybrid RAG, or Peer Comparison).
+    3. Synthesizes a grounded response with audit citations via app.generation.
     """
     # Step 1: Intent & metadata classification via Jev
     classification: QueryClassification = classify_query(query, mock=mock)
@@ -136,6 +139,9 @@ def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
     )
 
 
+run_retrieval = run_analyst
+
+
 # ============================================================================
 # Artifact Generation
 # ============================================================================
@@ -153,7 +159,7 @@ def save_analyst_artifact(
         "# 📊 Financial Analyst Intent Router Artifact (`agent_02`)",
         "",
         f"- **Generated At**: `{datetime.now().isoformat()}`",
-        f"- **Architecture**: Option 2 (Fast Intent Router & Modular Generation)",
+        f"- **Architecture**: Option 2 (Fast Intent Router & Modular Generation under app/retrieval)",
         f"- **Decision Model**: TypeSafe Jev (`TypeSafeClassifier`)",
         f"- **Total Queries Processed**: `{len(responses)}`",
         "",
@@ -193,10 +199,13 @@ def save_analyst_artifact(
     return target_path
 
 
+save_retrieval_artifact = save_analyst_artifact
+
+
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Financial Analyst Query CLI")
+    parser = argparse.ArgumentParser(description="Financial Retrieval Router CLI")
     parser.add_argument("query", nargs="?", default=None, help="User financial question")
     parser.add_argument("--mock", action="store_true", help="Run offline without external API calls")
     args = parser.parse_args()
@@ -212,7 +221,7 @@ if __name__ == "__main__":
     )
 
     results = []
-    print("\n--- Running Financial Analyst Query Router ---")
+    print("\n--- Running Financial Retrieval Router ---")
     for q in sample_queries:
         r = run_analyst(q, mock=args.mock)
         results.append(r)
@@ -222,3 +231,13 @@ if __name__ == "__main__":
 
     art = save_analyst_artifact(results)
     print(f"Saved analyst artifact to {art}\n")
+
+
+__all__ = [
+    "AnalystResponse",
+    "RetrievalResponse",
+    "run_analyst",
+    "run_retrieval",
+    "save_analyst_artifact",
+    "save_retrieval_artifact",
+]

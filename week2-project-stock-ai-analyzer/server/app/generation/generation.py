@@ -1,5 +1,5 @@
 """
-Financial Response Generation Module - Phase 5.2.
+Financial Response Generation Module.
 
 Provides dedicated response generation and synthesis functions:
 1. synthesize_sql_kpi: Formats exact audited GAAP numbers into professional equity analyst summaries.

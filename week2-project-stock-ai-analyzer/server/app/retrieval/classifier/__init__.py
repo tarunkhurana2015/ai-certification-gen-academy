@@ -1,6 +1,6 @@
 """Query classification package using TypeSafe Jev decision model."""
 
-from app.classifier.jev_classifier import (
+from app.retrieval.classifier.jev_classifier import (
     QueryClassification,
     classify_query,
     get_jev_questions,

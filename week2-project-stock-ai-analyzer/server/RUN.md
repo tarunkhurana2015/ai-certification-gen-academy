@@ -281,80 +281,76 @@ Uses TypeSafe's Jev model to classify queries into `query_type` (`sql_kpi`, `hyb
 Evaluates financial questions using live TypeSafe Jev calibrated decision model and saves inspection artifact `server/.artifact/idx_05_classifier_sample.md`:
 ```bash
 # Evaluate standard financial test battery
-python app/classifier/jev_classifier.py
+python app/retrieval/classifier/jev_classifier.py
 
 # Evaluate custom query
-python app/classifier/jev_classifier.py "Why did automotive gross margin decline sequentially in Q2 2026?"
+python app/retrieval/classifier/jev_classifier.py "Why did automotive gross margin decline sequentially in Q2 2026?"
 ```
 
 ### B. Run Jev Query Classifier CLI in Mock / Offline Mode
 Runs deterministic rule-based classifier without network connectivity:
 ```bash
-python app/classifier/jev_classifier.py --mock
+python app/retrieval/classifier/jev_classifier.py --mock
 ```
 
 ### C. Run Jev Classifier Unit Tests (Pure In-Memory Assertions)
 100% in-memory assertions covering Pydantic models, metadata filtering, Chroma `$and` syntax, offline classification, Choice criteria schemas, and None mapping:
 ```bash
-python tests/classifier/test_classifier.py
+python tests/retrieval/test_classifier.py
 ```
 
 ---
 
-## 🛠️ 10. Financial Analyst Agent Tools (ReAct LangChain Tools)
+## 🛠️ 10. Financial Retrieval Tools & Router (`app/retrieval` & `app/generation`)
 
-Provides LangChain-compatible tools modularized under `app/agent/tools/` for deterministic SQL KPI retrieval, Hybrid RAG filing search with page citations, multi-ticker peer comparison, and chronological time series:
+Organized into clean three-stage architecture (**Ingestion ──▶ Retrieval ──▶ Generation**):
+- **Ingestion Indexing** (`app/ingestion/indexing/`): `vector_index.py`, `bm25_index.py` (ChromaDB + BM25)
+- **Retrieval Tools** (`app/retrieval/tools/`): `sql_tool.py`, `rag_tool.py`, `comparison_tool.py`
+- **Retrieval Router** (`app/retrieval/retrieval.py`): Jev-calibrated fast intent router
+- **Generation Module** (`app/generation/generation.py`): Modular response synthesizers (`synthesize_sql_kpi`, `synthesize_hybrid_rag`, `synthesize_comparison`)
 
-### A. Modular Tool Structure
-- `app/agent/tools/sql_tool.py`: `get_kpis`, `get_time_series` (audited SQLite GAAP metrics)
-- `app/agent/tools/rag_tool.py`: `search_filings`, `get_default_engine` (ChromaDB + BM25 with citations)
-- `app/agent/tools/comparison_tool.py`: `compare_tickers` (side-by-side peer metrics)
-- `app/agent/tools/__init__.py`: Bundles `ANALYST_TOOLS` & provides self-test runner
-- `app/agent/generation.py`: Response synthesizers (`synthesize_sql_kpi`, `synthesize_hybrid_rag`, `synthesize_comparison`)
-- `app/agent/analyst.py`: Fast Intent Router delegating to tools and `generation.py`
-
-### B. Run Analyst Tools Self-Test (CLI & Artifact Generation)
+### A. Run Retrieval Tools Self-Test (CLI & Artifact Generation)
 Executes tool suite verification across SQLite KPIs, Hybrid RAG over filings, and peer comparison, and saves inspection artifact `server/.artifact/agent_01_tools_sample.md`:
 ```bash
-python app/agent/tools/__init__.py
+python app/retrieval/tools/__init__.py
 ```
 
-### C. Run Analyst Tools Unit Tests (Pure In-Memory Assertions)
+### B. Run Retrieval Tools Unit Tests (Pure In-Memory Assertions)
 100% in-memory assertions covering exact KPI queries, unknown tickers, hybrid filing citations `[Page - X, Section - Y]`, peer comparison tables, and submodule imports:
 ```bash
-python tests/agent/test_tools.py
+python tests/retrieval/test_tools.py
 ```
 
-### D. Run Financial Response Generation Unit Tests
+### C. Run Financial Response Generation Unit Tests
 Validates deterministic formatting and markdown synthesis in `generation.py`:
 ```bash
-python tests/agent/test_generation.py
+python tests/generation/test_generation.py
 ```
 
-### E. Run Financial Analyst Query Router CLI (Intent Routing & Synthesis)
-Runs the full intent router (Option 2) across live questions, calls the specialized tools, synthesizes audit-grade answers with citations via `generation.py`, and saves `server/.artifact/agent_02_analyst_query_sample.md`:
+### D. Run Financial Retrieval Router CLI (Intent Routing & Synthesis)
+Runs the full intent router across live questions, calls the specialized retrieval tools, synthesizes audit-grade answers with citations via `app.generation`, and saves `server/.artifact/agent_02_analyst_query_sample.md`:
 ```bash
 # Evaluate battery of standard test queries (SQL KPI, Hybrid RAG, Peer Comparison)
-python app/agent/analyst.py
+python app/retrieval/retrieval.py
 
 # Evaluate custom query
-python app/agent/analyst.py "What was Tesla Q2 2026 revenue and free cash flow?"
+python app/retrieval/retrieval.py "What was Tesla Q2 2026 revenue and free cash flow?"
 
 # Run in offline / mock mode
-python app/agent/analyst.py --mock
+python app/retrieval/retrieval.py --mock
 ```
 
-### F. Run Financial Analyst Router Unit Tests (Pure In-Memory Assertions)
+### E. Run Financial Retrieval Router Unit Tests (Pure In-Memory Assertions)
 100% in-memory unit tests validating SQL routing, Hybrid RAG routing, Peer comparison tables, and citation formatting:
 ```bash
-python tests/agent/test_analyst.py
+python tests/retrieval/test_retrieval_router.py
 ```
 
 ---
 
 ## 🏆 11. All-in-One Master Test Runner
 
-Run all **22 test suites** across the entire codebase in a single command:
+Run all **23 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -375,10 +371,11 @@ python tests/api/test_documents_api.py && \
 python tests/indexing/test_vector_index.py && \
 python tests/indexing/test_bm25_index.py && \
 python tests/retrieval/test_retrieval.py && \
-python tests/classifier/test_classifier.py && \
-python tests/agent/test_tools.py && \
-python tests/agent/test_generation.py && \
-python tests/agent/test_analyst.py
+python tests/retrieval/test_classifier.py && \
+python tests/retrieval/test_tools.py && \
+python tests/retrieval/test_retrieval_router.py && \
+python tests/generation/test_generation.py && \
+python tests/test_artifact_saver.py
 ```
 
 ---
@@ -413,12 +410,12 @@ When running scripts directly via CLI (`python app/...`), human-readable Markdow
 | `04_extracted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` or `pipeline.py` | Structured Pydantic GAAP KPIs extracted via OpenAI `gpt-4o-mini` |
 | `05_persisted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` or `pipeline.py` | SQLite persisted record verification and round-trip SQL query |
 | `06_pipeline_ingest_<doc>` | `app/ingestion/pipeline.py` | End-to-end ingestion execution summary, timing, and persisted KPIs |
-| `idx_02_vector_store_sample` | `app/indexing/vector_index.py` | ChromaDB collection summary, chunk counts, and sample filtered searches |
-| `idx_03_bm25_sample` | `app/indexing/bm25_index.py` | BM25 corpus summary, chunk counts, and sample keyword searches |
+| `idx_02_vector_store_sample` | `app/ingestion/indexing/vector_index.py` | ChromaDB collection summary, chunk counts, and sample filtered searches |
+| `idx_03_bm25_sample` | `app/ingestion/indexing/bm25_index.py` | BM25 corpus summary, chunk counts, and sample keyword searches |
 | `idx_04_hybrid_retrieval_sample` | `app/retrieval/hybrid_engine.py` | Ranked fused search results via `EnsembleRetriever` with text snippets |
-| `idx_05_classifier_sample` | `app/classifier/jev_classifier.py` | Jev calibrated intent classification, domain routing, and metadata filters |
-| `agent_01_tools_sample` | `app/agent/tools/__init__.py` | Financial analyst tool invocation verification, SQL metrics, and RAG citations |
-| `agent_02_analyst_query_sample` | `app/agent/analyst.py` | Financial analyst intent routing, synthesized answers, and audit citation chips |
+| `idx_05_classifier_sample` | `app/retrieval/classifier/jev_classifier.py` | Jev calibrated intent classification, domain routing, and metadata filters |
+| `agent_01_tools_sample` | `app/retrieval/tools/__init__.py` | Financial analyst tool invocation verification, SQL metrics, and RAG citations |
+| `agent_02_analyst_query_sample` | `app/retrieval/retrieval.py` | Financial analyst intent routing, synthesized answers, and audit citation chips |
 | `db_01_database_init` | `app/db/session.py` or `models.py` | SQLite schema tables & foreign key verification |
 | `db_02_database_models` | `app/db/models.py` | 18+ GAAP metric column definitions & cascade tests |
 | `db_03_kpi_repo_queries` | `app/db/repositories/kpi_repo.py` | Time series, peer comparison, and 0.1ms deduplication queries |

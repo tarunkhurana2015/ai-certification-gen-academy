@@ -19,7 +19,7 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.classifier.jev_classifier import (
+from app.retrieval.classifier import (
     QueryClassification,
     classify_query,
     get_jev_questions,

@@ -1,5 +1,5 @@
 """
-Financial Analyst Tools Package - Phase 5.1.
+Financial Retrieval Tools Package.
 
 Exports:
 - sql_tool: get_kpis, get_time_series
@@ -19,9 +19,9 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.agent.tools.comparison_tool import compare_tickers
-from app.agent.tools.rag_tool import get_default_engine, search_filings
-from app.agent.tools.sql_tool import get_kpis, get_time_series
+from app.retrieval.tools.comparison_tool import compare_tickers
+from app.retrieval.tools.rag_tool import get_default_engine, search_filings
+from app.retrieval.tools.sql_tool import get_kpis, get_time_series
 
 DEFAULT_ARTIFACT_PATH = (
     Path(__file__).resolve().parent.parent.parent.parent / ".artifact" / "agent_01_tools_sample.md"
@@ -45,10 +45,10 @@ def save_tools_artifact(
         "# 🛠️ Financial Analyst Tools Artifact (`agent_01`)",
         "",
         f"- **Generated At**: `{datetime.now().isoformat()}`",
-        f"- **Tool Suite**: Financial Analyst Tools (Modular Structure)",
+        f"- **Tool Suite**: Financial Analyst Tools (Modular Structure under app/retrieval/tools)",
         f"- **Available Tools**: `{', '.join([t.name for t in ANALYST_TOOLS])}`",
         "",
-        "## 1. Deterministic SQL KPI Tool Sample (`get_kpis` via `tools/sql_tool.py`)",
+        "## 1. Deterministic SQL KPI Tool Sample (`get_kpis` via `retrieval/tools/sql_tool.py`)",
         "",
         f"- **Ticker**: `{kpi_sample.get('ticker')}` ({kpi_sample.get('fiscal_quarter')} {kpi_sample.get('fiscal_year')})",
         f"- **Total Revenue**: `${kpi_sample.get('revenue', 0):,.1f}M`",
@@ -58,7 +58,7 @@ def save_tools_artifact(
         f"- **Free Cash Flow**: `${kpi_sample.get('free_cash_flow', 0):,.1f}M`",
         f"- **Cash & Equivalents**: `${kpi_sample.get('cash_and_equivalents', 0):,.1f}M`",
         "",
-        "## 2. Hybrid RAG Filing Search Tool Sample (`search_filings` via `tools/rag_tool.py`)",
+        "## 2. Hybrid RAG Filing Search Tool Sample (`search_filings` via `retrieval/tools/rag_tool.py`)",
         "",
         f"- **Total Chunks Retrieved**: `{len(rag_sample)}`",
     ]
@@ -71,7 +71,7 @@ def save_tools_artifact(
 
     lines.extend(
         [
-            "## 3. Peer Comparison Tool Sample (`compare_tickers` via `tools/comparison_tool.py`)",
+            "## 3. Peer Comparison Tool Sample (`compare_tickers` via `retrieval/tools/comparison_tool.py`)",
             "",
             f"- **Fiscal Period**: `{compare_sample.get('fiscal_period')}`",
             f"- **Companies Compared**: `{', '.join(compare_sample.get('companies', {}).keys())}`",
@@ -95,7 +95,7 @@ def save_tools_artifact(
 
 
 if __name__ == "__main__":
-    print("\n--- Running Financial Analyst Tools Self-Test ---")
+    print("\n--- Running Financial Retrieval Tools Self-Test ---")
 
     # 1. Test get_kpis
     kpi_res = get_kpis.invoke({"ticker": "TSLA", "fiscal_quarter": "Q2", "fiscal_year": 2026})

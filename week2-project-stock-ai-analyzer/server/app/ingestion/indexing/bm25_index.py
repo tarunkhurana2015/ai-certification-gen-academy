@@ -6,13 +6,18 @@ Directly matches the beginner-friendly pattern from week2-rag/3_hybrid_rag.ipynb
 """
 
 import json
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
 
-_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+# Ensure server root is in sys.path
+_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+if str(_SERVER_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SERVER_ROOT))
+
 DEFAULT_BM25_PATH = _SERVER_ROOT / "data" / "bm25" / "documents.json"
 
 
@@ -225,7 +230,6 @@ if __name__ == "__main__":
     print("RUNNING BM25 INDEX SELF-TEST & ARTIFACT GENERATION")
     print("=" * 60)
 
-    import json
     sample_file = _SERVER_ROOT / ".artifact" / "03b_enriched_chunks_tsla_q2_2026_update.json"
 
     idx = BM25Index()
@@ -244,4 +248,3 @@ if __name__ == "__main__":
     print(f"✅ BM25 artifact written to: {art_path}")
     print(f"   Indexed count: {idx.count()}")
     print("=" * 60 + "\n")
-

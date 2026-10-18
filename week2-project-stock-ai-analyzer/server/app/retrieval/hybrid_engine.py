@@ -19,8 +19,8 @@ _SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
-from app.indexing.bm25_index import BM25Index
-from app.indexing.vector_index import VectorIndex
+from app.ingestion.indexing.bm25_index import BM25Index
+from app.ingestion.indexing.vector_index import VectorIndex
 
 
 def create_ensemble_retriever(

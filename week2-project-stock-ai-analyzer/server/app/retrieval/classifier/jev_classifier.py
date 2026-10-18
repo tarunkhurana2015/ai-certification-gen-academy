@@ -26,7 +26,7 @@ except ImportError:
 load_dotenv()
 
 DEFAULT_ARTIFACT_PATH = (
-    Path(__file__).resolve().parent.parent.parent / ".artifact" / "idx_05_classifier_sample.md"
+    Path(__file__).resolve().parent.parent.parent.parent / ".artifact" / "idx_05_classifier_sample.md"
 )
 
 

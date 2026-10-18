@@ -17,7 +17,7 @@ if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
 from langchain_core.documents import Document
-from app.indexing.bm25_index import BM25Index
+from app.ingestion.indexing.bm25_index import BM25Index
 
 
 def make_sample_documents():

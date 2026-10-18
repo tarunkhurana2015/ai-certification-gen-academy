@@ -954,3 +954,71 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
   - `python tests/agent/test_analyst.py`: All 5 unit tests passed.
   - `python app/agent/tools/__init__.py`: Executed self-test and generated `server/.artifact/agent_01_tools_sample.md`.
   - Master Test Runner: All **22 test suites** across the entire project passed cleanly with 0 errors!
+
+---
+
+### Step 5.4: Three-Stage RAG Architecture Reorganization (Ingestion, Retrieval, Generation)
+- **Date**: Oct 18, 2026
+- **Context & Design Philosophy**:
+  - Reorganized the codebase into a clean three-stage architecture (**Ingestion ──▶ Retrieval ──▶ Generation**):
+    1. **Ingestion Layer** (`app/ingestion/`):
+       - Moved search indexers (`vector_index.py`, `bm25_index.py`) under `app/ingestion/indexing/`.
+       - Wired automatic search indexing into `IngestionPipeline` (`enable_indexing=True` by default) so raw document uploads automatically populate both ChromaDB and BM25 index stores.
+    2. **Retrieval Layer** (`app/retrieval/`):
+       - Moved tools under `app/retrieval/tools/` (`sql_tool.py`, `rag_tool.py`, `comparison_tool.py`).
+       - Moved `analyst.py` to `app/retrieval/retrieval.py` as the dedicated intent router and orchestrator.
+       - Contains `HybridEngine` (LangChain `EnsembleRetriever` with RRF).
+    3. **Generation Layer** (`app/generation/`):
+       - Dedicated top-level package containing `app/generation/generation.py` for response synthesizers (`synthesize_sql_kpi`, `synthesize_hybrid_rag`, `synthesize_comparison`).
+    4. **Backward Compatibility**:
+       - Kept zero-overhead shims in `app/indexing` and `app/agent` so legacy references and existing tests run without breaking.
+- **Verification Results**:
+  - `python tests/indexing/test_vector_index.py`: Passed (6 tests).
+  - `python tests/indexing/test_bm25_index.py`: Passed (6 tests).
+  - `python tests/retrieval/test_retrieval.py`: Passed (4 tests).
+  - `python tests/agent/test_tools.py`: Passed (10 tests).
+  - `python tests/agent/test_generation.py`: Passed (6 tests).
+  - `python tests/agent/test_analyst.py`: Passed (5 tests).
+  - `python app/retrieval/retrieval.py --mock`: Executed and generated `server/.artifact/agent_02_analyst_query_sample.md`.
+  - Master Test Runner: All **22 test suites** across the entire project passed cleanly with 0 errors!
+
+---
+
+### Step 5.5: Classifier Relocation into Retrieval Package
+- **Date**: Oct 18, 2026
+- **Context & Design Philosophy**:
+  - Relocated the Jev query intent classifier and its tests inside the retrieval layer (`app/retrieval/classifier/` and `tests/retrieval/test_classifier.py`).
+  - Strengthens the three-stage architecture (**Ingestion ──▶ Retrieval ──▶ Generation**):
+    - Query intent classification and metadata filter compilation are the front-door of the retrieval process.
+    - `app/retrieval/` now self-contains all query routing (`classifier/`), search tooling (`tools/`), fusion search (`hybrid_engine.py`), and retrieval execution (`retrieval.py`).
+  - Completely cleaned up redundant top-level `app/classifier/` and `tests/classifier/` directories.
+- **Files Created / Refactored**:
+  - `server/app/retrieval/classifier/jev_classifier.py` ([jev_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/classifier/jev_classifier.py)): TypeSafe Jev classifier with updated 4-level parent artifact path.
+  - `server/app/retrieval/classifier/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/classifier/__init__.py)): Exports `QueryClassification`, `classify_query`, `get_jev_questions`, `save_artifact`.
+  - `server/app/retrieval/retrieval.py` ([retrieval.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/retrieval.py)): Updated import to `from app.retrieval.classifier import QueryClassification, classify_query`.
+  - `server/app/retrieval/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/__init__.py)): Re-exports `QueryClassification`, `classify_query`, and `get_jev_questions`.
+  - `server/tests/retrieval/test_classifier.py` ([test_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/retrieval/test_classifier.py)): 8 in-memory unit tests targeting `app.retrieval.classifier`.
+  - Removed `app/classifier/` and `tests/classifier/`.
+- **Verification Results**:
+  - `python tests/retrieval/test_classifier.py`: All 8 unit tests passed.
+  - `python app/retrieval/classifier/jev_classifier.py --mock`: Executed cleanly and generated `server/.artifact/idx_05_classifier_sample.md`.
+  - Master Test Runner: All **22 test suites** across the entire project passed cleanly with 0 errors!
+
+---
+
+### Step 5.6: Shared Artifact Saver Relocation to Top-Level `app/`
+- **Date**: Oct 18, 2026
+- **Context & Design Philosophy**:
+  - `artifact_saver.py` provides shared inspection artifact serialization (`get_artifact_dir()`, `save_artifact()`) used across ingestion, indexing, retrieval, and generation.
+  - Moving it from `app/ingestion/artifact_saver.py` to `app/artifact_saver.py` promotes it to a top-level shared utility accessible directly as `from app.artifact_saver import save_artifact` or `from app import save_artifact`.
+  - Adjusted root resolution to `Path(__file__).resolve().parent.parent / ".artifact"` ensuring correct target path from `server/app/`.
+- **Files Created / Refactored**:
+  - `server/app/artifact_saver.py` ([artifact_saver.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/artifact_saver.py)): Shared artifact export utility.
+  - `server/app/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/__init__.py)): Re-exports `get_artifact_dir` and `save_artifact`.
+  - `server/tests/test_artifact_saver.py` ([test_artifact_saver.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/test_artifact_saver.py)): 4 in-memory unit tests validating directory resolution, re-exports, string writing, and JSON serialization.
+  - Removed `server/app/ingestion/artifact_saver.py`.
+- **Verification Results**:
+  - `python tests/test_artifact_saver.py`: All 4 unit tests passed.
+  - Master Test Runner: All **23 test suites** across the entire project passed cleanly with 0 errors!
+
+

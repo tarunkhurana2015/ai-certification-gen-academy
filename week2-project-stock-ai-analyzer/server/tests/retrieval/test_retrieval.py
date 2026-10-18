@@ -21,8 +21,8 @@ from langchain_classic.retrievers import EnsembleRetriever
 from langchain_core.documents import Document
 from langchain_core.embeddings.fake import FakeEmbeddings
 
-from app.indexing.bm25_index import BM25Index
-from app.indexing.vector_index import VectorIndex
+from app.ingestion.indexing.bm25_index import BM25Index
+from app.ingestion.indexing.vector_index import VectorIndex
 from app.retrieval.hybrid_engine import HybridEngine, create_ensemble_retriever
 
 

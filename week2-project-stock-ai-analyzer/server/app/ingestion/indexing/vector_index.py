@@ -17,7 +17,7 @@ from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 
 # Ensure server root is in sys.path
-_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(_SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(_SERVER_ROOT))
 
@@ -234,4 +234,3 @@ if __name__ == "__main__":
     print(f"✅ Vector Store artifact written to: {art_path}")
     print(f"   Indexed count: {idx.count()}")
     print("=" * 60 + "\n")
-

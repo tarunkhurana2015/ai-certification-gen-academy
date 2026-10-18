@@ -19,7 +19,7 @@ import chromadb
 from langchain_core.documents import Document
 from langchain_core.embeddings.fake import FakeEmbeddings
 
-from app.indexing.vector_index import VectorIndex, get_embeddings
+from app.ingestion.indexing.vector_index import VectorIndex, get_embeddings
 
 
 def make_fake_embeddings():
