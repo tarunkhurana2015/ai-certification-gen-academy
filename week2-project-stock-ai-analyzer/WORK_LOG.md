@@ -14,7 +14,7 @@
 | **Phase 1** | **PDF Ingestion Pipeline** | PDF validation, text extraction, section parsing, chunking | ✅ Completed |
 | **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | ✅ Completed |
 | **Phase 3** | **Dual Hybrid Indexing & Retrieval** | ChromaDB dense embeddings + BM25 sparse keyword index | ✅ Completed |
-| **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ⏳ Pending |
+| **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ✅ Completed |
 | **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
 | **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | ✅ Completed |
 | **Phase 7** | **Client Integration (Flutter)** | Connect Flutter KPI Dashboard to live backend API | ✅ Completed |
@@ -814,6 +814,43 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
     - `server/.artifact/idx_02_vector_store_sample.md` (Chroma vector store)
     - `server/.artifact/idx_03_bm25_sample.md` (BM25 keyword index)
     - `server/.artifact/idx_04_hybrid_retrieval_sample.md` (Ensemble hybrid retrieval)
+
+---
+
+### Step 4: TypeSafe Query Intent Classifier (Jev Decision Model)
+- **Date**: Oct 17, 2026
+- **Context & Design Philosophy**:
+  - In financial question answering, routing user queries to the correct downstream subsystem is critical:
+    - Exact, audited metrics (e.g., *"What was Tesla's Q2 2026 revenue and free cash flow?"*) must be answered deterministically from the SQLite database.
+    - Qualitative explanations (e.g., *"Why did automotive gross margin decline sequentially?"*) must be answered via Hybrid RAG (Ensemble of Chroma + BM25) over filings.
+    - Peer and trend questions (e.g., *"Compare Meta and Tesla operating margins"*) must be routed to multi-quarter comparison repositories.
+  - Generative LLMs generate filters token-by-token as JSON, which can be slow and prone to formatting errors. Instead, we use **Jev**, TypeSafe's "System One" decision model, directly following [`week2-rag/2_metadata_filtering.ipynb`](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-rag/2_metadata_filtering.ipynb) (lines 562–612).
+  - Jev treats classification as a **decision**: it picks one option per question from a predefined list and returns calibrated probabilities and confidences with typed output and zero JSON parsing overhead.
+- **Files Created**:
+  - `server/app/classifier/jev_classifier.py` ([jev_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/classifier/jev_classifier.py)):
+    - `QueryClassification` Pydantic model with `.to_metadata_filter()` (for BM25/retrievers) and `.to_chroma_filter()` (with `$and` syntax).
+    - `get_jev_questions()`: 3 `Choice` questions matching the course notebook:
+      1. `query_type`: `sql_kpi`, `hybrid_rag`, `comparison`.
+      2. `financial_domain`: `profitability`, `cash_flow`, `balance_sheet`, `guidance_outlook`, `none`.
+      3. `ticker`: `TSLA`, `META`, `AAPL`, `multiple`, `none`.
+    - `classify_query(query, classifier=None, mock=False)`: Invokes Jev (`TypeSafeClassifier`), unpacks choices, maps `"none"` back to `None`, and falls back gracefully to a deterministic mock in network-restricted environments.
+    - `save_artifact()`: Exports human-readable Markdown inspection reports to `server/.artifact/idx_05_classifier_sample.md`.
+    - CLI runner (`python app/classifier/jev_classifier.py [--mock]`).
+  - `server/app/classifier/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/classifier/__init__.py)): Exports `QueryClassification`, `classify_query`, `get_jev_questions`, and `save_artifact`.
+  - `server/tests/classifier/test_classifier.py` ([test_classifier.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/classifier/test_classifier.py)): 8 pure in-memory unit tests.
+- **Unit Test Coverage (100% In-Memory)**:
+  - `test_query_classification_model_filters`: Tests single ticker, ticker+domain, and multi-ticker filter translation.
+  - `test_mock_classifier_sql_kpi`: Tests deterministic classification of exact financial queries.
+  - `test_mock_classifier_hybrid_rag`: Tests deterministic classification of qualitative narrative queries.
+  - `test_mock_classifier_comparison`: Tests deterministic classification of peer comparison queries.
+  - `test_jev_questions_structure`: Verifies question definitions and criteria keys.
+  - `test_classify_query_with_mocked_jev`: Verifies end-to-end integration and choice unpacking using mock `TypeSafeClassifier`.
+  - `test_classify_query_none_mapping`: Verifies that `"none"` choice answers correctly map to `None`.
+  - `test_save_artifact_roundtrip`: Verifies Markdown artifact generation.
+- **Verification Results**:
+  - `python tests/classifier/test_classifier.py`: All 8 unit tests passed in 0.5s.
+  - `python app/classifier/jev_classifier.py`: Live call to TypeSafe Jev API correctly routed all 3 test queries with calibrated confidences and generated `server/.artifact/idx_05_classifier_sample.md`.
+  - Master Test Runner: All **19 test suites** across the entire project passed cleanly with 0 errors!
 
 
 

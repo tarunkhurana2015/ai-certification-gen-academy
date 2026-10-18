@@ -272,9 +272,38 @@ python tests/retrieval/test_retrieval.py
 
 ---
 
-## 🏆 9. All-in-One Master Test Runner
+## 🎯 9. TypeSafe Query Intent Classifier (Jev Decision Model)
 
-Run all **18 test suites** across the entire codebase in a single command:
+Matches the educational decision model implementation from `week2-rag/2_metadata_filtering.ipynb` (lines 562–612).
+Uses TypeSafe's Jev model to classify queries into `query_type` (`sql_kpi`, `hybrid_rag`, `comparison`), `financial_domain`, and `ticker`, and generates metadata filters for downstream retrieval.
+
+### A. Run Jev Query Classifier CLI (Live API & Artifact Generation)
+Evaluates financial questions using live TypeSafe Jev calibrated decision model and saves inspection artifact `server/.artifact/idx_05_classifier_sample.md`:
+```bash
+# Evaluate standard financial test battery
+python app/classifier/jev_classifier.py
+
+# Evaluate custom query
+python app/classifier/jev_classifier.py "Why did automotive gross margin decline sequentially in Q2 2026?"
+```
+
+### B. Run Jev Query Classifier CLI in Mock / Offline Mode
+Runs deterministic rule-based classifier without network connectivity:
+```bash
+python app/classifier/jev_classifier.py --mock
+```
+
+### C. Run Jev Classifier Unit Tests (Pure In-Memory Assertions)
+100% in-memory assertions covering Pydantic models, metadata filtering, Chroma `$and` syntax, offline classification, Choice criteria schemas, and None mapping:
+```bash
+python tests/classifier/test_classifier.py
+```
+
+---
+
+## 🏆 10. All-in-One Master Test Runner
+
+Run all **19 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -294,12 +323,13 @@ python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py && \
 python tests/indexing/test_vector_index.py && \
 python tests/indexing/test_bm25_index.py && \
-python tests/retrieval/test_retrieval.py
+python tests/retrieval/test_retrieval.py && \
+python tests/classifier/test_classifier.py
 ```
 
 ---
 
-## 📱 10. Flutter Client Execution & Tests
+## 📱 11. Flutter Client Execution & Tests
 
 ### A. Run Feature Package Tests (`ai_analyst_feature`)
 ```bash
@@ -332,9 +362,11 @@ When running scripts directly via CLI (`python app/...`), human-readable Markdow
 | `idx_02_vector_store_sample` | `app/indexing/vector_index.py` | ChromaDB collection summary, chunk counts, and sample filtered searches |
 | `idx_03_bm25_sample` | `app/indexing/bm25_index.py` | BM25 corpus summary, chunk counts, and sample keyword searches |
 | `idx_04_hybrid_retrieval_sample` | `app/retrieval/hybrid_engine.py` | Ranked fused search results via `EnsembleRetriever` with text snippets |
+| `idx_05_classifier_sample` | `app/classifier/jev_classifier.py` | Jev calibrated intent classification, domain routing, and metadata filters |
 | `db_01_database_init` | `app/db/session.py` or `models.py` | SQLite schema tables & foreign key verification |
 | `db_02_database_models` | `app/db/models.py` | 18+ GAAP metric column definitions & cascade tests |
 | `db_03_kpi_repo_queries` | `app/db/repositories/kpi_repo.py` | Time series, peer comparison, and 0.1ms deduplication queries |
 
 > **Note**: Unit tests (`tests/...`) **never** generate artifacts and run strictly in-memory.
+
 
