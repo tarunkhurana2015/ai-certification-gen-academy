@@ -360,11 +360,15 @@ class IngestionPipeline:
                 if force_reprocess and hasattr(self.vector_store, "delete_by_ticker"):
                     self.vector_store.delete_by_ticker(canonical_ticker)
                 vector_count = self.vector_store.add_chunks(chunks)
+                if save_artifacts and hasattr(self.vector_store, "save_artifact"):
+                    self.vector_store.save_artifact(ticker=canonical_ticker)
 
             if self.bm25_index is not None and hasattr(self.bm25_index, "add_chunks"):
                 if force_reprocess and hasattr(self.bm25_index, "delete_by_ticker"):
                     self.bm25_index.delete_by_ticker(canonical_ticker)
                 bm25_count = self.bm25_index.add_chunks(chunks)
+                if save_artifacts and hasattr(self.bm25_index, "save_artifact"):
+                    self.bm25_index.save_artifact(ticker=canonical_ticker)
 
             # -------------------------------------------------------------
             # Step 9: Completion (100%)

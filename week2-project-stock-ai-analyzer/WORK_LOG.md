@@ -13,7 +13,7 @@
 | **Phase 0** | **Environment Setup** | Python 3.11+, virtualenv (`uv`), dependencies, `.env` | ✅ Completed |
 | **Phase 1** | **PDF Ingestion Pipeline** | PDF validation, text extraction, section parsing, chunking | ✅ Completed |
 | **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | ✅ Completed |
-| **Phase 3** | **Dual Hybrid Indexing** | ChromaDB dense embeddings + BM25 sparse keyword index | ⏳ Pending |
+| **Phase 3** | **Dual Hybrid Indexing & Retrieval** | ChromaDB dense embeddings + BM25 sparse keyword index | ✅ Completed |
 | **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ⏳ Pending |
 | **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
 | **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | ✅ Completed |
@@ -768,7 +768,53 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
     - `server/data/chroma/` and `server/data/bm25/`
   - Created safety backup in `server/.backup_indexing_retrieval/`.
   - Decoupled `server/app/ingestion/pipeline.py` and `server/tests/ingestion/test_pipeline.py` so Phase 1 (PDF Ingestion) and Phase 2 (SQLite KPIs) and Phase 6/7 (FastAPI & Flutter) remain 100% functional with passing tests.
-  - Phase 3 is reset to a fresh, clean slate, ready for rewriting a dead-simple, notebook-aligned version whenever the user instructs.
+  - Phase 3 was reset to a fresh, clean slate, ready for rewriting a dead-simple, notebook-aligned version.
+
+---
+
+### Step 3: Simplified Hybrid Indexing & Retrieval Implementation (Notebook-Aligned)
+- **Date**: Oct 17, 2026
+- **Context & Design Philosophy**:
+  - The previous indexing and retrieval architecture was over-engineered with hand-rolled inverted index tokenizers, custom BM25Okapi scoring formulas, and deep retriever inheritance hierarchies that made the system difficult to follow.
+  - We restarted fresh with a clean, educational design that strictly mirrors the beginner-friendly course notebooks:
+    - [`week2-rag/1_rag_pipeline.ipynb`](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-rag/1_rag_pipeline.ipynb): Dense semantic search via `OpenAIEmbeddings(model="text-embedding-3-small", dimensions=512)` and Chroma.
+    - [`week2-rag/3_hybrid_rag.ipynb`](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-rag/3_hybrid_rag.ipynb): Sparse keyword search via `BM25Retriever.from_documents(docs)` and Reciprocal Rank Fusion via `EnsembleRetriever(retrievers=[vector_retriever, bm25_retriever], weights=[0.5, 0.5])`.
+- **Files Created & Modified**:
+  - `server/app/indexing/vector_index.py` ([vector_index.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/vector_index.py)):
+    - `get_embeddings()` using `OpenAIEmbeddings(model="text-embedding-3-small", dimensions=512)`.
+    - `VectorIndex` class wrapping `Chroma` with standard methods: `add_documents()`, `add_chunks()`, `as_retriever()`, `similarity_search()`, `count()`, `delete_by_ticker()`, and `save_artifact()`.
+    - CLI runner (`python app/indexing/vector_index.py --mock`) which indexes sample chunks and generates the artifact.
+    - Artifact output: `server/.artifact/idx_02_vector_store_sample.md`.
+  - `server/app/indexing/bm25_index.py` ([bm25_index.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/bm25_index.py)):
+    - Directly wraps LangChain's `BM25Retriever.from_documents(docs)`.
+    - `BM25Index` class with `add_documents()`, `add_chunks()`, `as_retriever(k=k, filter=...)`, `search()`, `count()`, `delete_by_ticker()`, and clean JSON persistence to `server/data/bm25/documents.json`.
+    - CLI runner (`python app/indexing/bm25_index.py`) which indexes sample chunks and generates the artifact.
+    - Artifact output: `server/.artifact/idx_03_bm25_sample.md`.
+  - `server/app/indexing/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/__init__.py)): Cleanly exports `VectorIndex`, `BM25Index`, and `get_embeddings`.
+  - `server/app/retrieval/hybrid_engine.py` ([hybrid_engine.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/hybrid_engine.py)):
+    - `create_ensemble_retriever(vector_index, bm25_index, ticker=None, k=5, weights=[0.5, 0.5])` directly wrapping `langchain_classic.retrievers.EnsembleRetriever`.
+    - `HybridEngine` class:
+      - `get_retriever()`: returns the fused `EnsembleRetriever`.
+      - `search(query, ticker=None, k=5, weights=None, save_artifact=True)`: executes hybrid search and returns the top-$k$ fused documents while writing the artifact.
+      - `show_hybrid(query, ticker=None, k=3)`: educational/diagnostic helper matching the notebook to inspect Vector vs. BM25 vs. Ensemble side-by-side.
+      - CLI runner (`python app/retrieval/hybrid_engine.py "query" --ticker TSLA --k 5 --mock`) writing outputs directly to `server/.artifact/idx_04_hybrid_retrieval_sample.md`.
+  - `server/app/retrieval/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/__init__.py)): Cleanly exports `HybridEngine` and `create_ensemble_retriever`.
+  - `server/app/ingestion/pipeline.py` ([pipeline.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/pipeline.py)):
+    - Integrated `add_chunks()` and `save_artifact()` on both vector and BM25 stores when `save_artifacts=True`.
+- **Unit Test Coverage (100% In-Memory)**:
+  - `server/tests/indexing/test_vector_index.py`: 6 tests covering embeddings config, add/count, similarity search, metadata filtering, retriever interface, and ticker deletion using `chromadb.EphemeralClient()` and `FakeEmbeddings(size=512)`.
+  - `server/tests/indexing/test_bm25_index.py`: 6 tests covering add/count, exact keyword matching, filtered search, retriever interface, ticker deletion, and disk reload persistence.
+  - `server/tests/retrieval/test_retrieval.py`: 4 tests covering `EnsembleRetriever` instantiation, hybrid search execution, ticker filtering, and `show_hybrid` comparison view.
+- **Verification Results**:
+  - `python tests/indexing/test_vector_index.py`: All 6 tests passed in 1s.
+  - `python tests/indexing/test_bm25_index.py`: All 6 tests passed in 1s.
+  - `python tests/retrieval/test_retrieval.py`: All 4 tests passed in 1s.
+  - Master Test Runner: All **18 test suites** across the entire project passed cleanly with 0 errors!
+  - Artifacts generated and verified:
+    - `server/.artifact/idx_02_vector_store_sample.md` (Chroma vector store)
+    - `server/.artifact/idx_03_bm25_sample.md` (BM25 keyword index)
+    - `server/.artifact/idx_04_hybrid_retrieval_sample.md` (Ensemble hybrid retrieval)
+
 
 
 

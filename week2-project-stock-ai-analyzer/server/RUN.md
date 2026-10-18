@@ -230,52 +230,42 @@ python tests/api/test_documents_api.py
 
 ---
 
-## 🧠 8. Indexing & Vector Search (ChromaDB & Embeddings)
+## 🧠 8. Simplified Indexing & Hybrid Retrieval (ChromaDB + BM25 + EnsembleRetriever)
 
-### A. Run OpenAIEmbeddings Self-Test (CLI & Artifact Generation)
-Verifies `text-embedding-3-small` with `dimensions=512`, tests cosine similarity, and saves `server/.artifact/idx_01_embeddings_sample.[json|md]`:
+Matches the educational, notebook-aligned implementation from `week2-rag/1_rag_pipeline.ipynb` and `week2-rag/3_hybrid_rag.ipynb`.
+
+### A. Run ChromaDB Vector Store Self-Test (CLI & Artifact Generation)
+Ingests sample chunks into ChromaDB (`text-embedding-3-small`, 512 dimensions) and exports `server/.artifact/idx_02_vector_store_sample.md`:
 ```bash
-python app/indexing/embeddings.py
+python app/indexing/vector_index.py --mock
 ```
 
-### B. Run OpenAIEmbeddings Unit Tests (Pure In-Memory Assertions)
+### B. Run ChromaDB Vector Store Unit Tests (Pure In-Memory Assertions)
+100% in-memory assertions using `chromadb.EphemeralClient()` and `FakeEmbeddings(size=512)`:
 ```bash
-python tests/indexing/test_embeddings.py
+python tests/indexing/test_vector_index.py
 ```
 
-### C. Run ChromaDB Vector Store Self-Test (CLI & Artifact Generation)
-Ingests real chunks from `server/.artifact/03b_enriched_chunks_tsla_q2_2026_update.json` into ChromaDB, executes filtered similarity searches, and exports `server/.artifact/idx_02_vector_store_sample.[json|md]`:
-```bash
-python app/indexing/vector_store.py
-```
-
-### D. Run ChromaDB Vector Store Unit Tests (Pure In-Memory Assertions)
-```bash
-python tests/indexing/test_vector_store.py
-```
-
-### E. Run BM25 Sparse Keyword Index Self-Test (CLI & Artifact Generation)
-Ingests real chunks into BM25Okapi, executes exact keyword/acronym searches, serializes index to `server/data/bm25/bm25_index.pkl`, and exports `server/.artifact/idx_03_bm25_sample.[json|md]`:
+### C. Run BM25 Sparse Keyword Index Self-Test (CLI & Artifact Generation)
+Ingests sample chunks into LangChain's `BM25Retriever`, persists corpus to `server/data/bm25/documents.json`, and exports `server/.artifact/idx_03_bm25_sample.md`:
 ```bash
 python app/indexing/bm25_index.py
 ```
 
-### F. Run BM25 Keyword Index Unit Tests (Pure In-Memory Assertions)
+### D. Run BM25 Keyword Index Unit Tests (Pure In-Memory Assertions)
+Pure in-memory and isolated temporary storage assertions:
 ```bash
 python tests/indexing/test_bm25_index.py
 ```
 
-### G. Run Hybrid Retrieval Engine Self-Test (CLI & Artifact Generation)
-Executes end-to-end dense ChromaDB search, sparse BM25 search, weighted Reciprocal Rank Fusion (RRF, $k=60$), and Cross-Encoder reranking against real ingested earnings filings:
+### E. Run Hybrid Retrieval Engine Self-Test (CLI & Artifact Generation)
+Fuses semantic vector search and sparse BM25 keyword search using `langchain_classic.retrievers.EnsembleRetriever` with weighted Reciprocal Rank Fusion (RRF), and exports `server/.artifact/idx_04_hybrid_retrieval_sample.md`:
 ```bash
-python app/retrieval/hybrid_engine.py "What was the Free Cash Flow and why did it decline?" --ticker TSLA --quarter Q2 --year 2026 --top_k 3
+python app/retrieval/hybrid_engine.py "What was the Free Cash Flow and why did it decline?" --ticker TSLA --k 5 --mock
 ```
-Inspect generated outputs in `server/.artifact/`:
-- `server/.artifact/idx_04_hybrid_retrieval_sample.json`
-- `server/.artifact/idx_04_hybrid_retrieval_sample.md`
 
-### H. Run Hybrid Retrieval Unit Tests (Pure In-Memory Assertions)
-100% in-memory test coverage for DenseRetriever, SparseRetriever, RRF math, CrossEncoderReranker, and HybridRetrievalEngine:
+### F. Run Hybrid Retrieval Unit Tests (Pure In-Memory Assertions)
+100% in-memory test coverage for `create_ensemble_retriever`, `search`, and `show_hybrid`:
 ```bash
 python tests/retrieval/test_retrieval.py
 ```
@@ -284,7 +274,7 @@ python tests/retrieval/test_retrieval.py
 
 ## 🏆 9. All-in-One Master Test Runner
 
-Run all **19 test suites** across the entire codebase in a single command:
+Run all **18 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -302,8 +292,7 @@ python tests/ingestion/test_pipeline.py && \
 python tests/api/test_health.py && \
 python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py && \
-python tests/indexing/test_embeddings.py && \
-python tests/indexing/test_vector_store.py && \
+python tests/indexing/test_vector_index.py && \
 python tests/indexing/test_bm25_index.py && \
 python tests/retrieval/test_retrieval.py
 ```
@@ -314,13 +303,13 @@ python tests/retrieval/test_retrieval.py
 
 ### A. Run Feature Package Tests (`ai_analyst_feature`)
 ```bash
-cd ../client/packages/ai_analyst_feature
+cd client/packages/ai_analyst_feature
 flutter test
 ```
 
 ### B. Run Main App Smoke & Navigation Tests (`gen_stock_folio`)
 ```bash
-cd ../client/apps/gen_stock_folio
+cd client/apps/gen_stock_folio
 flutter test
 ```
 
@@ -328,7 +317,7 @@ flutter test
 
 ## 📂 Summary of Artifacts Created During CLI Runs
 
-When running scripts directly via CLI (`python app/...`), human-readable Markdown and machine-readable JSON artifacts are saved in `server/.artifact/` (git-ignored):
+When running scripts directly via CLI (`python app/...`), human-readable Markdown artifacts are saved in `server/.artifact/` (git-ignored):
 
 | Artifact Prefix | Generator CLI Script | Description |
 | :--- | :--- | :--- |
@@ -340,8 +329,12 @@ When running scripts directly via CLI (`python app/...`), human-readable Markdow
 | `04_extracted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` or `pipeline.py` | Structured Pydantic GAAP KPIs extracted via OpenAI `gpt-4o-mini` |
 | `05_persisted_kpis_<doc>` | `app/ingestion/extractor/kpi_extractor.py` or `pipeline.py` | SQLite persisted record verification and round-trip SQL query |
 | `06_pipeline_ingest_<doc>` | `app/ingestion/pipeline.py` | End-to-end ingestion execution summary, timing, and persisted KPIs |
+| `idx_02_vector_store_sample` | `app/indexing/vector_index.py` | ChromaDB collection summary, chunk counts, and sample filtered searches |
+| `idx_03_bm25_sample` | `app/indexing/bm25_index.py` | BM25 corpus summary, chunk counts, and sample keyword searches |
+| `idx_04_hybrid_retrieval_sample` | `app/retrieval/hybrid_engine.py` | Ranked fused search results via `EnsembleRetriever` with text snippets |
 | `db_01_database_init` | `app/db/session.py` or `models.py` | SQLite schema tables & foreign key verification |
 | `db_02_database_models` | `app/db/models.py` | 18+ GAAP metric column definitions & cascade tests |
 | `db_03_kpi_repo_queries` | `app/db/repositories/kpi_repo.py` | Time series, peer comparison, and 0.1ms deduplication queries |
 
 > **Note**: Unit tests (`tests/...`) **never** generate artifacts and run strictly in-memory.
+
