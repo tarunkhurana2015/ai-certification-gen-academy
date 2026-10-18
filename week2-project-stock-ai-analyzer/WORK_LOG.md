@@ -15,7 +15,7 @@
 | **Phase 2** | **Deterministic Database (SQLite)** | 18+ GAAP KPIs, time-series storage, task state tracking | ✅ Completed |
 | **Phase 3** | **Dual Hybrid Indexing & Retrieval** | ChromaDB dense embeddings + BM25 sparse keyword index | ✅ Completed |
 | **Phase 4** | **TypeSafe Query Classifier** | Intent routing (Exact KPI vs Narrative vs Multi-Quarter) | ✅ Completed |
-| **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ⏳ Pending |
+| **Phase 5** | **LangGraph Agent & Tools** | ReAct loop, SQL tool, Hybrid RAG tool, citation grounding | ✅ Completed |
 | **Phase 6** | **FastAPI Server & REST API** | Async REST endpoints (Ingestion upload & KPI queries) | ✅ Completed |
 | **Phase 7** | **Client Integration (Flutter)** | Connect Flutter KPI Dashboard to live backend API | ✅ Completed |
 
@@ -852,7 +852,105 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
   - `python app/classifier/jev_classifier.py`: Live call to TypeSafe Jev API correctly routed all 3 test queries with calibrated confidences and generated `server/.artifact/idx_05_classifier_sample.md`.
   - Master Test Runner: All **19 test suites** across the entire project passed cleanly with 0 errors!
 
+---
 
+### Step 5.1: Financial Analyst ReAct Tools Module
+- **Date**: Oct 17, 2026
+- **Context & Design Philosophy**:
+  - The ReAct Financial Analyst Agent needs modular, typed tools to execute actions based on the query classification from Phase 4:
+    1. Quantitative queries need exact, audited numbers directly from SQLite (zero hallucination).
+    2. Qualitative queries need hybrid retrieval (Chroma + BM25) over filings with audit-grade page citations `[Page - X, Section - Y]`.
+    3. Multi-company queries need side-by-side comparison tables.
+    4. Trend queries need chronological multi-quarter time series.
+  - To support both autonomous LangGraph ReAct agents and deterministic direct invocations, all tools are built using LangChain's `@tool` decorator (`StructuredTool`), enabling both `.invoke()` and direct Python calls.
+- **Files Created**:
+  - `server/app/agent/tools.py` ([tools.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/tools.py)):
+    - `get_kpis`: Queries SQLite for exact audited 18+ GAAP metrics with fallback to latest reported quarter.
+    - `search_filings`: Invokes `HybridEngine` (dense semantic vectors + sparse BM25 keyword search) with automatic fallback to BM25 in network-restricted environments, formatting results with citation tags `[Page - X, Section - Y]`.
+    - `compare_tickers`: Cross-company comparison for the same fiscal quarter with tabular summaries.
+    - `get_time_series`: Chronologically ordered multi-quarter time-series records for trend charts.
+    - `ANALYST_TOOLS`: Standard tool bundle `[get_kpis, search_filings, compare_tickers, get_time_series]` for LangGraph / ReAct agent.
+    - `save_tools_artifact`: Exports human-readable Markdown inspection report to `server/.artifact/agent_01_tools_sample.md`.
+    - CLI runner (`python app/agent/tools.py`).
+  - `server/app/agent/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/__init__.py)): Clean exports.
+  - `server/tests/agent/test_tools.py` ([test_tools.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/agent/test_tools.py)): 9 unit tests.
+- **Unit Test Coverage (100% In-Memory)**:
+  - `test_analyst_tools_bundle`: Verifies tool bundle registration and naming.
+  - `test_get_kpis_tool`: Verifies exact GAAP KPI retrieval for TSLA Q2 2026.
+  - `test_get_kpis_missing_ticker`: Verifies error reporting for missing tickers.
+  - `test_get_kpis_default_latest`: Verifies automatic fallback to latest reported quarter.
+  - `test_search_filings_tool`: Verifies hybrid filing search and audit citation tags.
+  - `test_compare_tickers_tool`: Verifies multi-company comparison between META and TSLA.
+  - `test_compare_tickers_empty`: Verifies validation error when tickers list is empty.
+  - `test_get_time_series_tool`: Verifies chronological time-series ordering.
+  - `test_save_tools_artifact`: Verifies Markdown artifact generation.
+- **Verification Results**:
+  - `python tests/agent/test_tools.py`: All 9 unit tests passed in 4s.
+  - `python app/agent/tools.py`: Executed self-test and generated `server/.artifact/agent_01_tools_sample.md`.
+  - Master Test Runner: All **20 test suites** across the entire project passed cleanly with 0 errors!
 
+---
 
+### Step 5.2: Financial Analyst Intent Router & Synthesizer (Option 2)
+- **Date**: Oct 17, 2026
+- **Context & Design Philosophy**:
+  - Selected **Option 2 (Fast Intent Router & Synthesizer)**:
+    - Provides instant single-hop dispatch using the TypeSafe Jev decision model (`TypeSafeClassifier`) from Phase 4.
+    - Zero token wastage: routes simple exact KPI lookups directly to SQLite and qualitative questions to Hybrid RAG.
+    - Strictly grounds narrative responses with audit-grade citation tags adhering to the PRD format: `[Page - X, Section - Y]`.
+    - Generates comparative markdown tables for peer company analysis (e.g. META vs TSLA).
+    - Includes `--mock` mode for offline testing and deterministic fallback in restricted networks.
+- **Files Created**:
+  - `server/app/agent/analyst.py` ([analyst.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/analyst.py)):
+    - `AnalystResponse` Pydantic model (`query`, `route_used`, `answer`, `citations`, `ticker`, `financial_domain`, `raw_data`).
+    - `_synthesize_sql_kpi`: Formats audited GAAP numbers.
+    - `_synthesize_hybrid_rag`: Synthesizes retrieved filing sections with inline `[Page - X, Section - Y]` citation tags.
+    - `_synthesize_comparison`: Creates multi-company comparison tables and takeaways.
+    - `run_analyst(query, mock=False)`: Top-level entrypoint executing Jev classification, tool dispatch, and answer synthesis.
+    - `save_analyst_artifact`: Exports human-readable Markdown inspection report to `server/.artifact/agent_02_analyst_query_sample.md`.
+    - CLI runner (`python app/agent/analyst.py [--mock]`).
+  - `server/app/agent/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/__init__.py)): Exports `AnalystResponse`, `run_analyst`, and `save_analyst_artifact`.
+  - `server/tests/agent/test_analyst.py` ([test_analyst.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/agent/test_analyst.py)): 5 pure in-memory unit tests.
+- **Unit Test Coverage (100% In-Memory)**:
+  - `test_analyst_response_model`: Verifies schema structure and serialization.
+  - `test_analyst_sql_route`: Verifies quantitative query routing to SQLite KPI data.
+  - `test_analyst_hybrid_rag_route`: Verifies narrative query routing to Hybrid RAG with `[Page - X, Section - Y]` citations.
+  - `test_analyst_comparison_route`: Verifies peer comparison routing and markdown table rendering.
+  - `test_save_analyst_artifact`: Verifies Markdown artifact generation.
+- **Verification Results**:
+  - `python tests/agent/test_analyst.py`: All 5 unit tests passed in 3s.
+  - `python app/agent/analyst.py`: Live call evaluated all 3 test query types, synthesized answers with citations, and generated `server/.artifact/agent_02_analyst_query_sample.md`.
+  - Master Test Runner: All **21 test suites** across the entire project passed cleanly with 0 errors!
 
+---
+
+### Step 5.3: Refactor Modular Tools & Dedicated Generation Module
+- **Date**: Oct 18, 2026
+- **Context & User Feedback**:
+  - Modularized the agent layer based on user architectural guidance:
+    1. Break `tools.py` into dedicated, single-responsibility files under `app/agent/tools/`:
+       - `sql_tool.py`: Audited SQLite GAAP KPI lookups and multi-quarter time series.
+       - `rag_tool.py`: Hybrid filing search combining ChromaDB dense vectors and BM25 sparse keywords with `[Page - X, Section - Y]` citation tags.
+       - `comparison_tool.py` (and alias `comparasion_tool.py`): Peer comparison across tickers for the same fiscal quarter.
+       - `__init__.py`: Bundles `ANALYST_TOOLS`, exports helper functions, and provides the CLI self-test runner.
+    2. Separate response generation out of `analyst.py` into `app/agent/generation.py`:
+       - `synthesize_sql_kpi`: Transforms raw SQLite metrics into professional equity summaries.
+       - `synthesize_hybrid_rag`: Synthesizes filing narrative with inline audit citations.
+       - `synthesize_comparison`: Formats cross-company metrics into clean markdown comparison tables.
+- **Files Created / Refactored**:
+  - `server/app/agent/tools/sql_tool.py` ([sql_tool.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/tools/sql_tool.py)): Deterministic GAAP KPI lookups.
+  - `server/app/agent/tools/rag_tool.py` ([rag_tool.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/tools/rag_tool.py)): Hybrid filing retrieval.
+  - `server/app/agent/tools/comparison_tool.py` ([comparison_tool.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/tools/comparison_tool.py)): Peer comparison.
+  - `server/app/agent/tools/comparasion_tool.py` ([comparasion_tool.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/tools/comparasion_tool.py)): Compatibility alias.
+  - `server/app/agent/tools/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/tools/__init__.py)): Re-exports tools, bundle, and artifact generator.
+  - `server/app/agent/generation.py` ([generation.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/generation.py)): Modular response synthesizers.
+  - `server/app/agent/analyst.py` ([analyst.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/analyst.py)): Streamlined router delegating synthesis to `generation.py`.
+  - `server/app/agent/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/agent/__init__.py)): Full package re-exports.
+  - `server/tests/agent/test_generation.py` ([test_generation.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/agent/test_generation.py)): 6 unit tests for response synthesis.
+  - `server/tests/agent/test_tools.py` ([test_tools.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/agent/test_tools.py)): 10 unit tests including submodule import validation.
+- **Verification Results**:
+  - `python tests/agent/test_tools.py`: All 10 unit tests passed.
+  - `python tests/agent/test_generation.py`: All 6 unit tests passed.
+  - `python tests/agent/test_analyst.py`: All 5 unit tests passed.
+  - `python app/agent/tools/__init__.py`: Executed self-test and generated `server/.artifact/agent_01_tools_sample.md`.
+  - Master Test Runner: All **22 test suites** across the entire project passed cleanly with 0 errors!

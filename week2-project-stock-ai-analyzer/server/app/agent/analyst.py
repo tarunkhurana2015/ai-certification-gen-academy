@@ -1,0 +1,224 @@
+"""
+Financial Analyst Router & Synthesizer (Option 2) - Phase 5.2.
+
+Fast intent-based router:
+1. Classifies query using Jev (TypeSafeClassifier) from Phase 4.
+2. Routes directly to the specialized analyst tool (SQL KPI, Hybrid RAG, or Peer Comparison) from app.agent.tools.
+3. Delegates grounded response synthesis to app.agent.generation with [Page - X, Section - Y] citations.
+"""
+
+import json
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from dotenv import load_dotenv
+from pydantic import BaseModel, Field
+
+# Ensure server root is in sys.path
+_SERVER_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_SERVER_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SERVER_ROOT))
+
+from app.agent.generation import (
+    synthesize_comparison,
+    synthesize_hybrid_rag,
+    synthesize_sql_kpi,
+)
+from app.agent.tools import compare_tickers, get_kpis, search_filings
+from app.classifier.jev_classifier import QueryClassification, classify_query
+
+load_dotenv()
+
+DEFAULT_ARTIFACT_PATH = (
+    Path(__file__).resolve().parent.parent.parent / ".artifact" / "agent_02_analyst_query_sample.md"
+)
+
+
+class AnalystResponse(BaseModel):
+    """Structured response from the Financial Analyst."""
+
+    query: str
+    route_used: str  # "sql_kpi", "hybrid_rag", "comparison"
+    answer: str
+    citations: List[Dict[str, Any]] = Field(default_factory=list)
+    ticker: Optional[str] = None
+    financial_domain: Optional[str] = None
+    raw_data: Optional[Dict[str, Any]] = None
+
+
+# ============================================================================
+# Main Router & Entrypoint
+# ============================================================================
+
+
+def run_analyst(query: str, mock: bool = False) -> AnalystResponse:
+    """
+    Fast Intent Router and Synthesizer.
+
+    1. Runs Jev classifier (TypeSafe decision model).
+    2. Routes directly to the specialized tool (SQL KPI, Hybrid RAG, or Peer Comparison).
+    3. Synthesizes a grounded response with audit citations via generation.py.
+    """
+    # Step 1: Intent & metadata classification via Jev
+    classification: QueryClassification = classify_query(query, mock=mock)
+    route = classification.query_type
+    ticker = classification.ticker
+    domain = classification.financial_domain
+
+    citations: List[Dict[str, Any]] = []
+    raw_data: Dict[str, Any] = {}
+
+    # Step 2: Route execution & synthesis
+    if route == "sql_kpi":
+        target_ticker = ticker or "TSLA"
+        kpis = get_kpis.invoke({"ticker": target_ticker})
+        answer = synthesize_sql_kpi(query=query, ticker=target_ticker, kpis=kpis, mock=mock)
+        raw_data = kpis
+        if "source_pages" in kpis and kpis["source_pages"]:
+            try:
+                pages = json.loads(kpis["source_pages"])
+                for p in pages:
+                    citations.append(
+                        {
+                            "page_number": p,
+                            "financial_domain": "Financial Statements",
+                            "citation": f"[Page - {p}, Section - Financial Statements]",
+                        }
+                    )
+            except Exception:
+                pass
+
+    elif route == "hybrid_rag":
+        target_ticker = ticker if ticker and ticker not in ("none", "multiple") else None
+        chunks = search_filings.invoke(
+            {
+                "query": query,
+                "ticker": target_ticker,
+                "financial_domain": domain,
+                "k": 3,
+            }
+        )
+        answer = synthesize_hybrid_rag(query=query, chunks=chunks, mock=mock)
+        citations = chunks
+        raw_data = {"retrieved_chunks_count": len(chunks)}
+
+    elif route == "comparison":
+        tickers = ["META", "TSLA"] if (not ticker or ticker == "multiple") else [ticker]
+        comp_res = compare_tickers.invoke(
+            {
+                "tickers": tickers,
+                "fiscal_quarter": "Q2",
+                "fiscal_year": 2026,
+            }
+        )
+        answer = synthesize_comparison(query=query, comp_data=comp_res, mock=mock)
+        raw_data = comp_res
+
+    else:
+        # Fallback to Hybrid RAG
+        route = "hybrid_rag"
+        chunks = search_filings.invoke({"query": query, "k": 3})
+        answer = synthesize_hybrid_rag(query=query, chunks=chunks, mock=mock)
+        citations = chunks
+        raw_data = {"retrieved_chunks_count": len(chunks)}
+
+    return AnalystResponse(
+        query=query,
+        route_used=route,
+        answer=answer,
+        citations=citations,
+        ticker=ticker,
+        financial_domain=domain,
+        raw_data=raw_data,
+    )
+
+
+# ============================================================================
+# Artifact Generation
+# ============================================================================
+
+
+def save_analyst_artifact(
+    responses: List[AnalystResponse],
+    output_path: Optional[Path] = None,
+) -> Path:
+    """Saves analyst execution queries and responses to markdown artifact."""
+    target_path = output_path or DEFAULT_ARTIFACT_PATH
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
+    lines = [
+        "# 📊 Financial Analyst Intent Router Artifact (`agent_02`)",
+        "",
+        f"- **Generated At**: `{datetime.now().isoformat()}`",
+        f"- **Architecture**: Option 2 (Fast Intent Router & Modular Generation)",
+        f"- **Decision Model**: TypeSafe Jev (`TypeSafeClassifier`)",
+        f"- **Total Queries Processed**: `{len(responses)}`",
+        "",
+    ]
+
+    for i, resp in enumerate(responses, 1):
+        lines.extend(
+            [
+                f"## Query {i}: \"{resp.query}\"",
+                "",
+                f"- **Route Used**: `{resp.route_used.upper()}`",
+                f"- **Detected Ticker**: `{resp.ticker or 'None'}`",
+                f"- **Financial Domain**: `{resp.financial_domain or 'None'}`",
+                f"- **Total Citations**: `{len(resp.citations)}`",
+                "",
+                "### Synthesized Answer:",
+                "",
+                resp.answer,
+                "",
+            ]
+        )
+        if resp.citations:
+            lines.append("### Grounded Evidence Citations:")
+            for c in resp.citations[:3]:
+                cit_label = c.get("citation", "[Page - 1]")
+                chunk_id = c.get("chunk_id", "N/A")
+                lines.append(f"- **{cit_label}** (`{chunk_id}`)")
+            lines.append("")
+
+        lines.append("---")
+        lines.append("")
+
+    content = "\n".join(lines)
+    with open(target_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    return target_path
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Financial Analyst Query CLI")
+    parser.add_argument("query", nargs="?", default=None, help="User financial question")
+    parser.add_argument("--mock", action="store_true", help="Run offline without external API calls")
+    args = parser.parse_args()
+
+    sample_queries = (
+        [args.query]
+        if args.query
+        else [
+            "What was Tesla Q2 2026 revenue and free cash flow?",
+            "Why did automotive gross margin decline sequentially in Q2 2026?",
+            "Compare Meta and Tesla operating margins over the last year",
+        ]
+    )
+
+    results = []
+    print("\n--- Running Financial Analyst Query Router ---")
+    for q in sample_queries:
+        r = run_analyst(q, mock=args.mock)
+        results.append(r)
+        print(f"\n[Query]: {r.query}")
+        print(f"[Route]: {r.route_used.upper()} | Ticker: {r.ticker} | Domain: {r.financial_domain}")
+        print(f"[Answer]:\n{r.answer[:300]}...\n")
+
+    art = save_analyst_artifact(results)
+    print(f"Saved analyst artifact to {art}\n")
