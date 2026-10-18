@@ -195,8 +195,8 @@ def save_hybrid_artifact(
 
 def main():
     parser = argparse.ArgumentParser(description="Hybrid RAG Search CLI")
-    parser.add_argument("query", type=str, help="Search query (e.g. 'What was the Free Cash Flow?')")
-    parser.add_argument("--ticker", type=str, default=None, help="Optional stock ticker filter (e.g. TSLA)")
+    parser.add_argument("query", type=str, nargs="?", default="What was the Free Cash Flow in Q2 2026?", help="Search query (e.g. 'What was the Free Cash Flow?')")
+    parser.add_argument("--ticker", type=str, default="TSLA", help="Optional stock ticker filter (e.g. TSLA)")
     parser.add_argument("--k", type=int, default=5, help="Number of chunks to retrieve")
     parser.add_argument("--mock", action="store_true", help="Use FakeEmbeddings for offline/sandboxed execution")
     args = parser.parse_args()

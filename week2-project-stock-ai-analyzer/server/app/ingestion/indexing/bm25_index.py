@@ -102,8 +102,8 @@ class BM25Index:
             ]
 
         if not target_docs:
-            # Fallback for empty corpus
-            retriever = BM25Retriever.from_documents([Document(page_content="", metadata={})])
+            # Fallback for empty corpus with non-empty token to avoid ZeroDivisionError in rank_bm25
+            retriever = BM25Retriever.from_documents([Document(page_content="empty", metadata={})])
             retriever.k = k
             return retriever
 
@@ -115,6 +115,14 @@ class BM25Index:
         """Runs lexical keyword search using BM25."""
         if not self.documents:
             return []
+        if filter:
+            matching = [
+                d
+                for d in self.documents
+                if all(d.metadata.get(key) == val for key, val in filter.items())
+            ]
+            if not matching:
+                return []
         retriever = self.as_retriever(k=k, filter=filter)
         return retriever.invoke(query)
 

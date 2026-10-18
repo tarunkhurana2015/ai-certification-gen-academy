@@ -2,6 +2,11 @@
   "notes": "Technology marks identify the actual tools; standard icons identify files, code and future work. Marks are recoloured only in the composed SVGs for contrast.",
   "assets": [
     {
+      "file": "chroma.svg",
+      "source": "https://raw.githubusercontent.com/chroma-core/chroma/ddc17cd7c508f15f237c965e74e536ff64396ddb/docs/mintlify/images/favicon.svg",
+      "sha256": "dcbd0b1c44052cf5caaa3db9182bd7e8e70afeb7f82709b329371f4beff99cf6"
+    },
+    {
       "file": "fa-circle-arrow-right.svg",
       "source": "https://github.com/FortAwesome/Font-Awesome/blob/7.3.1/svgs/solid/circle-arrow-right.svg",
       "sha256": "e0f41598cb04de4d3134d6f913c98586f140fa5d16f26d02c7c9105955951450"
@@ -45,6 +50,11 @@
       "file": "sqlite.svg",
       "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/14.15.0/icons/sqlite.svg",
       "sha256": "71d4153bc9661dfe6b92dad70f737ec2b6c7c839311e502b4ca66fe664fe12b6"
+    },
+    {
+      "file": "typesafe.svg",
+      "source": "https://typesafe.ai/ (official home-link SVG symbol svg-684955628_986; captured 2026-10-18)",
+      "sha256": "a153a627ba6e0bd8070913a60981d12e88682a3ca77c12c549246bcd6fb309e8"
     }
   ]
 }

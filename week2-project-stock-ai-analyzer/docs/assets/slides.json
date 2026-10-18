@@ -1,0 +1,24 @@
+[
+  {
+    "pipeline": "ingestion",
+    "slides": [
+      "ingestion-overview",
+      "ingestion-rag-preparation",
+      "ingestion-indexing"
+    ]
+  },
+  {
+    "pipeline": "retrieval",
+    "slides": [
+      "retrieval-overview",
+      "retrieval-hybrid"
+    ]
+  },
+  {
+    "pipeline": "generation",
+    "slides": [
+      "generation-overview",
+      "generation-grounded"
+    ]
+  }
+]
