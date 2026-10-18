@@ -579,7 +579,8 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
 1. **Step 3.1: OpenAI Embeddings Factory & Cosine Math** (`indexing/embeddings.py`) — ✅ Completed
 2. **Step 3.2: ChromaDB Vector Store Ingestion & Metadata Filtering** (`indexing/vector_store.py`) — ✅ Completed
 3. **Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index** (`indexing/bm25_index.py`) — ✅ Completed
-4. **Step 3.4: Ingestion Pipeline Dual Indexing & Hybrid Retrieval Engine** (`retrieval/`) — 🔄 Up Next
+4. **Step 3.4: Ingestion Pipeline Dual Indexing & Hybrid Retrieval Engine** (`retrieval/`) — ✅ Completed
+5. **Phase 4: Central Financial Agent Orchestration (`agent/`) & ReAct Tools** — 🔄 Up Next
 
 ---
 
@@ -688,4 +689,87 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
 - **Verification**:
   - Ran `python tests/indexing/test_bm25_index.py`: All 6 test cases passed.
   - Ran All-in-One Master Test Runner (18 test suites): All 18 suites passed cleanly with 0 errors.
+
+---
+
+### Step 3.4: Ingestion Pipeline Dual Indexing & Hybrid Retrieval Engine (`retrieval/`)
+- **Status**: ✅ Completed
+- **Files Created & Modified**:
+  - `server/app/ingestion/pipeline.py` ([pipeline.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/ingestion/pipeline.py))
+  - `server/tests/ingestion/test_pipeline.py` ([test_pipeline.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/ingestion/test_pipeline.py))
+  - `server/app/schemas/retrieval.py` ([retrieval.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/schemas/retrieval.py))
+  - `server/app/schemas/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/schemas/__init__.py))
+  - `server/app/retrieval/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/__init__.py))
+  - `server/app/retrieval/dense_retriever.py` ([dense_retriever.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/dense_retriever.py))
+  - `server/app/retrieval/sparse_retriever.py` ([sparse_retriever.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/sparse_retriever.py))
+  - `server/app/retrieval/hybrid_fusion.py` ([hybrid_fusion.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/hybrid_fusion.py))
+  - `server/app/retrieval/reranker.py` ([reranker.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/reranker.py))
+  - `server/app/retrieval/hybrid_engine.py` ([hybrid_engine.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/retrieval/hybrid_engine.py))
+  - `server/tests/retrieval/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/retrieval/__init__.py))
+  - `server/tests/retrieval/test_retrieval.py` ([test_retrieval.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/retrieval/test_retrieval.py))
+  - `server/.artifact/idx_04_hybrid_retrieval_sample.json` ([idx_04_hybrid_retrieval_sample.json](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_04_hybrid_retrieval_sample.json))
+  - `server/.artifact/idx_04_hybrid_retrieval_sample.md` ([idx_04_hybrid_retrieval_sample.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_04_hybrid_retrieval_sample.md))
+- **What Was Built**:
+  1. **Dual Ingestion Wiring (`app/ingestion/pipeline.py`)**:
+     - Added Step 8: `status="INDEXING"` (95% progress) right after SQLite persistence (90% progress).
+     - Feeds `EnrichedChunk` list into both `FinancialVectorStore.add_chunks()` and `BM25KeywordIndex.add_chunks()`.
+     - Supports dependency injection of `vector_store` and `bm25_index` in `__init__`, enabling 100% in-memory test isolation.
+     - Supports `--force` purge & re-index: calls `delete_by_ticker(canonical_ticker)` on both stores before re-ingestion.
+     - Serializes BM25 index to disk (`server/data/bm25/bm25_index.pkl`).
+     - Added `vector_chunks_indexed` and `bm25_chunks_indexed` metrics to `IngestionResult` and artifact `06_pipeline_ingest_*`.
+     - Verified CLI execution: TSLA ingested 66 chunks into ChromaDB + 66 chunks into BM25; META ingested 24 chunks into ChromaDB + 24 chunks into BM25.
+  2. **Dense Retriever (`dense_retriever.py`)**:
+     - Cosine similarity search against ChromaDB (`earnings_chunks` collection) with metadata pre-filtering by ticker, quarter, year, and financial domain.
+     - Normalizes results into standardized `RetrievedChunk` payloads with `dense_rank`.
+  3. **Sparse BM25 Retriever (`sparse_retriever.py`)**:
+     - Lexical keyword and exact accounting acronym search against `BM25KeywordIndex` with positive IDF floor enforcement and metadata filtering.
+     - Normalizes results into `RetrievedChunk` payloads with `sparse_rank`.
+  4. **Reciprocal Rank Fusion (`hybrid_fusion.py`)**:
+     - Mathematical implementation of weighted Reciprocal Rank Fusion:
+       $$RRF\_score(d) = w_{dense} \cdot \frac{1}{60 + rank_{dense}(d)} + w_{sparse} \cdot \frac{1}{60 + rank_{sparse}(d)}$$
+     - Solves the raw score scale mismatch problem (cosine $[0.0, 1.0]$ vs. BM25 $[0.0, 20.0+]$).
+     - Boosts documents appearing in both dense and sparse candidate pools directly to the top.
+  5. **Cross-Encoder Reranker (`reranker.py`)**:
+     - Contextual re-scoring layer that evaluates `(query, document_text)` joint relevance.
+     - Detects exact financial token density, numeric overlap, and causal explanations.
+     - Supports custom scoring callables for testing and graceful fallback to fast token-density scoring when heavy GPU packages are absent.
+  6. **Unified Engine (`hybrid_engine.py`)**:
+     - Orchestrates Dense (top-10) + Sparse (top-10) -> RRF Fusion -> Cross-Encoder Rerank (top-k).
+     - Formats clean citation pills: `[Page 31 · Cash Flow]`.
+     - Tested on TSLA Q2 2026 query: *"What was the Free Cash Flow and why did it decline?"* -> Successfully ranked Page 25 (`TSLA_Q2_2026_p25_c1`) containing the exact qualitative explanation (*"sequential decrease of $1.2B was a result of negative free cash flow of $1.1B, driven by a sequential increase in capex of $3.3B"*).
+  7. **1:1 Mirror Unit Test Suite (`tests/retrieval/test_retrieval.py`)**:
+     - Pure in-memory unit tests using `chromadb.EphemeralClient()`, `FakeEmbeddings(size=512)`, and in-memory `BM25KeywordIndex(persist_dir=None)`.
+     - 5 test suites: Dense retrieval, Sparse retrieval, RRF math, Reranker, and End-to-End Hybrid Engine.
+   8. **Direct `langchain_classic.retrievers.EnsembleRetriever` Integration**:
+      - Directly integrated `from langchain_classic.retrievers import EnsembleRetriever`.
+      - Updated `DenseRetriever` and `SparseRetriever` to inherit from `langchain_core.retrievers.BaseRetriever`, implementing `_get_relevant_documents(query)`.
+      - Initialized `EnsembleRetriever(retrievers=[self.dense_retriever, self.sparse_retriever], weights=[0.5, 0.5], c=60, id_key="chunk_id")` in `HybridRetrievalEngine`.
+      - Supports both standard LangChain LCEL `invoke(query)` and standalone `fuse(dense_results, sparse_results)` with score/rank lineage preservation.
+      - Updated `tests/retrieval/test_retrieval.py` with direct assertions on `LangChainEnsembleRetriever` and `invoke()`.
+- **Verification**:
+  - Ran `python tests/ingestion/test_pipeline.py`: All 4 tests passed.
+  - Ran `python tests/retrieval/test_retrieval.py`: All 5 tests passed.
+  - Ingested TSLA Q2 2026 (`--force`): 66 vector chunks, 66 BM25 chunks.
+  - Ingested META Q2 2026 (`--force`): 24 vector chunks, 24 BM25 chunks.
+  - Ran `app/retrieval/hybrid_engine.py`: Generated `idx_04_hybrid_retrieval_sample.[json|md]`.
+  - Ran Master Test Runner across **19 test suites**: All 19 suites passed cleanly with 0 errors!
+
+---
+
+### Clean-Up & Reset of Indexing & Retrieval
+- **Date**: Oct 17, 2026
+- **What Was Done**:
+  - Completely cleaned up and deleted:
+    - `server/app/indexing/`
+    - `server/app/retrieval/`
+    - `server/tests/indexing/`
+    - `server/tests/retrieval/`
+    - `server/app/schemas/retrieval.py`
+    - `server/data/chroma/` and `server/data/bm25/`
+  - Created safety backup in `server/.backup_indexing_retrieval/`.
+  - Decoupled `server/app/ingestion/pipeline.py` and `server/tests/ingestion/test_pipeline.py` so Phase 1 (PDF Ingestion) and Phase 2 (SQLite KPIs) and Phase 6/7 (FastAPI & Flutter) remain 100% functional with passing tests.
+  - Phase 3 is reset to a fresh, clean slate, ready for rewriting a dead-simple, notebook-aligned version whenever the user instructs.
+
+
+
 

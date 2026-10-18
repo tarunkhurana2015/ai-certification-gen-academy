@@ -71,6 +71,9 @@ class IngestionResult:
     page_count: int
     is_duplicate: bool
     kpis: Optional[Dict[str, Any]]
+    chunks_count: int = 0
+    vector_chunks_indexed: int = 0
+    bm25_chunks_indexed: int = 0
     duration_seconds: float = 0.0
     error_message: Optional[str] = None
 
@@ -85,10 +88,14 @@ class IngestionPipeline:
         self,
         session_factory: Callable = SessionLocal,
         llm: Optional[Any] = None,
+        vector_store: Optional[Any] = None,
+        bm25_index: Optional[Any] = None,
         progress_callback: Optional[Callable[[str, int, str], None]] = None,
     ):
         self.session_factory = session_factory
         self.llm = llm
+        self.vector_store = vector_store
+        self.bm25_index = bm25_index
         self.progress_callback = progress_callback
 
     def _notify(
@@ -306,13 +313,13 @@ class IngestionPipeline:
             )
 
             # -------------------------------------------------------------
-            # Step 7: Deterministic SQLite Persistence (95%)
+            # Step 7: Deterministic SQLite Persistence (90%)
             # -------------------------------------------------------------
             self._notify(
                 session,
                 active_task_id,
                 status="PERSISTING",
-                progress_percent=95,
+                progress_percent=90,
                 message="Persisting document record and audited KPIs into SQLite database...",
             )
             if existing_doc:
@@ -337,14 +344,37 @@ class IngestionPipeline:
             persisted_kpi = save_extracted_kpis_to_db(session, doc.id, extracted_kpis)
 
             # -------------------------------------------------------------
-            # Step 8: Completion (100%)
+            # Step 8: Document Chunks Ready (95%)
+            # -------------------------------------------------------------
+            self._notify(
+                session,
+                active_task_id,
+                status="CHUNKING",
+                progress_percent=95,
+                message=f"Created {len(chunks)} enriched document chunks.",
+            )
+
+            vector_count = 0
+            bm25_count = 0
+            if self.vector_store is not None and hasattr(self.vector_store, "add_chunks"):
+                if force_reprocess and hasattr(self.vector_store, "delete_by_ticker"):
+                    self.vector_store.delete_by_ticker(canonical_ticker)
+                vector_count = self.vector_store.add_chunks(chunks)
+
+            if self.bm25_index is not None and hasattr(self.bm25_index, "add_chunks"):
+                if force_reprocess and hasattr(self.bm25_index, "delete_by_ticker"):
+                    self.bm25_index.delete_by_ticker(canonical_ticker)
+                bm25_count = self.bm25_index.add_chunks(chunks)
+
+            # -------------------------------------------------------------
+            # Step 9: Completion (100%)
             # -------------------------------------------------------------
             self._notify(
                 session,
                 active_task_id,
                 status="COMPLETED",
                 progress_percent=100,
-                message=f"Successfully ingested {doc.ticker} {doc.fiscal_quarter} {doc.fiscal_year} into SQLite database.",
+                message=f"Successfully ingested {doc.ticker} {doc.fiscal_quarter} {doc.fiscal_year} (SQL, Vector: {vector_count}, BM25: {bm25_count}).",
                 document_id=doc.id,
             )
 
@@ -362,6 +392,9 @@ class IngestionPipeline:
                 page_count=doc.page_count,
                 is_duplicate=False,
                 kpis=persisted_kpi.to_dict(),
+                chunks_count=len(chunks),
+                vector_chunks_indexed=vector_count,
+                bm25_chunks_indexed=bm25_count,
                 duration_seconds=duration,
             )
 
@@ -479,7 +512,9 @@ class IngestionPipeline:
             f.write(f"- **Document ID**: `{result.document_id}`\n")
             f.write(f"- **SHA-256 Hash**: `{result.sha256_hash}`\n")
             f.write(f"- **Instant Deduplication Triggered**: `{result.is_duplicate}`\n")
-            f.write(f"- **Ticker / Period**: `{result.ticker}` — `{result.fiscal_quarter} {result.fiscal_year}`\n\n")
+            f.write(f"- **Ticker / Period**: `{result.ticker}` — `{result.fiscal_quarter} {result.fiscal_year}`\n")
+            f.write(f"- **Vector Chunks Indexed (ChromaDB)**: `{result.vector_chunks_indexed}`\n")
+            f.write(f"- **Sparse Chunks Indexed (BM25)**: `{result.bm25_chunks_indexed}`\n\n")
 
             if result.kpis:
                 k = result.kpis
@@ -693,6 +728,8 @@ if __name__ == "__main__":
     print(f"• Document ID:   {result.document_id}")
     print(f"• Ticker/Period: {result.ticker} {result.fiscal_quarter} {result.fiscal_year}")
     print(f"• Duplicate:     {result.is_duplicate}")
+    print(f"• Vector Chunks: {result.vector_chunks_indexed}")
+    print(f"• BM25 Chunks:   {result.bm25_chunks_indexed}")
     if result.kpis:
         print(f"• Revenue:       ${result.kpis.get('revenue', 0):,.1f}M")
         print(f"• Net Income:    ${result.kpis.get('net_income', 0):,.1f}M")

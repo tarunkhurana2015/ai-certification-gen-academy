@@ -181,6 +181,7 @@ def test_full_pipeline_with_mock_llm():
     assert result.kpis["revenue"] == 47510.0
     assert result.kpis["capital_expenditures"] == 8470.0  # Auto-reconciled to positive
     assert result.kpis["free_cash_flow"] == 15680.0
+    assert result.chunks_count > 0
 
     # Verify progress state sequence
     statuses = [s[0] for s in progress_log]
@@ -207,7 +208,46 @@ def test_full_pipeline_with_mock_llm():
     assert persisted_kpi.revenue == 47510.0
     assert persisted_kpi.net_income == 15848.0
     session.close()
-    print("✅ Full pipeline execution and database state verified.")
+    print("✅ Full pipeline execution verified.")
+
+
+def test_force_reprocess_purges_and_reindexes():
+    """Verify that force_reprocess purges existing document and cleanly re-extracts."""
+    print("Testing force_reprocess purge and re-extraction...")
+    session_factory = get_test_in_memory_session_factory()
+
+    mock_llm = MagicMock()
+    mock_structured = MagicMock()
+    mock_llm.with_structured_output.return_value = mock_structured
+    mock_structured.invoke.return_value = FinancialReportKPIs(
+        ticker="META",
+        fiscal_quarter="Q2",
+        fiscal_year=2026,
+        report_title="Meta Platforms Q2",
+        revenue=47510.0,
+        net_income=15848.0,
+        operating_cash_flow=24150.0,
+        capital_expenditures=8470.0,
+        free_cash_flow=15680.0,
+    )
+
+    real_pdf = _SERVER_ROOT / "tests/test_data/Meta-06-30-2026-Exhibit-99-1-FINAL.pdf"
+    pipeline = IngestionPipeline(
+        session_factory=session_factory,
+        llm=mock_llm,
+    )
+
+    # Initial run
+    res1 = pipeline.run(file_path=real_pdf, ticker="META", fiscal_quarter="Q2", fiscal_year=2026)
+    assert res1.status == "COMPLETED"
+    assert res1.chunks_count > 0
+
+    # Second run WITH force_reprocess=True
+    res2 = pipeline.run(file_path=real_pdf, ticker="META", fiscal_quarter="Q2", fiscal_year=2026, force_reprocess=True)
+    assert res2.status == "COMPLETED"
+    assert res2.is_duplicate is False
+    assert res2.chunks_count == res1.chunks_count
+    print("✅ Force reprocess purge and re-extraction verified.")
 
 
 if __name__ == "__main__":
@@ -218,6 +258,7 @@ if __name__ == "__main__":
     test_validation_failure()
     test_instant_deduplication()
     test_full_pipeline_with_mock_llm()
+    test_force_reprocess_purges_and_reindexes()
 
     print("\n" + "=" * 60)
     print("ALL INGESTION PIPELINE TESTS PASSED! ✅")

@@ -265,11 +265,26 @@ python app/indexing/bm25_index.py
 python tests/indexing/test_bm25_index.py
 ```
 
+### G. Run Hybrid Retrieval Engine Self-Test (CLI & Artifact Generation)
+Executes end-to-end dense ChromaDB search, sparse BM25 search, weighted Reciprocal Rank Fusion (RRF, $k=60$), and Cross-Encoder reranking against real ingested earnings filings:
+```bash
+python app/retrieval/hybrid_engine.py "What was the Free Cash Flow and why did it decline?" --ticker TSLA --quarter Q2 --year 2026 --top_k 3
+```
+Inspect generated outputs in `server/.artifact/`:
+- `server/.artifact/idx_04_hybrid_retrieval_sample.json`
+- `server/.artifact/idx_04_hybrid_retrieval_sample.md`
+
+### H. Run Hybrid Retrieval Unit Tests (Pure In-Memory Assertions)
+100% in-memory test coverage for DenseRetriever, SparseRetriever, RRF math, CrossEncoderReranker, and HybridRetrievalEngine:
+```bash
+python tests/retrieval/test_retrieval.py
+```
+
 ---
 
 ## 🏆 9. All-in-One Master Test Runner
 
-Run all **18 test suites** across the entire codebase in a single command:
+Run all **19 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -289,7 +304,8 @@ python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py && \
 python tests/indexing/test_embeddings.py && \
 python tests/indexing/test_vector_store.py && \
-python tests/indexing/test_bm25_index.py
+python tests/indexing/test_bm25_index.py && \
+python tests/retrieval/test_retrieval.py
 ```
 
 ---

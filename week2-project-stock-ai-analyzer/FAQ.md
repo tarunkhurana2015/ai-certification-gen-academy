@@ -537,4 +537,213 @@ This ensures that every uploaded earnings report automatically populates both sy
 1. **SQLite (`financial_kpis`)**: For exact financial ratios, income statements, and multi-quarter chart time series.
 2. **ChromaDB (`earnings_chunks`)**: For semantic narrative search, executive commentary retrieval, and audit-ready citation pills.
 
+---
+
+### 13. Step 3.4 Architecture: How does Dual Ingestion connect to the Hybrid Retrieval Engine, and why do we use Reciprocal Rank Fusion (RRF) with a Cross-Encoder Reranker?
+
+**Question:**
+> *"Now that Dense Embeddings, ChromaDB, and BM25 are built, how do they connect into the Ingestion Pipeline? And why do we need both Reciprocal Rank Fusion (RRF) and a Cross-Encoder Reranker in Hybrid Retrieval instead of just adding their scores together?"*
+
+**Answer:**
+This question touches the mathematical core of modern production RAG systems. It breaks down into three key architectural insights:
+
+#### 1. Why Dual Indexing is Wired into `IngestionPipeline` (Step 8):
+Before Step 3.4, `IngestionPipeline` stopped after Step 7 (SQLite persistence of audited KPIs). The recursive chunks (`03b_enriched_chunks`) were written to disk as inspectable JSON artifacts, but were not yet indexed into search engines.
+In Step 3.4:
+- As soon as SQLite persistence finishes (90% progress), the pipeline advances to `status="INDEXING"` (95% progress).
+- It feeds the `EnrichedChunk` list into **both** `FinancialVectorStore.add_chunks()` and `BM25KeywordIndex.add_chunks()`.
+- If `--force` is passed, it purges stale chunks for that ticker first (`delete_by_ticker`), preventing duplicate index entries.
+- It serializes the BM25 index to `server/data/bm25/bm25_index.pkl`.
+- It records `vector_chunks_indexed` and `bm25_chunks_indexed` directly in `IngestionResult` and in artifact `06_pipeline_ingest_<slug>.json`.
+
+#### 2. Why Score Blending Fails and Reciprocal Rank Fusion (RRF) is Required:
+A naive approach to combining vector and keyword search is adding their raw scores together:
+$$\text{Score} = w_1 \cdot \text{VectorScore} + w_2 \cdot \text{BM25Score}$$
+
+**Why this fails in practice:**
+- **Incompatible Scales**: ChromaDB cosine similarity scores are bounded between $[0.0, 1.0]$. BM25 scores, however, are unbounded term-frequency weights that typically range between $[0.0, 25.0+]$ depending on document length and keyword rarity!
+- **Score Drift Across Queries**: A high BM25 score of `15.2` for query A might represent a moderate match, while a score of `6.1` for query B might represent a definitive hit. Raw scores cannot be compared across different queries.
+- **Domination Problem**: Adding uncalibrated scores means BM25 completely drowns out cosine similarity, effectively blinding the semantic engine.
+
+**The Solution: Reciprocal Rank Fusion (RRF)**
+Instead of combining raw scores, RRF operates strictly on the **ordinal ranks** (1st, 2nd, 3rd, ...) assigned by each retrieval system:
+
+$$RRF\_score(d) = w_{dense} \cdot \frac{1}{k_{rrf} + rank_{dense}(d)} + w_{sparse} \cdot \frac{1}{k_{rrf} + rank_{sparse}(d)}$$
+
+Where:
+- $k_{rrf} = 60$ (the canonical smoothing constant introduced by Cormack et al. 2009). The constant $60$ ensures that the difference between rank 1 and rank 2 is meaningful, but doesn't excessively penalize documents ranked 5th or 6th.
+- $w_{dense} = 0.5$ and $w_{sparse} = 0.5$ (balanced equal weighting).
+- **The Intersection Boost**: If a document is retrieved by **both** dense vector search (semantic match) and BM25 (exact keyword match), it receives score contributions from both terms ($1/61 + 1/61 \approx 0.0328$), rocketing it straight to the top of the fused candidate pool!
+
+#### 3. Why We Need the Cross-Encoder Reranker as the Final Stage:
+RRF is a *bi-encoder rank fusion* mechanism: dense search and BM25 evaluate queries and chunks independently.
+However, financial queries frequently contain subtle dependencies that bi-encoders miss:
+- Query: *"What was the Free Cash Flow and why did it decline?"*
+- Chunks describing positive FCF or general liquidity might rank high in bi-encoders.
+- The **Cross-Encoder Reranker** concatenates the full query and candidate text together into a joint attention model `(query, document_text)`:
+  - It detects contextual alignment between `"decline"` and text like `"sequential decrease of $1.2B was a result of negative free cash flow of $1.1B, driven by an increase in capex of $3.3B"` (Page 25).
+  - It boosts chunks with exact numerical figures, accounting formulas, and direct causal explanations.
+  - It filters out irrelevant boilerplate, ensuring the LLM synthesis prompt only receives pristine, high-signal financial context.
+
+#### 4. Architecture Summary Table:
+
+| Layer | Module | Responsibility | Key Formula / Tech |
+| :--- | :--- | :--- | :--- |
+| **Dense Semantic** | `dense_retriever.py` | Top-10 conceptual & semantic matches | ChromaDB, OpenAI `text-embedding-3-small` (512-dim), Cosine metric |
+| **Sparse Lexical** | `sparse_retriever.py` | Top-10 exact numbers, acronyms, table items | `rank-bm25` (BM25Okapi, $k_1=1.5, b=0.75$), `financial_tokenize()` |
+| **Rank Fusion** | `hybrid_fusion.py` | Merges candidate pools without score calibration issues | Weighted RRF ($k=60, w=[0.5, 0.5]$) |
+| **Contextual Rerank** | `reranker.py` | Re-scores fused candidates for causal & numeric relevance | Cross-Encoder token density & contextual alignment |
+| **Master Engine** | `hybrid_engine.py` | Unified entry point for Agent RAG tool | `search(query, top_k=5, candidate_k=10)` |
+
+---
+
+### 14. Where is `EnsembleRetriever` created and how does it relate to `reciprocal_rank_fusion` and `HybridRetrievalEngine`?
+
+**Question:**
+> *"Where is the `EnsembleRetriever` created?"*
+
+**Answer:**
+`EnsembleRetriever` is located in **`server/app/retrieval/hybrid_fusion.py`** and exported by **`server/app/retrieval/__init__.py`**.
+
+#### 1. Why `EnsembleRetriever` Appears in the Architecture Diagram:
+In `ARCHITECTURE.md` Section 4.5 and the architectural diagram (`04-hybrid-retrieval.svg`), Step 3 is titled:
+`3 · EnsembleRetriever & Weighted RRF`
+
+This represents the ensemble component that blends the dense vector list and the sparse keyword list into a unified candidate pool.
+
+#### 2. Where the Code Lives:
+In our implementation, this functionality is organized across two complementary structures:
+
+1. **The Core Algorithm (`reciprocal_rank_fusion` in `hybrid_fusion.py`)**:
+   - Executes the pure mathematical RRF scoring ($w_i \cdot \frac{1}{60 + rank_i}$).
+   - Tracks ordinal ranks (`dense_rank`, `sparse_rank`) and attaches them to each `RetrievedChunk`.
+   - Prevents score scale distortion between ChromaDB cosine similarity $[0.0, 1.0]$ and BM25 $[0.0, 25.0+]$.
+
+2. **The Class Interface (`EnsembleRetriever` in `hybrid_fusion.py`)**:
+   - Provides the object-oriented ensemble abstraction with configurable `weights` (default: `[0.5, 0.5]`) and smoothing constant `c` (default: `60`).
+   - `fuse(dense_results, sparse_results, top_n)` executes the weighted RRF merge.
+
+3. **The Master Orchestrator (`HybridRetrievalEngine` in `hybrid_engine.py`)**:
+   - Wraps the entire end-to-end pipeline:
+     `DenseRetriever.retrieve()` ➔ `SparseRetriever.retrieve()` ➔ `EnsembleRetriever.fuse()` ➔ `CrossEncoderReranker.rerank()`.
+
+#### 3. Why We Implemented Our Own Rather Than Importing LangChain's Legacy `EnsembleRetriever`:
+LangChain provides an `EnsembleRetriever` in `langchain_classic` / `langchain-community`. However, using it directly has significant limitations for financial RAG:
+- **Discarded Scores**: LangChain's legacy `EnsembleRetriever` uses RRF internally to re-sort documents, but *discards the computed score*, returning raw `Document` objects with no score metadata.
+- **Reranker Pipeline**: Our downstream Cross-Encoder Reranker (`reranker.py`) requires the fused RRF scores and dense/sparse rank lineages to contextualize its re-scoring.
+- **Multi-Store Dynamic Pre-filtering**: Financial queries require applying strict SQL-like pre-filters (`ticker='TSLA'`, `fiscal_quarter='Q2'`, `fiscal_year=2026`) across two completely different underlying backends (ChromaDB JSON filter syntax vs. BM25 in-memory token dictionaries). Our engine coordinates this filtering across both stores simultaneously.
+
+---
+
+### 15. Can `langchain_classic.retrievers` be used in our case, and how does it compare to our custom `hybrid_fusion.py`?
+
+**Question:**
+> *"Are you saying that `langchain_classic.retrievers` can't be used in our case?"*
+
+**Answer:**
+**No! It CAN absolutely be used in our project!** 
+
+`langchain_classic.retrievers.EnsembleRetriever` is installed, importable, and fully functional in our environment right now.
+
+#### Direct Comparison: `langchain_classic` vs. Native `hybrid_fusion.py`
+
+| Capability | `langchain_classic.retrievers.EnsembleRetriever` | Native `app/retrieval/hybrid_fusion.py` |
+| :--- | :--- | :--- |
+| **RRF Algorithm** | ✅ Cormack et al. 2009 ($k=60$) | ✅ Exact same Cormack formula ($k=60$) |
+| **Weighted RRF** | ✅ Configurable `weights=[0.5, 0.5]` | ✅ Configurable `weights=[0.5, 0.5]` |
+| **Works in our Python env?** | ✅ Yes (`langchain_classic==1.0.8`) | ✅ Yes (Pure Python, zero external deps) |
+| **Output Document Type** | `List[Document]` (Untyped metadata dict) | `List[RetrievedChunk]` (Strict Pydantic) |
+| **Preserves RRF Score?** | ❌ **No** (Calculates score locally to sort, then drops it) | ✅ **Yes** (`chunk.score = 0.016261`) |
+| **Dense / Sparse Lineage?** | ❌ **No** (`dense_rank` & `sparse_rank` omitted) | ✅ **Yes** (`dense_rank=1`, `sparse_rank=2`) |
+| **Downstream Reranker Ready?** | ⚠️ Needs custom wrapper to pass scores | ✅ Direct pass-through to `CrossEncoderReranker` |
+| **UI Citation Badges?** | ⚠️ No source channel info without wrappers | ✅ Direct metadata for `[Dense #1 \| Sparse #2]` |
+| **Runtime Query Filtering** | ⚠️ Only takes `query: str`; no unified filter dict | ✅ Accepts `RetrievalQuery(ticker, quarter, ...)` |
+
+#### Why LangChain's Default Drops the Score:
+Under the hood in `langchain_classic/retrievers/ensemble.py`:
+```python
+# langchain_classic computes rrf_score locally:
+rrf_score: dict[str, float] = defaultdict(float)
+for doc_list, weight in zip(doc_lists, self.weights):
+    for rank, doc in enumerate(doc_list, start=1):
+        rrf_score[doc.page_content] += weight / (rank + self.c)
+
+# It sorts using rrf_score, but returns all_docs WITHOUT attaching the score!
+return sorted(unique_by_key(all_docs), reverse=True, key=lambda doc: rrf_score[doc.page_content])
+```
+
+#### How to Use `langchain_classic` if You Prefer It:
+If you want to use `langchain_classic.retrievers.EnsembleRetriever`, we can simply subclass it into an **`ObservableEnsembleRetriever`** that attaches `doc.metadata['rrf_score']` and ranks:
+
+```python
+from langchain_classic.retrievers import EnsembleRetriever
+
+class ObservableEnsembleRetriever(EnsembleRetriever):
+    """EnsembleRetriever that preserves RRF scores and source rank lineages."""
+    def weighted_reciprocal_rank(self, doc_lists):
+        # 1. Compute RRF scores and record ranks
+        # 2. Attach doc.metadata['rrf_score'] = score
+        # 3. Attach doc.metadata['dense_rank'] = rank
+        # 4. Return sorted docs with full observability
+```
+
+Both approaches are completely valid! We chose our native `hybrid_fusion.py` because it is lightweight, type-safe with Pydantic, preserves audit-ready provenance out of the box, and has zero dependency on legacy bridge packages.
+
+---
+
+### 16. Simplifying the Vector Store and BM25 Index to Match Course Notebooks (`1_rag_pipeline.ipynb` & `3_hybrid_rag.ipynb`)
+
+**Question:**
+> *"The index and retriever seems too complex for me where I wanted to start with some easy coding for both the vector and BM25, see this `week2-rag/3_hybrid_rag.ipynb` where things look so simple and I am able to understand it well. In this the BM25 integration is so simple where the docs are stored so easily. Also this `week2-rag/1_rag_pipeline.ipynb` where the vector document is stored so easily. Can you simplify things for me?"*
+
+**Answer:**
+**Yes! We simplified the indexing and retrieval codebase to directly mirror the standard LangChain idioms taught in the course notebooks.**
+
+#### 1. How the Notebooks Do It:
+In `week2-rag/1_rag_pipeline.ipynb` and `week2-rag/3_hybrid_rag.ipynb`:
+1. **Vector Search**:
+   ```python
+   # Load documents
+   docs = [Document(page_content=..., metadata=...)]
+   # Store directly
+   vector_store = Chroma(collection_name="earnings_chunks", embedding_function=embeddings)
+   vector_store.add_documents(docs)
+   # Create retriever
+   vector_retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+   ```
+2. **BM25 Keyword Search**:
+   ```python
+   from langchain_community.retrievers import BM25Retriever
+   # Build BM25 directly from documents in one line
+   bm25_retriever = BM25Retriever.from_documents(docs)
+   bm25_retriever.k = 5
+   ```
+3. **Hybrid Ensemble Fusion**:
+   ```python
+   from langchain_classic.retrievers import EnsembleRetriever
+   ensemble_retriever = EnsembleRetriever(
+       retrievers=[vector_retriever, bm25_retriever],
+       weights=[0.5, 0.5]
+   )
+   fused_docs = ensemble_retriever.invoke(query)
+   ```
+
+#### 2. Why the Original Code Looked So Complex:
+Earlier, `app/indexing/bm25_index.py` contained over 470 lines of custom Okapi BM25 math, manual inverted index dictionaries, term frequency saturation algorithms, custom tokenization loops, and pickle serialization logic. While powerful, writing custom IR algorithms obscured the core learning objective.
+
+#### 3. How We Simplified It:
+1. **`app/indexing/bm25_index.py`**:
+   - Replaced 470 lines of custom math with `langchain_community.retrievers.BM25Retriever.from_documents()`.
+   - Chunks are stored as standard `Document(page_content=chunk.text, metadata=...)`.
+   - `as_retriever(k=5, ticker="TSLA")` returns a standard `BM25Retriever` ready for `EnsembleRetriever`.
+2. **`app/indexing/vector_store.py`**:
+   - Exposed `as_retriever(k=5, ticker="TSLA")` returning a standard LangChain `VectorStoreRetriever`.
+3. **`app/retrieval/hybrid_engine.py`**:
+   - Directly combines `vector_retriever` and `bm25_retriever` using `EnsembleRetriever(retrievers=[...], weights=[0.5, 0.5])`.
+   - Keeps the code transparent, beginner-friendly, and 100% aligned with the course lessons.
+
+
+
+
+
 
