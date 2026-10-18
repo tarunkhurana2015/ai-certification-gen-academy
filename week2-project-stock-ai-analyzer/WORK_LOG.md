@@ -570,6 +570,42 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
   - `flutter test`: All 19 tests in `ai_analyst_feature` passed in 2.1 seconds.
   - `flutter test` in `apps/gen_stock_folio`: All smoke and widget navigation tests passed.
 
+---
 
+## 🔍 Phase 3: Hybrid Retrieval Engine (Embeddings, ChromaDB, & BM25)
 
+With the deterministic KPI database, FastAPI gateway, and Flutter client complete, we begin **Phase 3: Hybrid Search Retrieval**.
+Per user direction, we decouple the dense and sparse pipelines into three isolated, modular milestones:
+1. **Step 3.1: OpenAI Embeddings Factory & Cosine Math** (`indexing/embeddings.py`) — ✅ Completed
+2. **Step 3.2: ChromaDB Vector Store Ingestion & Metadata Filtering** (`indexing/vector_store.py`) — 🔄 Up Next
+3. **Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index** (`indexing/bm25_index.py`) — Pending
 
+---
+
+### Step 3.1: OpenAIEmbeddings Model Factory & Vector Math (`embeddings.py`)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/indexing/__init__.py` ([__init__.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/__init__.py))
+  - `server/app/indexing/embeddings.py` ([embeddings.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/embeddings.py))
+  - `server/tests/indexing/test_embeddings.py` ([test_embeddings.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/indexing/test_embeddings.py))
+  - `server/.artifact/idx_01_embeddings_sample.json` ([idx_01_embeddings_sample.json](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_01_embeddings_sample.json))
+  - `server/.artifact/idx_01_embeddings_sample.md` ([idx_01_embeddings_sample.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_01_embeddings_sample.md))
+- **What Was Built**:
+  1. **Embeddings Factory (`get_embeddings_model`)**:
+     - Configured LangChain's `OpenAIEmbeddings` using `text-embedding-3-small`.
+     - Standardized default dimension size to `512` (OpenAI native Matryoshka dimension reduction), reducing vector index memory and storage footprint while retaining >98% retrieval precision.
+     - Centralizes API key loading, timeout configuration, and dimensional validation in one place.
+  2. **Mathematical Vector Operations (`compute_cosine_similarity`)**:
+     - Deterministic dot-product over L2-norm implementation.
+     - Handles orthogonal vectors (0.0), identical vectors (1.0), opposite vectors (-1.0), and zero vectors (0.0) without division-by-zero crashes.
+  3. **Standalone CLI Runner & Artifact Generation**:
+     - `python app/indexing/embeddings.py` embeds query and financial context against OpenAI, validates 512 dimensions, evaluates cosine similarity (0.5309 score), and writes `idx_01_embeddings_sample.[json|md]` to `.artifact/`.
+  4. **1:1 Mirror Unit Test Suite (`tests/indexing/test_embeddings.py`)**:
+     - Tests defaults (model name & 512 dimensions).
+     - Tests custom dimension parameterization (e.g. 256).
+     - Tests missing API key exception handling (`ValueError`).
+     - Tests all mathematical edge cases of cosine similarity.
+     - Pure in-memory unit tests using mocked vector arrays—zero network calls and zero disk side effects during tests.
+- **Verification**:
+  - Ran `python tests/indexing/test_embeddings.py`: All 5 test cases passed.
+  - Ran All-in-One Master Test Runner (16 test suites): All 16 suites passed cleanly with 0 errors.

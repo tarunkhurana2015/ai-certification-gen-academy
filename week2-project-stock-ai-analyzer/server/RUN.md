@@ -230,9 +230,24 @@ python tests/api/test_documents_api.py
 
 ---
 
-## 🏆 8. All-in-One Master Test Runner
+## 🧠 8. Indexing & Vector Search (ChromaDB & Embeddings)
 
-Run all **15 test suites** across the entire codebase in a single command:
+### A. Run OpenAIEmbeddings Self-Test (CLI & Artifact Generation)
+Verifies `text-embedding-3-small` with `dimensions=512`, tests cosine similarity, and saves `server/.artifact/idx_01_embeddings_sample.[json|md]`:
+```bash
+python app/indexing/embeddings.py
+```
+
+### B. Run OpenAIEmbeddings Unit Tests (Pure In-Memory Assertions)
+```bash
+python tests/indexing/test_embeddings.py
+```
+
+---
+
+## 🏆 9. All-in-One Master Test Runner
+
+Run all **16 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -249,12 +264,13 @@ python tests/ingestion/extractor/test_kpi_extractor.py && \
 python tests/ingestion/test_pipeline.py && \
 python tests/api/test_health.py && \
 python tests/api/test_kpis_api.py && \
-python tests/api/test_documents_api.py
+python tests/api/test_documents_api.py && \
+python tests/indexing/test_embeddings.py
 ```
 
 ---
 
-## 📱 9. Flutter Client Execution & Tests
+## 📱 10. Flutter Client Execution & Tests
 
 ### A. Run Feature Package Tests (`ai_analyst_feature`)
 ```bash

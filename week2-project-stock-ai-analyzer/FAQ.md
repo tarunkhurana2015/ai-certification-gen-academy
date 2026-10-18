@@ -11,6 +11,11 @@
 4. [Section Tagging: How do we classify financial domains across wildly different companies (e.g. Meta vs Tesla)?](#4-section-tagging-how-do-we-classify-financial-domains-across-wildly-different-companies-eg-meta-vs-tesla)
 5. [Multi-Company Generalization: Are we limited to Meta and Tesla, or does this scale to thousands of companies?](#5-multi-company-generalization-are-we-limited-to-meta-and-tesla-or-does-this-scale-to-thousands-of-companies)
 6. [Extraction Strategy: Why do we send full classified statement pages to the LLM instead of 1,000-character chunks?](#6-extraction-strategy-why-do-we-send-full-classified-statement-pages-to-the-llm-instead-of-1000-character-chunks)
+7. [Database Persistence: Why keep Pydantic schemas separate from SQLAlchemy models, and why link KPIs to documents?](#7-database-persistence-why-keep-pydantic-schemas-separate-from-sqlalchemy-models-and-why-link-kpis-to-documents)
+8. [Pipeline Artifacts: Why do we generate sequential artifacts (01 to 06), and why weren't artifacts created when running `curl` upload?](#8-pipeline-artifacts-why-do-we-generate-sequential-artifacts-01-to-06-and-why-werent-artifacts-created-when-running-curl-upload)
+9. [Dynamic Ticker Resolution: Why did we eliminate hardcoded ticker checks (`META`, `TSLA`, `AAPL`)?](#9-dynamic-ticker-resolution-why-did-we-eliminate-hardcoded-ticker-checks-meta-tsla-aapl)
+10. [Vector Store vs. Embeddings: Why do we have an `embeddings.py` factory, and doesn't the Vector Store directly accept chunks?](#10-vector-store-vs-embeddings-why-do-we-have-an-embeddingspy-factory-and-doesnt-the-vector-store-directly-accept-chunks)
+11. [Decoupled Indexing Architecture: Why split Embeddings, ChromaDB Vector Store, and BM25 into separate tasks?](#11-decoupled-indexing-architecture-why-split-embeddings-chromadb-vector-store-and-bm25-into-separate-tasks)
 
 ---
 
@@ -275,3 +280,163 @@ In corporate auditing and SEC compliance, financial figures **cannot float unanc
 If an ingestion job is rerun or an updated earnings report is uploaded:
 - SQLite unique constraint on `(ticker, fiscal_year, fiscal_quarter)` prevents duplicate rows.
 - `upsert_kpi()` updates the existing record in-place and refreshes its timestamp, keeping historical time series perfectly clean.
+
+---
+
+### 8. Pipeline Artifacts: Why do we generate sequential artifacts (01 to 06), and why weren't artifacts created when running `curl` upload?
+
+**Question:**
+> *"When running the pipeline why do we see artifacts for each substep? Why were they numbered sequentially without skipping (01 through 06)? And when running `curl -X POST /api/v1/ingestion/upload` why were artifacts initially missing?"*
+
+**Answer:**
+This addresses two important software engineering concepts: **Pipeline Observability** and **REST Controller Parameter Propagation**.
+
+#### 1. The "Observable Pipeline" Pattern:
+In multi-stage ETL pipelines (Validation ➔ Parsing ➔ Section Classification ➔ Semantic Chunking ➔ LLM GAAP Extraction ➔ SQLite Persistence), you never want a black box. If an extraction fails, you need to know *where* it broke without attaching a debugger.
+Every substep generates an inspection artifact in `server/.artifact/`:
+- `01_extracted_<slug>`: Raw text and character counts per page.
+- `02_classified_<slug>`: Domain classification tags (Profitability, Balance Sheet, Cash Flow, General).
+- `03a_recursive_splits_<slug>`: Raw character-bounded text splits.
+- `03b_enriched_chunks_<slug>`: Semantic chunks enriched with ticker, quarter, year, domain, page.
+- `04_extracted_kpis_<slug>`: Structured GAAP KPIs extracted by LLM with math validation.
+- `05_persisted_kpis_<slug>`: SQLite round-trip query verification.
+- `06_pipeline_ingest_<slug>`: End-to-end execution summary with timings and task status.
+
+#### 2. Sequential Renumbering:
+Early iterations used ad-hoc numbering where chunking was `03a/03b` and subsequent steps jumped to `07`, `08`, `09`. We unified these into a strict chronological sequence `01` through `06` so developers can trace the pipeline execution order at a glance.
+
+#### 3. Why `curl` Upload Initially Skipped Artifacts:
+When uploading via FastAPI `POST /api/v1/ingestion/upload`:
+- The endpoint controller had defaulted `save_artifacts=False` and was prepending an `upload_` temporary prefix to the filename.
+- We fixed this by setting `save_artifacts: bool = Form(True)` by default and preserving the clean slug from the uploaded filename (`TSLA-Q2-2026-Update`), so running `curl` or using the client UI generates all substep artifacts in `server/.artifact/` automatically.
+
+---
+
+### 9. Dynamic Ticker Resolution: Why did we eliminate hardcoded ticker checks (`META`, `TSLA`, `AAPL`)?
+
+**Question:**
+> *"In the pipeline code, why was ticker resolution previously hardcoded for META, TSLA, and AAPL, and how is it now dynamic?"*
+
+**Answer:**
+Hardcoding ticker strings based on filename heuristics is an anti-pattern that fails in production:
+
+#### The Anti-Pattern:
+```python
+# Fragile & non-scalable:
+if "meta" in lower_name:
+    resolved_ticker = "META"
+elif "tsla" in lower_name:
+    resolved_ticker = "TSLA"
+elif "aapl" in lower_name:
+    resolved_ticker = "AAPL"
+```
+Problems with this approach:
+1. **Filename Randomization**: Real SEC filings are frequently named `Exhibit-99-1.pdf`, `fy26_q3_report.pdf`, or contain hashes.
+2. **Cannot Scale**: You cannot maintain an `elif` ladder for 4,000+ publicly traded companies.
+3. **Misleading Matches**: A filing mentioning *"Apple supplier..."* or *"Tesla battery partner..."* would trigger a false-positive match.
+
+#### The Production Pattern: Self-Identifying Document Extraction
+1. **Document Text Inspection**: The pipeline extracts the header text and title block from Page 1 and the classified financial statements (e.g., *"Apple Inc. CONDENSED CONSOLIDATED STATEMENTS OF OPERATIONS"*).
+2. **LLM Contextual Extraction**: The dynamic prompt directs the LLM auditor to identify the genuine primary reporting entity and its ticker symbol directly from the financial tables and company headers.
+3. **Optional User Hints**: The CLI and API accept `--ticker` as an optional hint, but the pipeline never requires hardcoded company lists.
+
+---
+
+### 10. Vector Store vs. Embeddings: Why do we have an `embeddings.py` factory, and doesn't the Vector Store directly accept chunks?
+
+**Question:**
+> *"Why do we have to do the `embed_texts`? Shouldn't the vector store have an interface for directly taking the chunks into the store? I am confused."*
+
+**Answer:**
+**Yes, absolutely!** You do **not** need to manually iterate over chunks or manage embedding loops yourself.
+
+#### How ChromaDB Actually Ingests Chunks:
+```
+┌──────────────────────────────────────────────┐
+│ EnrichedChunk (1,000-char text + metadata)   │
+└──────────────────────┬───────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│ vector_store.add_chunks(chunks)              │
+│                                              │
+│ ChromaDB natively executes:                  │
+│  1. Calls embedding_function.embed_documents │
+│  2. Indexes vectors into HNSW cosine space   │
+│  3. Attaches metadata facets for filtering   │
+└──────────────────────────────────────────────┘
+```
+
+#### What `embeddings.py` Actually Does:
+ChromaDB requires an **embedding function** when initializing a collection. 
+Instead of hardcoding OpenAI API keys, model parameters (`model="text-embedding-3-small"`), and dimensional truncation (`dimensions=512`) across multiple files, `server/app/indexing/embeddings.py` serves as the **Single Source of Truth Factory**:
+
+```python
+def get_embeddings_model(dimensions: int = 512) -> OpenAIEmbeddings:
+    """Returns the configured OpenAI text-embedding-3-small (512-dim) model."""
+    return OpenAIEmbeddings(
+        model="text-embedding-3-small",
+        dimensions=dimensions,
+    )
+```
+
+The Vector Store (`vector_store.py`) takes `EnrichedChunk` objects directly, passes them into ChromaDB, and ChromaDB uses `get_embeddings_model()` to embed them under the hood in one clean, vectorized step.
+
+---
+
+### 11. Decoupled Indexing Architecture: Why split Embeddings, ChromaDB Vector Store, and BM25 into separate tasks?
+
+**Question:**
+> *"I want to split the embeddings and BM25 separately into separate tasks, so let's start with the indexing work: we should use the indexing folder and first write the OpenAIEmbeddings first, and then a separate task for the vector storing the embeddings into ChromaDB, then we will come back to the BM25 later. Why is this modular approach better than writing it all at once?"*
+
+**Answer:**
+Splitting Phase 3 into **three distinct, self-contained components** follows core software engineering and AI systems best practices:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3.1: Dense Embeddings Factory (`embeddings.py`)       │
+│ • Model configuration: `text-embedding-3-small` (512-dim)   │
+│ • Vector math utilities: Cosine similarity calculation      │
+│ • Zero database dependencies — 100% pure vector logic       │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3.2: Vector Store Ingestion (`vector_store.py`)        │
+│ • Target: ChromaDB collection (`earnings_chunks`)           │
+│ • Direct `add_chunks(chunks: List[EnrichedChunk])`          │
+│ • Metadata filtering: `ticker`, `quarter`, `domain`, `page` │
+│ • HNSW cosine distance semantic similarity search           │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3.3: Sparse Keyword Index (`bm25_index.py`)            │
+│ • Target: BM25 Okapi in-memory + disk pickle cache          │
+│ • Exact matching for tickers, acronyms, and GAAP numbers    │
+│ • Zero API calls, zero token cost, runs offline in <5ms     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Why This Separation is Essential:
+
+1. **Separation of Dense (Semantic) vs. Sparse (Exact) Paradigms**:
+   - **Dense Vectors (Embeddings & ChromaDB)**: Semantic meaning, fuzzy concepts, conceptual questions (*"What are the headwinds in automotive margins?"*). Relies on high-dimensional linear algebra and OpenAI API calls.
+   - **Sparse Index (BM25)**: Exact lexical matching, specific GAAP lines (*"Capex"*, *"EBITDA"*, *"Exhibit 99.1"*, *"Model 3"*). Relies on word frequencies and tokenizers.
+   - By isolating them, bugs in tokenization never corrupt vector spaces, and API rate limits never disrupt local keyword indexes.
+
+2. **Isolated Unit Testing & Mocking**:
+   - `test_embeddings.py` tests vector dimensions, API key validations, and cosine similarity formulas in milliseconds without needing ChromaDB server or persistent storage.
+   - `test_vector_store.py` tests collections, metadata filtering, and chunk insertions using in-memory ephemeral storage without making real OpenAI API calls.
+   - `test_bm25_index.py` tests inverted term indexes and rank scores completely offline.
+
+3. **Vendor Portability (Swap Any Component Anytime)**:
+   - If tomorrow we decide to replace ChromaDB with **Pinecone**, **Qdrant**, or **pgvector**, `embeddings.py` and `bm25_index.py` remain **100% untouched**.
+   - If we switch from OpenAI to local Ollama or HuggingFace embeddings, only `embeddings.py` changes.
+
+4. **Granular Artifact Inspection**:
+   - Each substep produces its own observable verification artifact in `server/.artifact/`:
+     - `idx_01_embeddings_sample.json`: Verifies 512 dimensions & cosine math.
+     - `idx_02_vector_store_sample.json`: Verifies ChromaDB chunk indexing & metadata querying.
+     - `idx_03_bm25_sample.json`: Verifies sparse keyword scoring & top-k hits.
+
