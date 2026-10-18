@@ -243,11 +243,22 @@ python app/indexing/embeddings.py
 python tests/indexing/test_embeddings.py
 ```
 
+### C. Run ChromaDB Vector Store Self-Test (CLI & Artifact Generation)
+Ingests real chunks from `server/.artifact/03b_enriched_chunks_tsla_q2_2026_update.json` into ChromaDB, executes filtered similarity searches, and exports `server/.artifact/idx_02_vector_store_sample.[json|md]`:
+```bash
+python app/indexing/vector_store.py
+```
+
+### D. Run ChromaDB Vector Store Unit Tests (Pure In-Memory Assertions)
+```bash
+python tests/indexing/test_vector_store.py
+```
+
 ---
 
 ## 🏆 9. All-in-One Master Test Runner
 
-Run all **16 test suites** across the entire codebase in a single command:
+Run all **17 test suites** across the entire codebase in a single command:
 
 ```bash
 python tests/schemas/test_schemas.py && \
@@ -265,7 +276,8 @@ python tests/ingestion/test_pipeline.py && \
 python tests/api/test_health.py && \
 python tests/api/test_kpis_api.py && \
 python tests/api/test_documents_api.py && \
-python tests/indexing/test_embeddings.py
+python tests/indexing/test_embeddings.py && \
+python tests/indexing/test_vector_store.py
 ```
 
 ---

@@ -577,8 +577,8 @@ In financial analysis, an AI must **never guess or hallucinate numerical facts**
 With the deterministic KPI database, FastAPI gateway, and Flutter client complete, we begin **Phase 3: Hybrid Search Retrieval**.
 Per user direction, we decouple the dense and sparse pipelines into three isolated, modular milestones:
 1. **Step 3.1: OpenAI Embeddings Factory & Cosine Math** (`indexing/embeddings.py`) — ✅ Completed
-2. **Step 3.2: ChromaDB Vector Store Ingestion & Metadata Filtering** (`indexing/vector_store.py`) — 🔄 Up Next
-3. **Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index** (`indexing/bm25_index.py`) — Pending
+2. **Step 3.2: ChromaDB Vector Store Ingestion & Metadata Filtering** (`indexing/vector_store.py`) — ✅ Completed
+3. **Step 3.3: BM25 Sparse Keyword Indexing & Inverted Index** (`indexing/bm25_index.py`) — 🔄 Up Next
 
 ---
 
@@ -609,3 +609,40 @@ Per user direction, we decouple the dense and sparse pipelines into three isolat
 - **Verification**:
   - Ran `python tests/indexing/test_embeddings.py`: All 5 test cases passed.
   - Ran All-in-One Master Test Runner (16 test suites): All 16 suites passed cleanly with 0 errors.
+
+---
+
+### Step 3.2: ChromaDB Vector Store Ingestion & Metadata Filtering (`vector_store.py`)
+- **Status**: ✅ Completed
+- **Files Created**:
+  - `server/app/indexing/vector_store.py` ([vector_store.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/app/indexing/vector_store.py))
+  - `server/tests/indexing/test_vector_store.py` ([test_vector_store.py](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/tests/indexing/test_vector_store.py))
+  - `server/.artifact/idx_02_vector_store_sample.json` ([idx_02_vector_store_sample.json](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_02_vector_store_sample.json))
+  - `server/.artifact/idx_02_vector_store_sample.md` ([idx_02_vector_store_sample.md](file:///Users/tarunkhurana/Engineering/projects/tarunkhurana2015/ai-certification-gen-academy/week2-project-stock-ai-analyzer/server/.artifact/idx_02_vector_store_sample.md))
+- **What Was Built**:
+  1. **ChromaDB Dependency Integration**:
+     - Added `chromadb>=1.5.9` and `langchain-chroma>=1.1.0` via `uv add`.
+  2. **`FinancialVectorStore` Wrapper Class**:
+     - Configured ChromaDB collection `earnings_chunks` with HNSW cosine metric (`{"hnsw:space": "cosine"}`).
+     - Direct ingestion via `add_chunks(chunks: List[EnrichedChunk])`: Unpacks `chunk.id`, `chunk.text`, and metadata facets (`ticker`, `fiscal_quarter`, `fiscal_year`, `financial_domain`, `page_number`, `chunk_index_in_page`, `total_chunks_in_page`) directly into ChromaDB.
+     - Flexible client injection: Supports persistent storage (`data/chroma`) for runtime and `chromadb.EphemeralClient()` for pure in-memory unit tests.
+  3. **Metadata Filtering Engine (`build_chroma_filter`)**:
+     - Dynamically formats Chroma filter syntax: returns `None` for no filters, a single dict `{"field": val}` for 1 condition, and `{"$and": [...]}` for multi-criteria filters (`ticker`, `fiscal_quarter`, `fiscal_year`, `financial_domain`).
+  4. **Similarity Retrieval Operations**:
+     - `similarity_search(query, k, ...)`: Retrieves top-k documents with hard metadata pre-filtering.
+     - `similarity_search_with_scores(query, k, ...)`: Returns tuples of `(Document, relevance_score)`.
+     - `delete_by_ticker(ticker)`: Deletes chunks for a specific ticker to support clean re-ingestion.
+     - `count()` and `reset()`: Diagnostic and maintenance primitives.
+  5. **Standalone CLI Runner & Observable Inspection Artifact**:
+     - `python app/indexing/vector_store.py` ingests 66 real chunks from `03b_enriched_chunks_tsla_q2_2026_update.json` into ChromaDB.
+     - Executes filtered similarity queries against cash flow and profitability statements.
+     - Exports `idx_02_vector_store_sample.[json|md]` to `server/.artifact/`.
+  6. **1:1 Mirror Unit Test Suite (`tests/indexing/test_vector_store.py`)**:
+     - In-memory `EphemeralClient()` and `FakeEmbeddings(size=512)` with zero network calls and zero disk side effects.
+     - Verifies `build_chroma_filter` rules (0 conditions, 1 condition, multiple conditions, domain conditions).
+     - Verifies empty chunk handling and incremental chunk counts.
+     - Verifies multi-attribute filtering (TSLA vs META, Q1 vs Q2, domain separation).
+     - Verifies relevance score generation, `delete_by_ticker`, and collection reset.
+- **Verification**:
+  - Ran `python tests/indexing/test_vector_store.py`: All 5 test cases passed.
+  - Ran All-in-One Master Test Runner (17 test suites): All 17 suites passed cleanly with 0 errors.

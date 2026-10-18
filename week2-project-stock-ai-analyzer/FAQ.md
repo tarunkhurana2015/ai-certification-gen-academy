@@ -16,6 +16,7 @@
 9. [Dynamic Ticker Resolution: Why did we eliminate hardcoded ticker checks (`META`, `TSLA`, `AAPL`)?](#9-dynamic-ticker-resolution-why-did-we-eliminate-hardcoded-ticker-checks-meta-tsla-aapl)
 10. [Vector Store vs. Embeddings: Why do we have an `embeddings.py` factory, and doesn't the Vector Store directly accept chunks?](#10-vector-store-vs-embeddings-why-do-we-have-an-embeddingspy-factory-and-doesnt-the-vector-store-directly-accept-chunks)
 11. [Decoupled Indexing Architecture: Why split Embeddings, ChromaDB Vector Store, and BM25 into separate tasks?](#11-decoupled-indexing-architecture-why-split-embeddings-chromadb-vector-store-and-bm25-into-separate-tasks)
+12. [Vector Store Ingestion: Why pass embeddings in `__init__` vs chunks in `add_chunks()`?](#12-vector-store-ingestion-why-pass-embeddings-in-__init__-vs-chunks-in-add_chunks)
 
 ---
 
@@ -439,4 +440,101 @@ Splitting Phase 3 into **three distinct, self-contained components** follows cor
      - `idx_01_embeddings_sample.json`: Verifies 512 dimensions & cosine math.
      - `idx_02_vector_store_sample.json`: Verifies ChromaDB chunk indexing & metadata querying.
      - `idx_03_bm25_sample.json`: Verifies sparse keyword scoring & top-k hits.
+
+---
+
+### 12. Vector Store Ingestion: Why pass embeddings in `__init__` vs chunks in `add_chunks()`?
+
+**Question:**
+> *"How are we going to send the chunks into the store? I can see embeddings are sent in the init."*
+
+**Answer:**
+This addresses an important conceptual distinction in vector databases: **Configuring the Engine** vs. **Ingesting the Data**.
+
+#### 1. Why Embeddings are in `__init__` (Configuring the Engine)
+When you call:
+```python
+store = FinancialVectorStore(embeddings=get_embeddings_model())
+```
+You are **NOT** storing any vectors or text yet!
+Instead, you are providing ChromaDB with its **"translator"**. ChromaDB is an engine designed to index mathematical floating-point vectors, but financial filings and user queries are written in human English.
+
+By passing `embeddings=get_embeddings_model()` in `__init__`:
+- ChromaDB attaches the `text-embedding-3-small` (512-dim) model to the `earnings_chunks` collection.
+- It prepares the collection configuration, but the collection is still **empty** (`store.count() == 0`).
+
+#### 2. How Chunks are Actually Sent (The Data Delivery)
+The chunks are delivered by calling:
+```python
+# chunks is a List[EnrichedChunk] produced by metadata_enricher.py
+added_count = store.add_chunks(chunks)
+```
+
+Inside `add_chunks()`, the following automated pipeline executes:
+
+```
+┌────────────────────────────────────────────────────────┐
+│ 1. Input: List[EnrichedChunk]                          │
+│    (Chunks with text, ticker, quarter, page, domain)   │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 2. Unpack into LangChain Document + Metadata Dict      │
+│    Document(                                           │
+│      page_content=chunk.text,                          │
+│      metadata={"ticker": "TSLA", "page": 5, ...}       │
+│    )                                                   │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 3. ChromaDB calls self._embeddings.embed_documents()   │
+│    OpenAI API converts text strings ──▶ 512 floats     │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 4. ChromaDB indexes into HNSW Cosine Vector Space      │
+│    Indexes [vector, raw text, metadata facets]         │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 5. Saved to Persistent Disk (`server/data/chroma/`)    │
+└────────────────────────────────────────────────────────┘
+```
+
+#### 3. Where This Fits in the Real End-to-End Upload Pipeline:
+When a user uploads a quarterly earnings PDF via the client UI or API (`POST /api/v1/ingestion/upload`):
+
+```python
+# Inside server/app/ingestion/pipeline.py:
+
+# Step 1: Extract pages
+pages = extract_text_by_pages(pdf_path)
+
+# Step 2: Classify sections into GAAP domains
+classified = classify_document_sections(pages)
+
+# Step 3: Chunk and enrich with metadata facets
+enriched_chunks = chunk_document_pages(classified, ticker="TSLA", quarter="Q2", year=2026)
+
+# Step 4: Extract GAAP KPIs & save to SQLite (Deterministic Path)
+kpis = extract_kpis_with_retry(classified)
+save_extracted_kpis_to_db(kpis)
+
+# Step 5: Ingest into Dense Vector Store (ChromaDB Semantic Path)
+vector_store = FinancialVectorStore()
+vector_store.add_chunks(enriched_chunks)   # <--- CHUNKS ARE INGESTED HERE!
+
+# Step 6: Ingest into Sparse Keyword Index (BM25 Path)
+bm25_index = BM25KeywordIndex()
+bm25_index.add_chunks(enriched_chunks)     # <--- (In Step 3.3!)
+```
+
+This ensures that every uploaded earnings report automatically populates both systems:
+1. **SQLite (`financial_kpis`)**: For exact financial ratios, income statements, and multi-quarter chart time series.
+2. **ChromaDB (`earnings_chunks`)**: For semantic narrative search, executive commentary retrieval, and audit-ready citation pills.
+
 
