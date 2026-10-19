@@ -1,19 +1,24 @@
-# Retrieval pipeline
+# Hybrid Rag Solution
+
+## Retrieval pipeline
 
 Retrieval turns a financial question into the evidence needed to answer it. The current backend classifies the question, selects **SQL KPI**, **hybrid RAG**, or **peer comparison**, and delegates answer writing to [generation](generation.md). This document follows the working-tree implementation reviewed on October 18, 2026.
 
 Demo sequence: [Ingestion and indexing](ingestion.md) → **Retrieval** → [Generation](generation.md).
 
-## Presentation graphics
+### Presentation graphics
 
-Use the **3840 × 2160 PNGs** in presentation slides, the SVGs for scalable artwork, or the [two-slide retrieval PDF](assets/retrieval/retrieval-slides.pdf). The [combined PDF](assets/rag-pipeline-slides.pdf) contains all eight pipeline slides.
+The PDF starts with a dedicated **Retrieval pipeline** title page in large type, followed by a page break before the diagrams. Diagram numbering excludes this section page.
+
+Use the **3840 × 2160 PNGs** in presentation slides, the SVGs for scalable artwork, or the [three-page retrieval PDF](assets/retrieval/retrieval-slides.pdf). The [combined PDF](assets/rag-pipeline-slides.pdf) contains 12 pages: the solution cover, three pipeline section pages, and eight diagrams.
 
 | Slide | PNG | SVG |
 |---|---|---|
+| Section title · Retrieval pipeline | [Download PNG](assets/retrieval/retrieval-section.png) | [Open SVG](assets/retrieval/retrieval-section.svg) |
 | Intent classification and evidence routing | [Download PNG](assets/retrieval/retrieval-overview.png) | [Open SVG](assets/retrieval/retrieval-overview.svg) |
 | Dense + sparse retrieval and rank fusion | [Download PNG](assets/retrieval/retrieval-hybrid.png) | [Open SVG](assets/retrieval/retrieval-hybrid.svg) |
 
-## 1. Select the evidence route
+### 1. Select the evidence route
 
 [![Retrieval classification and routing flow](assets/retrieval/retrieval-overview.png)](assets/retrieval/retrieval-overview.svg)
 
@@ -29,7 +34,7 @@ The backend entry point is `run_retrieval(query, mock=False)`, an alias for `run
 
 **Suggested narration:** “The question tells us which evidence to retrieve. Exact numbers come from SQLite. Explanations use hybrid search over the indexed filing chunks. Comparisons fetch peer records for the configured period. We pass the chosen evidence into the matching answer generator.”
 
-## 2. Hybrid retrieval in detail
+### 2. Hybrid retrieval in detail
 
 [![Dense and BM25 retrieval with weighted reciprocal rank fusion](assets/retrieval/retrieval-hybrid.png)](assets/retrieval/retrieval-hybrid.svg)
 
@@ -52,7 +57,7 @@ The engine exposes larger defaults for direct callers: `HybridEngine.search()` d
 | Mock mode | `mock=True` changes classification and generation. Retrieval tools still access their real stores; it is not an offline guarantee for hybrid search. |
 | Inspection | Direct engine search saves `idx_04_hybrid_retrieval_sample.md` by default. The router's RAG tool disables that automatic write; the CLI can separately save the analyst summary. |
 
-## 3. Evidence passed to generation
+### 3. Evidence passed to generation
 
 | Selected route | Evidence | Citation handling |
 |---|---|---|
@@ -62,7 +67,7 @@ The engine exposes larger defaults for direct callers: `HybridEngine.search()` d
 
 For the hybrid path, `raw_data` in the final response contains the retrieved-chunk count; the text-bearing evidence is in `citations`. The final response also includes `query`, `route_used`, `answer`, ticker, and domain.
 
-## 4. Current demo interface
+### 4. Current demo interface
 
 The implemented entry point is **Python / CLI**. The [API router](../server/app/api/v1/router.py) exposes ingestion, document, health, and KPI endpoints. The current [Flutter chat widget](../client/packages/ai_analyst_feature/lib/presentation/views/widgets/ai_analyst_chat_window.dart) generates responses locally and does not call this retrieval router or an SSE endpoint.
 

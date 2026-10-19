@@ -1,23 +1,28 @@
-# Ingestion pipeline
+# Hybrid Rag Solution
+
+## Ingestion pipeline
 
 The implemented pipeline accepts an earnings PDF from Flutter, extracts structured financial KPIs, prepares chunks with source metadata, indexes those chunks in **Chroma and BM25**, and returns a report to the dashboard. This document follows the working-tree code reviewed on October 18, 2026.
 
 **Presentation update:** the overview is split into **PDF processing** and **response/background indexing** so each slide has room for readable cards and clear connectors. The second slide and indexing detail show the **proposed background-indexing flow**: after report/KPI persistence, the response and indexing paths proceed independently. The current server still performs indexing inline before returning; the diagrams describe the intended orchestration change, not an implemented background worker.
 
-Follow the complete demo: **Ingestion → [Retrieval](retrieval.md) → [Generation](generation.md)**. The [combined presentation](assets/rag-pipeline-slides.pdf) contains all eight slides.
+Follow the complete demo: **Ingestion → [Retrieval](retrieval.md) → [Generation](generation.md)**. The [combined presentation](assets/rag-pipeline-slides.pdf) contains 12 pages: the solution cover, three pipeline section pages, and eight diagrams.
 
-## Presentation graphics
+### Presentation graphics
 
-The four visuals use a **16:9 slide layout**, real technology marks, and labeled component boundaries. Insert the **3840 × 2160 PNGs** into PowerPoint, Keynote, or Google Slides. Use the SVGs for scalable artwork, or open the [four-slide ingestion PDF](assets/ingestion/ingestion-slides.pdf).
+The PDF starts with a dedicated **Ingestion pipeline** title page in large type, followed by a page break before the diagrams. Diagram numbering excludes this section page.
+
+The four visuals use a **16:9 slide layout**, real technology marks, and labeled component boundaries. Insert the **3840 × 2160 PNGs** into PowerPoint, Keynote, or Google Slides. Use the SVGs for scalable artwork, or open the [five-page ingestion PDF](assets/ingestion/ingestion-slides.pdf).
 
 | Slide | PNG for presentations | Scalable SVG |
 |---|---|---|
+| Section title · Ingestion pipeline | [Download PNG](assets/ingestion/ingestion-section.png) | [Open SVG](assets/ingestion/ingestion-section.svg) |
 | 01 · PDF → saved report | [Download PNG](assets/ingestion/ingestion-overview.png) | [Open SVG](assets/ingestion/ingestion-overview.svg) |
 | 02 · Response and background indexing | [Download PNG](assets/ingestion/ingestion-response-indexing.png) | [Open SVG](assets/ingestion/ingestion-response-indexing.svg) |
 | Preparing evidence for RAG | [Download PNG](assets/ingestion/ingestion-rag-preparation.png) | [Open SVG](assets/ingestion/ingestion-rag-preparation.svg) |
 | Vector embedding and BM25 indexing | [Download PNG](assets/ingestion/ingestion-indexing.png) | [Open SVG](assets/ingestion/ingestion-indexing.svg) |
 
-## 1. Client-to-server ingestion flow
+### 1. Client-to-server ingestion flow
 
 [![Client-to-server earnings PDF ingestion flow](assets/ingestion/ingestion-overview.png)](assets/ingestion/ingestion-overview.svg)
 
@@ -54,7 +59,7 @@ The table maps each displayed stage to its existing code. Background dispatch, a
 
 **Suggested narration for the proposed flow:** “After parsing, extraction, and chunk preparation, we save the report and KPIs in SQLite. The flow then splits: one path returns the saved result so the dashboard can load, while the other builds the Chroma and BM25 indexes in the background. The report can be available before RAG search is ready.”
 
-## 2. Preparing evidence for RAG
+### 2. Preparing evidence for RAG
 
 [![How ingestion prepares traceable evidence for RAG](assets/ingestion/ingestion-rag-preparation.png)](assets/ingestion/ingestion-rag-preparation.svg)
 
@@ -77,7 +82,7 @@ The third slide uses metadata previously captured from `03b_enriched_chunks_tsla
 
 The orchestrator now passes those enriched chunks into both index implementations. Artifacts remain useful for inspecting each stage; the persistent indexes serve the later retrieval pipeline.
 
-## 3. Vector embedding and BM25 indexing
+### 3. Vector embedding and BM25 indexing
 
 [![Vector embedding and BM25 indexing flow](assets/ingestion/ingestion-indexing.png)](assets/ingestion/ingestion-indexing.svg)
 
@@ -97,7 +102,7 @@ In that design, report persistence and index readiness need separate status trac
 
 The input is a standard LangChain `Document`: `page_content` holds the text, while `metadata` holds its source and financial tags. The index adapters carry the six fields above; enriched-chunk diagnostics such as character counts are retained in artifacts rather than copied into these index metadata dictionaries.
 
-## 4. Details to keep accurate during the demo
+### 4. Details to keep accurate during the demo
 
 - **One request completes the work.** The upload endpoint calls `pipeline.run()` directly and returns HTTP 200 after processing. The panel does not start a background job or poll task progress. Its progress bar uses locally assigned milestones; task-status records and a status endpoint exist separately.
 - **The current panel forces reprocessing.** It sends `force=true`. Each index deletes existing chunks for the canonical **ticker**, including other periods, before adding the current report. With `force=false`, an existing document with KPIs returns early, before indexing; this shortcut does not rebuild missing indexes.
@@ -107,7 +112,7 @@ The input is a standard LangChain `Document`: `page_content` holds the text, whi
 - **The server extractor also has demo fallback values.** The current `kpi_extractor.py` catches a structured-model invoke failure and creates a fixed KPI payload, using ticker/period hints or defaults. It still attaches the selected page numbers and applies math reconciliation. Those numbers are synthetic; source-page metadata and reconciliation do not make them filing-extracted figures. Check the extraction log before describing a successful run as live extraction.
 - **Check the result, not only the HTTP status.** Pipeline failures are represented by `status="FAILED"` in the result. The upload endpoint currently wraps that result in its normal response; non-PDF extensions are rejected separately with HTTP 400.
 
-## Artwork and editing
+### Artwork and editing
 
 The graphics embed actual Flutter, FastAPI, Python, OpenAI, LangChain, SQLite, Chroma, and TypeSafe technology marks. Chroma's mark comes from its official repository, and TypeSafe's from its official home page. Simple Icons 14.15.0 supplies the other technology marks; Font Awesome Free 7.3.1 supplies standard file and code symbols. Original files, attribution licenses, provenance, and SHA-256 checksums are retained in [logos](assets/ingestion/logos/manifest.json). These shared assets also serve the retrieval and generation slides.
 

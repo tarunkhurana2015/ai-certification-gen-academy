@@ -1,19 +1,24 @@
-# Generation pipeline
+# Hybrid Rag Solution
+
+## Generation pipeline
 
 Generation converts retrieved evidence into an answer string. The backend has three dedicated functions: **SQL KPI synthesis**, **filing-excerpt synthesis**, and **peer-comparison formatting**. This document follows the working-tree code reviewed on October 18, 2026.
 
 Demo sequence: [Ingestion and indexing](ingestion.md) → [Retrieval](retrieval.md) → **Generation**.
 
-## Presentation graphics
+### Presentation graphics
 
-Use the **3840 × 2160 PNGs** in presentation slides, the SVGs for scalable artwork, or the [two-slide generation PDF](assets/generation/generation-slides.pdf). The [combined PDF](assets/rag-pipeline-slides.pdf) contains all eight pipeline slides.
+The PDF starts with a dedicated **Generation pipeline** title page in large type, followed by a page break before the diagrams. Diagram numbering excludes this section page.
+
+Use the **3840 × 2160 PNGs** in presentation slides, the SVGs for scalable artwork, or the [three-page generation PDF](assets/generation/generation-slides.pdf). The [combined PDF](assets/rag-pipeline-slides.pdf) contains 12 pages: the solution cover, three pipeline section pages, and eight diagrams.
 
 | Slide | PNG | SVG |
 |---|---|---|
+| Section title · Generation pipeline | [Download PNG](assets/generation/generation-section.png) | [Open SVG](assets/generation/generation-section.svg) |
 | Route-specific answer generation | [Download PNG](assets/generation/generation-overview.png) | [Open SVG](assets/generation/generation-overview.svg) |
 | Grounded RAG prompt and fallback | [Download PNG](assets/generation/generation-grounded.png) | [Open SVG](assets/generation/generation-grounded.svg) |
 
-## 1. Choose the matching generator
+### 1. Choose the matching generator
 
 [![Route-specific generation pipeline](assets/generation/generation-overview.png)](assets/generation/generation-overview.svg)
 
@@ -29,7 +34,7 @@ For SQL and RAG live synthesis, `_get_llm()` creates **LangChain `ChatOpenAI(mod
 
 **Suggested narration:** “Generation receives evidence rather than searching on its own. Numeric questions get a summary of selected SQLite figures. Narrative questions get an answer based on cited filing excerpts. Peer comparisons are formatted directly as a Markdown table. Each route can produce a useful output without adding an autonomous planning loop.”
 
-## 2. Grounded RAG generation
+### 2. Grounded RAG generation
 
 [![RAG prompt assembly, answer generation, and fallback](assets/generation/generation-grounded.png)](assets/generation/generation-grounded.svg)
 
@@ -45,7 +50,7 @@ The fallback formats the **first 280 characters** of each chunk as a bullet and 
 
 The current grounding mechanism is **prompt instructions plus source labels**. There is no post-generation citation validator, claim verification pass, reflection loop, reretrieval loop, or citation-click UI integration in this code path.
 
-## 3. Answer and response are separate outputs
+### 3. Answer and response are separate outputs
 
 | Layer | Output |
 |---|---|
@@ -55,7 +60,7 @@ The current grounding mechanism is **prompt instructions plus source labels**. T
 
 For SQL answers, the router builds its separate citation list from persisted `source_pages`; `synthesize_sql_kpi` does not add page labels to its numeric prompt. For comparison answers, the router currently leaves `citations` empty. For RAG answers, the prompt includes the chunk labels and the router also retains those chunks in the response.
 
-## 4. Details to keep accurate during the demo
+### 4. Details to keep accurate during the demo
 
 - **Output arrives as a complete string.** The functions use `invoke()`, not a streaming method. The current API exposes no chat/SSE route, and Flutter chat still produces local responses.
 - **Templates expect usable numeric values.** The deterministic SQL formatter is not a comprehensive null-value validator; incomplete KPI records can still cause formatting errors. Its million-unit and percentage formatting should not be presented as general currency/unit conversion.

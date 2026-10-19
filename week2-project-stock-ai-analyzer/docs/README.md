@@ -1,4 +1,8 @@
-# RAG pipeline presentation
+# Hybrid Rag Solution
+
+[![Hybrid Rag Solution cover](assets/presentation/hybrid-rag-solution.png)](assets/presentation/hybrid-rag-solution.svg)
+
+The presentation opens with **Hybrid Rag Solution**, followed by a full-page section heading for **Ingestion pipeline**, **Retrieval pipeline**, and **Generation pipeline**. Each title page has a page break before its diagrams. The combined PDF has **1 cover + 3 section pages + 8 diagram pages**; each pipeline PDF starts with its own section page.
 
 These documents and slides trace the implemented earnings-PDF RAG demo, reviewed against the working-tree code on October 18, 2026.
 
@@ -6,17 +10,17 @@ The ingestion overview spans two slides: PDF processing, then the response/index
 
 | Pipeline | Documentation | PDF slides |
 |---|---|---|
-| Ingestion, parsing, extraction, chunking, and indexing | [Ingestion pipeline](ingestion.md) | [4 slides](assets/ingestion/ingestion-slides.pdf) |
-| Classification, tool routing, and hybrid retrieval | [Retrieval pipeline](retrieval.md) | [2 slides](assets/retrieval/retrieval-slides.pdf) |
-| Evidence-based answer synthesis and formatting | [Generation pipeline](generation.md) | [2 slides](assets/generation/generation-slides.pdf) |
+| Ingestion, parsing, extraction, chunking, and indexing | [Ingestion pipeline](ingestion.md) | [5 pages](assets/ingestion/ingestion-slides.pdf) |
+| Classification, tool routing, and hybrid retrieval | [Retrieval pipeline](retrieval.md) | [3 pages](assets/retrieval/retrieval-slides.pdf) |
+| Evidence-based answer synthesis and formatting | [Generation pipeline](generation.md) | [3 pages](assets/generation/generation-slides.pdf) |
 
-**[Open the combined eight-slide presentation](assets/rag-pipeline-slides.pdf).** Each document also links its 4K PNGs and standalone SVGs. All slides use 16:9 dimensions, technology logos, a warm charcoal palette, and labeled component boundaries.
+**[Open the combined 12-page presentation](assets/rag-pipeline-slides.pdf).** Each document also links its 4K PNGs and standalone SVGs. All slides use 16:9 dimensions, technology logos, a warm charcoal palette, and labeled component boundaries.
 
 The ingestion flow is connected to the Flutter upload UI. Retrieval and generation are implemented as backend Python / CLI flows; the current Flutter chat widget uses local responses.
 
 ## Regenerating the presentation
 
-Rebuild the eight SVGs using Python's standard library:
+Rebuild the twelve SVGs using Python's standard library:
 
 ```sh
 python3 week2-project-stock-ai-analyzer/docs/assets/build_pipeline_slides.py

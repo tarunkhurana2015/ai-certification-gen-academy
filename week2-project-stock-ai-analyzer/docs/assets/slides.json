@@ -1,7 +1,15 @@
 [
   {
+    "pipeline": "presentation",
+    "combined_only": true,
+    "slides": [
+      "hybrid-rag-solution"
+    ]
+  },
+  {
     "pipeline": "ingestion",
     "slides": [
+      "ingestion-section",
       "ingestion-overview",
       "ingestion-response-indexing",
       "ingestion-rag-preparation",
@@ -11,6 +19,7 @@
   {
     "pipeline": "retrieval",
     "slides": [
+      "retrieval-section",
       "retrieval-overview",
       "retrieval-hybrid"
     ]
@@ -18,6 +27,7 @@
   {
     "pipeline": "generation",
     "slides": [
+      "generation-section",
       "generation-overview",
       "generation-grounded"
     ]

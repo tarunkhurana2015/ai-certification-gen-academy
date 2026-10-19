@@ -52,9 +52,9 @@ try{
       if(overflow.length)failures.push({name,overflow});
       await page.screenshot({path:path.join(here,group.pipeline,name+'.png')});
     }
-    await toPdf(slides,path.join(here,group.pipeline,group.pipeline+'-slides.pdf'));
+    if(!group.combined_only)await toPdf(slides,path.join(here,group.pipeline,group.pipeline+'-slides.pdf'));
   }
   await toPdf(pages,path.join(here,'rag-pipeline-slides.pdf'));
   if(failures.length)throw new Error('Label overflow detected; review the rendered previews.');
-  console.log(`PASS: ${pages.length} slide previews at 3840×2160; ${groups.length} pipeline PDFs and the combined ${pages.length}-page PDF.`);
+  console.log(`PASS: ${pages.length} slide previews at 3840×2160; ${groups.filter(g=>!g.combined_only).length} pipeline PDFs and the combined ${pages.length}-page PDF.`);
 }finally{await browser.close();}

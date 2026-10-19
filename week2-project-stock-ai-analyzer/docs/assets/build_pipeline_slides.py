@@ -1,4 +1,4 @@
-"""Build the eight RAG pipeline slides, labeling proposed orchestration; no API calls."""
+"""Build the Hybrid Rag Solution presentation, including cover and section pages."""
 import importlib.util
 import json
 from pathlib import Path
@@ -29,6 +29,57 @@ def save(pipeline,name,p):
     folder=HERE/pipeline
     folder.mkdir(exist_ok=True)
     (folder/f"{name}.svg").write_text('\n'.join(p+['</svg>']))
+
+
+def title_pages():
+    """Give the presentation and each pipeline a full page of their own."""
+    def frame(title, description):
+        return [
+            '<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">',
+            f'<title id="title">{art.escape(title)}</title><desc id="desc">{art.escape(description)}</desc>',
+            rect(0, 0, 1920, 1080, art.BG, radius=0),
+            rect(120, 80, 88, 6, "#D5B77C", radius=3),
+        ]
+
+    p = frame("Hybrid Rag Solution", "Earnings PDF analysis: ingestion, retrieval, and generation.")
+    p += [text(120, 162, "GENSTOCKFOLIO  /  RAG DEMO", 22, "#D5B77C", 700),
+          text(120, 430, "Hybrid Rag Solution", 108, weight=700),
+          text(120, 505, "Earnings PDFs → indexed evidence → grounded answers", 32, MUTED),
+          '<path d="M120 575 H1800" stroke="#494339" stroke-width="1.5"/>']
+    for x, number, label, brand, accent in [
+        (120, "01", "Ingestion pipeline", "python", "#D5B77C"),
+        (720, "02", "Retrieval pipeline", "langchain", "#BAA0C6"),
+        (1320, "03", "Generation pipeline", "openai", "#A3C1AC"),
+    ]:
+        p += [text(x, 705, number, 20, accent, 700),
+              art.logo(brand, x, 748, 38),
+              text(x+58, 778, label, 30, weight=700)]
+    p += [text(120, 982, "ARCHITECTURE & PIPELINE WALKTHROUGH", 19, MUTED)]
+    save("presentation", "hybrid-rag-solution", p)
+
+    sections = [
+        ("ingestion", "01", "Ingestion pipeline",
+         "PDF parsing, KPI extraction, chunk preparation, and indexing.",
+         [("flutter", "Flutter"), ("fastapi", "FastAPI"), ("langchain", "LangChain"), ("chroma", "Chroma")], 4),
+        ("retrieval", "02", "Retrieval pipeline",
+         "Intent routing, financial lookups, and hybrid evidence search.",
+         [("typesafe", "TypeSafe"), ("chroma", "Chroma"), ("langchain", "LangChain")], 2),
+        ("generation", "03", "Generation pipeline",
+         "Retrieved evidence, grounded answers, and source citations.",
+         [("langchain", "LangChain"), ("openai", "OpenAI"), ("python", "Python")], 2),
+    ]
+    for pipeline, number, title, description, technologies, count in sections:
+        p = frame(title, description)
+        p += [text(120, 162, "Hybrid Rag Solution", 40, "#D5B77C", 700),
+              text(120, 365, f"SECTION {number}  /  GENSTOCKFOLIO", 21, MUTED, 700),
+              text(120, 535, title, 112, weight=700),
+              text(120, 615, description, 30, MUTED),
+              '<path d="M120 790 H1800" stroke="#494339" stroke-width="1.5"/>']
+        for i, (brand, label) in enumerate(technologies):
+            x = 120 + i*360
+            p += [art.logo(brand, x, 845, 42), text(x+62, 875, label, 23, MUTED)]
+        p += [text(120, 982, f"{count:02} DIAGRAMS  /  PIPELINE WALKTHROUGH", 19, MUTED)]
+        save(pipeline, f"{pipeline}-section", p)
 
 
 def retrieval_routes():
@@ -116,12 +167,14 @@ def grounded_generation():
 
 
 if __name__ == "__main__":
+    title_pages()
     art.overview();art.response_indexing();art.rag_preparation();art.indexing();art.manifest()
     retrieval_routes();hybrid_retrieval();generation_routes();grounded_generation()
     groups=[
-        {"pipeline":"ingestion","slides":["ingestion-overview","ingestion-response-indexing","ingestion-rag-preparation","ingestion-indexing"]},
-        {"pipeline":"retrieval","slides":["retrieval-overview","retrieval-hybrid"]},
-        {"pipeline":"generation","slides":["generation-overview","generation-grounded"]},
+        {"pipeline":"presentation","combined_only":True,"slides":["hybrid-rag-solution"]},
+        {"pipeline":"ingestion","slides":["ingestion-section","ingestion-overview","ingestion-response-indexing","ingestion-rag-preparation","ingestion-indexing"]},
+        {"pipeline":"retrieval","slides":["retrieval-section","retrieval-overview","retrieval-hybrid"]},
+        {"pipeline":"generation","slides":["generation-section","generation-overview","generation-grounded"]},
     ]
     (HERE/"slides.json").write_text(json.dumps(groups,indent=2)+'\n')
-    print("Built 8 SVGs: ingestion (4), retrieval (2), generation (2).")
+    print("Built 12 SVGs: solution cover (1), section pages (3), and pipeline diagrams (8).")
