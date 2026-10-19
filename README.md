@@ -121,3 +121,7 @@ ai-certification-gen-academy/
 - **Program**: AI Certification — Generative AI Academy
 - **Skills Ecosystem**: [`tarunkhurana2015/ai-skills`](https://github.com/tarunkhurana2015/ai-skills)
 - **Live Capstone Submissions**: [Google Drive Capstone Folder](https://drive.google.com/drive/u/0/folders/18TS8q2uCfXEB4_dvs2wKp_lfru75KGDE)
+
+## Screen Recording
+<img width="1559" height="720" alt="genstockfolio-ai-analyst" src="https://github.com/user-attachments/assets/95b77c29-fcf1-427a-8b4a-cc66db7be69c" />
+
