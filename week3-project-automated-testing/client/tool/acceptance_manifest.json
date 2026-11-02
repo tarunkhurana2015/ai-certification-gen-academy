@@ -1,0 +1,807 @@
+{
+  "version": 1,
+  "specification": "specs/02_user_journeys_and_features.md",
+  "nativeEvidencePolicy": "Deterministic tests never establish native/live checks.",
+  "cases": [
+    {
+      "case": "MOV-SHELL-001",
+      "tests": [
+        {
+          "file": "apps/app/test/foundation_shell_test.dart",
+          "name": "MOV-SHELL-001 starts with all four Movies destinations"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SHELL-002",
+      "tests": [
+        {
+          "file": "apps/app/test/retained_navigation_test.dart",
+          "name": "MOV-SHELL-002 deep branch retains its page and useful scroll position"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SHELL-003",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-SHELL-003 completed Home work cannot steal the active tab"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-001",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-001 limits featured to five and shelves to ten"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-002",
+      "tests": [
+        {
+          "file": "apps/app/test/home_browse_about_test.dart",
+          "name": "MOV-HOME-002 Trending See all opens the matching source"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-003",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-003 MOV-HOME-004 favorites reseed recommendations"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-004",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-003 MOV-HOME-004 favorites reseed recommendations"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-005",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-005 exhausted empty recommendations explicitly fall back to Popular"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-006",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-006 a failed shelf leaves other shelves usable"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-007",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-007 an exhausted empty general fallback never invents recommendations"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-HOME-008",
+      "tests": [
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-008 old seed success cannot replace a new seed"
+        },
+        {
+          "file": "packages/home_feature/test/viewmodel/home_viewmodel_test.dart",
+          "name": "MOV-HOME-008 old seed failure cannot replace a new seed"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-BROWSE-001",
+      "tests": [
+        {
+          "file": "packages/browse_feature/test/viewmodel/browse_viewmodel_test.dart",
+          "name": "MOV-BROWSE-001 defaults to Now Playing and isolates Upcoming"
+        },
+        {
+          "file": "apps/app/test/home_browse_about_test.dart",
+          "name": "MOV-BROWSE-001 Upcoming is a distinct selectable catalog"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-BROWSE-002",
+      "tests": [
+        {
+          "file": "packages/browse_feature/test/viewmodel/browse_viewmodel_test.dart",
+          "name": "MOV-BROWSE-002 continuation is guarded and exhausts"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-BROWSE-003",
+      "tests": [
+        {
+          "file": "packages/browse_feature/test/viewmodel/browse_viewmodel_test.dart",
+          "name": "MOV-BROWSE-003 continuation failure retains page and retries exactly the failed cursor"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-BROWSE-004",
+      "tests": [
+        {
+          "file": "packages/browse_feature/test/viewmodel/browse_viewmodel_test.dart",
+          "name": "MOV-BROWSE-004 late Popular continuation success cannot change Top Rated"
+        },
+        {
+          "file": "packages/browse_feature/test/viewmodel/browse_viewmodel_test.dart",
+          "name": "MOV-BROWSE-004 late Popular continuation failure cannot change Top Rated"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-BROWSE-005",
+      "tests": [
+        {
+          "file": "apps/app/test/remaining_journeys_test.dart",
+          "name": "MOV-BROWSE-005 final provider page shows the end and stops continuations"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-BROWSE-006",
+      "tests": [
+        {
+          "file": "apps/app/test/remaining_journeys_test.dart",
+          "name": "MOV-BROWSE-006 successful empty Upcoming is distinguishable from failure"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-001",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-001 waits exactly 350 milliseconds"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-002",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-002 an edit resets the debounce"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-003",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-003 submit consumes pending debounce and Clear cancels"
+        },
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-003 a second explicit submit does not duplicate an active query"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-004|outcome=success",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-004 stale success is ignored"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-004|outcome=failure",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-004 stale failure is ignored"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-005",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-005 Clear ignores an in-flight completion"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-006",
+      "tests": [
+        {
+          "file": "apps/app/test/fixture_walkthrough_test.dart",
+          "name": "MOV-SEARCH-006 no matches is shown only after the search succeeds"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-007",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-SEARCH-007 old query content and new query failure keep separate labels"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-008",
+      "tests": [
+        {
+          "file": "apps/app/test/fixture_walkthrough_test.dart",
+          "name": "MOV-SEARCH-008 search, movie, favorite and Library preserve branch state"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-SEARCH-009",
+      "tests": [
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-009 old continuation success cannot change a replacement query"
+        },
+        {
+          "file": "packages/search_feature/test/viewmodel/search_viewmodel_test.dart",
+          "name": "MOV-SEARCH-009 old continuation failure cannot change a replacement query"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-001",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_recovery_test.dart",
+          "name": "MOV-DETAIL-001 rich details show supplied metadata and the TMDB scale"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-002",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_catalog_test.dart",
+          "name": "MOV-DETAIL-002 absent artwork, score and trailer stay honest"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-003",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_recovery_test.dart",
+          "name": "MOV-DETAIL-003 reviews failure and Retry preserve core movie and cast"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-004",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/catalog_page_viewmodel_test.dart",
+          "name": "MOV-DETAIL-004 old page failure cannot replace a different pushed movie"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-005",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_catalog_test.dart",
+          "name": "MOV-DETAIL-005 person gallery retains parent context and tabs remain usable"
+        },
+        {
+          "file": "apps/app/test/rich_catalog_test.dart",
+          "name": "MOV-DETAIL-005 full review opens readable plain text with parent context"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-006",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-DETAIL-006 not-found details leave Back and tabs usable"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DETAIL-007",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_recovery_test.dart",
+          "name": "MOV-DETAIL-007 cast opens supplied biography and career context"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DEEP-001",
+      "tests": [
+        {
+          "file": "apps/app/test/catalog_navigation_test.dart",
+          "name": "MOV-DEEP-001 reaches collection five steps after the first movie"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DEEP-002",
+      "tests": [
+        {
+          "file": "apps/app/test/catalog_navigation_test.dart",
+          "name": "MOV-DEEP-002 movie cast person filmography traversal keeps the visited Back path"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DEEP-003",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_catalog_test.dart",
+          "name": "MOV-DEEP-003 related movies preserve the movie title and open a supplied movie"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DEEP-004|relationship=cast",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-DEEP-004 empty cast has context and a working Back path"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DEEP-004|relationship=filmography",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-DEEP-004 empty filmography has context and a working Back path"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-DEEP-005",
+      "tests": [
+        {
+          "file": "apps/app/test/retained_navigation_test.dart",
+          "name": "MOV-DEEP-005 revisiting a movie creates a distinct page with shared favorites"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-001",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-001 add is optimistic, shared and idempotent"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-002",
+      "tests": [
+        {
+          "file": "packages/movies_data/test/favorites_persistence_test.dart",
+          "name": "MOV-LIBRARY-002 acknowledged favorite and high-water survive a file reopen"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N1"
+      ]
+    },
+    {
+      "case": "MOV-LIBRARY-003",
+      "tests": [
+        {
+          "file": "packages/library_feature/test/views/library_view_test.dart",
+          "name": "MOV-LIBRARY-003 removal updates Library and global Undo restores it"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-004",
+      "tests": [
+        {
+          "file": "packages/movies_data/test/favorites_persistence_test.dart",
+          "name": "MOV-LIBRARY-004 saved removal survives file reopen"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N1"
+      ]
+    },
+    {
+      "case": "MOV-LIBRARY-005",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-005 pending removal then Undo survives old acknowledgement"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N2"
+      ]
+    },
+    {
+      "case": "MOV-LIBRARY-006",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-006 only latest offer works and background ends it"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-007",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-007 failed remove preserves unrelated pending addition"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-008",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-008 failed read blocks mutation until successful Retry"
+        },
+        {
+          "file": "packages/library_feature/test/views/library_view_test.dart",
+          "name": "MOV-LIBRARY-008 read Retry recovers the saved Library through its ViewModel"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-009",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-LIBRARY-009 empty Library explains the heart action"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-010",
+      "tests": [
+        {
+          "file": "packages/movies_data/test/favorites_persistence_test.dart",
+          "name": "MOV-LIBRARY-010 saved Undo restoration survives file reopen"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N1"
+      ]
+    },
+    {
+      "case": "MOV-LIBRARY-011",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-011 failed add does not remain a saved favorite"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-012",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/viewmodel/favorites_viewmodel_test.dart",
+          "name": "MOV-LIBRARY-012 failed restoration rolls back to committed removal"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-LIBRARY-013",
+      "tests": [
+        {
+          "file": "apps/app/test/remaining_journeys_test.dart",
+          "name": "MOV-LIBRARY-013 tab navigation preserves Undo and injected background dismisses it"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N2"
+      ]
+    },
+    {
+      "case": "MOV-RECOVERY-001",
+      "tests": [
+        {
+          "file": "apps/app/test/recovery_views_test.dart",
+          "name": "MOV-RECOVERY-001 first-load failure is recoverable and never an empty success"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-RECOVERY-002",
+      "tests": [
+        {
+          "file": "apps/app/test/rich_recovery_test.dart",
+          "name": "MOV-RECOVERY-002 refresh failure keeps correctly identified content and Retry"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-RECOVERY-003",
+      "tests": [
+        {
+          "file": "apps/app/test/remaining_journeys_test.dart",
+          "name": "MOV-RECOVERY-003 offline details leave saved Library removal and Undo usable"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-RECOVERY-004",
+      "tests": [
+        {
+          "file": "packages/catalog_feature/test/views/continuation_recovery_test.dart",
+          "name": "MOV-RECOVERY-004 rate-limited continuation has one disabled recovery action"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-RECOVERY-005",
+      "tests": [
+        {
+          "file": "apps/app/test/remaining_journeys_test.dart",
+          "name": "MOV-RECOVERY-005 missing live configuration offers no secret-entry flow and Library stays usable"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-RECOVERY-006",
+      "tests": [
+        {
+          "file": "packages/movies_ui/test/artwork_recovery_test.dart",
+          "name": "MOV-RECOVERY-006 failed artwork preserves identity and independent actions: https://example.invalid/poster.jpg"
+        },
+        {
+          "file": "packages/movies_ui/test/artwork_recovery_test.dart",
+          "name": "MOV-RECOVERY-006 failed artwork preserves identity and independent actions: asset:missing-poster.png"
+        },
+        {
+          "file": "packages/movies_ui/test/artwork_recovery_test.dart",
+          "name": "MOV-RECOVERY-006 failed artwork preserves identity and independent actions: javascript:invalid"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-EXTERNAL-001",
+      "tests": [
+        {
+          "file": "apps/app/test/external_link_binding_test.dart",
+          "name": "MOV-EXTERNAL-001 fixture links never invoke the native browser"
+        },
+        {
+          "file": "apps/app/test/external_link_binding_test.dart",
+          "name": "MOV-EXTERNAL-001 live binding launches the allowed URI once and reports rejection"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N3"
+      ]
+    },
+    {
+      "case": "MOV-EXTERNAL-002",
+      "tests": [
+        {
+          "file": "apps/app/test/external_link_binding_test.dart",
+          "name": "MOV-EXTERNAL-002 rejects unsupported and malformed external destinations"
+        }
+      ],
+      "supplementalNativeChecks": []
+    },
+    {
+      "case": "MOV-A11Y-001",
+      "tests": [
+        {
+          "file": "apps/app/test/foundation_shell_test.dart",
+          "name": "MOV-A11Y-001 native tab semantics exposes an activation action"
+        },
+        {
+          "file": "apps/app/test/library_accessibility_test.dart",
+          "name": "MOV-A11Y-001 Library Open exposes its independent native activation"
+        },
+        {
+          "file": "apps/app/test/action_identifiers_test.dart",
+          "name": "MOV-A11Y-001 featured and search actions expose stable native identifiers"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N4"
+      ]
+    },
+    {
+      "case": "MOV-A11Y-002",
+      "tests": [
+        {
+          "file": "packages/movies_ui/test/responsive_actions_test.dart",
+          "name": "MOV-A11Y-002 large text keeps favorite and Retry reachable"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 320.0x568.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 320.0x568.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 320.0x568.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 568.0x320.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 568.0x320.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 568.0x320.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 393.0x852.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 393.0x852.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 393.0x852.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 852.0x393.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 852.0x393.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 852.0x393.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 599.0x852.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 599.0x852.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 599.0x852.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 600.0x852.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 600.0x852.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 600.0x852.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 839.0x852.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 839.0x852.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 839.0x852.0 text 3.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 840.0x852.0 text 1.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 840.0x852.0 text 2.0"
+        },
+        {
+          "file": "apps/app/test/responsive_matrix_test.dart",
+          "name": "MOV-A11Y-002 essential screens at 840.0x852.0 text 3.0"
+        }
+      ],
+      "supplementalNativeChecks": [
+        "N4"
+      ]
+    },
+    {
+      "case": "MOV-ABOUT-001",
+      "tests": [
+        {
+          "file": "apps/app/test/home_browse_about_test.dart",
+          "name": "MOV-ABOUT-001 displays the bundled logo and exact attribution"
+        }
+      ],
+      "supplementalNativeChecks": []
+    }
+  ]
+}

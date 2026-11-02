@@ -1,0 +1,45 @@
+name: movies
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: ">=3.11.4 <4.0.0"
+dependencies:
+  flutter: 
+    sdk: flutter
+  flutter_localizations: 
+    sdk: flutter
+  intl: 0.20.2
+  freezed_annotation: 3.1.0
+  json_annotation: 4.12.0
+  flutter_riverpod: 3.3.2
+  go_router: 17.5.0
+  url_launcher: 6.3.3
+  movies_core: 
+    path: ../../packages/movies_core
+  movies_data: 
+    path: ../../packages/movies_data
+  movies_ui: 
+    path: ../../packages/movies_ui
+  catalog_feature: 
+    path: ../../packages/catalog_feature
+  home_feature: 
+    path: ../../packages/home_feature
+  browse_feature: 
+    path: ../../packages/browse_feature
+  search_feature: 
+    path: ../../packages/search_feature
+  library_feature: 
+    path: ../../packages/library_feature
+dev_dependencies:
+  flutter_test: 
+    sdk: flutter
+  flutter_lints: 6.0.0
+  freezed: 3.2.5
+  json_serializable: 6.14.1
+  build_runner: 2.15.1
+  integration_test: 
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  generate: true

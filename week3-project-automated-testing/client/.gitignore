@@ -1,2 +1,16 @@
 # Local design preview sessions and access keys
 .superpowers/
+
+# Movies generated files and local configuration
+.dart_tool/
+build/
+**/.dart_tool/
+**/build/
+config/*.local.json
+artifacts/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+coverage/
+**/coverage/
+**/.flutter-plugins-dependencies

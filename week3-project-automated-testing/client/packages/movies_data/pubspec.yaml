@@ -1,0 +1,30 @@
+name: movies_data
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: ">=3.11.4 <4.0.0"
+dependencies:
+  flutter: 
+    sdk: flutter
+  flutter_localizations: 
+    sdk: flutter
+  intl: 0.20.2
+  freezed_annotation: 3.1.0
+  json_annotation: 4.12.0
+  dio: 5.11.1
+  drift: 2.34.0
+  drift_flutter: 0.3.1
+  movies_core: 
+    path: ../movies_core
+dev_dependencies:
+  flutter_test: 
+    sdk: flutter
+  flutter_lints: 6.0.0
+  freezed: 3.2.5
+  json_serializable: 6.14.1
+  build_runner: 2.15.1
+  drift_dev: 2.34.0
+flutter:
+  uses-material-design: true
+  generate: true

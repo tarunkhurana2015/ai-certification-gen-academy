@@ -1,0 +1,16 @@
+name: movies_workspace
+publish_to: none
+environment:
+  sdk: '>=3.11.4 <4.0.0'
+workspace:
+  - apps/app
+  - packages/movies_core
+  - packages/movies_data
+  - packages/movies_ui
+  - packages/catalog_feature
+  - packages/home_feature
+  - packages/browse_feature
+  - packages/search_feature
+  - packages/library_feature
+dev_dependencies:
+  test: 1.30.0

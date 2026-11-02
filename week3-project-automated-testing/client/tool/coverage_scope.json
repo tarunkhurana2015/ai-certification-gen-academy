@@ -1,0 +1,376 @@
+{
+  "version": 1,
+  "thresholdPercent": 85,
+  "generatedExclusions": [
+    "*.g.dart",
+    "*.freezed.dart",
+    "lib/l10n/generated/**"
+  ],
+  "files": {
+    "packages/movies_core/lib/domain/contracts/repositories.dart": {
+      "member": "packages/movies_core",
+      "included": false,
+      "reason": "Immutable schema, abstract contracts or generated JSON delegation; generated implementation excluded."
+    },
+    "packages/movies_core/lib/domain/contracts/runtime.dart": {
+      "member": "packages/movies_core",
+      "included": true,
+      "reason": "Handwritten domain validation, calendar values, identity, outcomes, clocks and serialization."
+    },
+    "packages/movies_core/lib/domain/models/catalog_models.dart": {
+      "member": "packages/movies_core",
+      "included": true,
+      "reason": "Handwritten domain validation, calendar values, identity, outcomes, clocks and serialization."
+    },
+    "packages/movies_core/lib/domain/models/favorite_models.dart": {
+      "member": "packages/movies_core",
+      "included": false,
+      "reason": "Immutable schema, abstract contracts or generated JSON delegation; generated implementation excluded."
+    },
+    "packages/movies_core/lib/domain/models/json_converters.dart": {
+      "member": "packages/movies_core",
+      "included": true,
+      "reason": "Handwritten domain validation, calendar values, identity, outcomes, clocks and serialization."
+    },
+    "packages/movies_core/lib/domain/models/media_models.dart": {
+      "member": "packages/movies_core",
+      "included": false,
+      "reason": "Immutable schema, abstract contracts or generated JSON delegation; generated implementation excluded."
+    },
+    "packages/movies_core/lib/domain/models/person_models.dart": {
+      "member": "packages/movies_core",
+      "included": false,
+      "reason": "Immutable schema, abstract contracts or generated JSON delegation; generated implementation excluded."
+    },
+    "packages/movies_core/lib/domain/request/request_models.dart": {
+      "member": "packages/movies_core",
+      "included": true,
+      "reason": "Handwritten domain validation, calendar values, identity, outcomes, clocks and serialization."
+    },
+    "packages/movies_core/lib/movies_core.dart": {
+      "member": "packages/movies_core",
+      "included": false,
+      "reason": "Immutable schema, abstract contracts or generated JSON delegation; generated implementation excluded."
+    },
+    "packages/movies_data/lib/movies_data.dart": {
+      "member": "packages/movies_data",
+      "included": false,
+      "reason": "Explicit synthetic fixture data or package export; separate fixture contract tests cover behavior."
+    },
+    "packages/movies_data/lib/src/cache/catalog_cache.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/database/movies_database.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/fixtures/fixture_catalog.dart": {
+      "member": "packages/movies_data",
+      "included": false,
+      "reason": "Explicit synthetic fixture data or package export; separate fixture contract tests cover behavior."
+    },
+    "packages/movies_data/lib/src/repositories/drift_favorites_repository.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/repositories/unavailable_catalog.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/tmdb/artwork_urls.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/tmdb/dto/tmdb_dtos.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/tmdb/tmdb_catalog.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_data/lib/src/tmdb/tmdb_client.dart": {
+      "member": "packages/movies_data",
+      "included": true,
+      "reason": "Handwritten transport/cache, provider mapping/validation or transactional persistence."
+    },
+    "packages/movies_ui/lib/movies_ui.dart": {
+      "member": "packages/movies_ui",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/movies_ui/lib/src/artwork/artwork.dart": {
+      "member": "packages/movies_ui",
+      "included": true,
+      "reason": "Artwork source boundary, retry cooldown coordination and responsive selection helpers."
+    },
+    "packages/movies_ui/lib/src/artwork/studio_artwork.dart": {
+      "member": "packages/movies_ui",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/movies_ui/lib/src/cards/movie_card.dart": {
+      "member": "packages/movies_ui",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/movies_ui/lib/src/feedback/resource_panel.dart": {
+      "member": "packages/movies_ui",
+      "included": true,
+      "reason": "Artwork source boundary, retry cooldown coordination and responsive selection helpers."
+    },
+    "packages/movies_ui/lib/src/responsive/layout.dart": {
+      "member": "packages/movies_ui",
+      "included": true,
+      "reason": "Artwork source boundary, retry cooldown coordination and responsive selection helpers."
+    },
+    "packages/catalog_feature/lib/catalog_feature.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/providers/repository_providers.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/router/router.config.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/state/catalog_page_state.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/catalog_feature/lib/presentation/state/favorites_state.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/catalog_feature/lib/presentation/support/movie_listing_session.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/catalog_feature/lib/presentation/viewmodel/artwork_configuration_viewmodel.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/catalog_feature/lib/presentation/viewmodel/catalog_page_viewmodel.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/catalog_feature/lib/presentation/viewmodel/favorites_viewmodel.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/catalog_feature/lib/presentation/views/artwork_status_banner.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/views/catalog_movie_card.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/views/catalog_view.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/views/movie_listing.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/catalog_feature/lib/presentation/views/undo_banner.dart": {
+      "member": "packages/catalog_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/home_feature/lib/home_feature.dart": {
+      "member": "packages/home_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/home_feature/lib/presentation/router/router.config.dart": {
+      "member": "packages/home_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/home_feature/lib/presentation/state/home_state.dart": {
+      "member": "packages/home_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/home_feature/lib/presentation/viewmodel/home_listing_viewmodel.dart": {
+      "member": "packages/home_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/home_feature/lib/presentation/viewmodel/home_sources.dart": {
+      "member": "packages/home_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/home_feature/lib/presentation/viewmodel/home_viewmodel.dart": {
+      "member": "packages/home_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/home_feature/lib/presentation/views/about_view.dart": {
+      "member": "packages/home_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/home_feature/lib/presentation/views/home_listing_view.dart": {
+      "member": "packages/home_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/home_feature/lib/presentation/views/home_view.dart": {
+      "member": "packages/home_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/browse_feature/lib/browse_feature.dart": {
+      "member": "packages/browse_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/browse_feature/lib/presentation/router/router.config.dart": {
+      "member": "packages/browse_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/browse_feature/lib/presentation/state/browse_state.dart": {
+      "member": "packages/browse_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/browse_feature/lib/presentation/viewmodel/browse_viewmodel.dart": {
+      "member": "packages/browse_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/browse_feature/lib/presentation/views/browse_view.dart": {
+      "member": "packages/browse_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/search_feature/lib/presentation/router/router.config.dart": {
+      "member": "packages/search_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/search_feature/lib/presentation/state/search_state.dart": {
+      "member": "packages/search_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/search_feature/lib/presentation/viewmodel/search_viewmodel.dart": {
+      "member": "packages/search_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/search_feature/lib/presentation/views/search_view.dart": {
+      "member": "packages/search_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/search_feature/lib/search_feature.dart": {
+      "member": "packages/search_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/library_feature/lib/library_feature.dart": {
+      "member": "packages/library_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/library_feature/lib/presentation/router/router.config.dart": {
+      "member": "packages/library_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/library_feature/lib/presentation/state/library_state.dart": {
+      "member": "packages/library_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "packages/library_feature/lib/presentation/viewmodel/library_viewmodel.dart": {
+      "member": "packages/library_feature",
+      "included": true,
+      "reason": "Feature orchestration, source retention, custom derived state or shared async listing coordination."
+    },
+    "packages/library_feature/lib/presentation/views/library_view.dart": {
+      "member": "packages/library_feature",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "apps/app/lib/app.dart": {
+      "member": "apps/app",
+      "included": true,
+      "reason": "Runtime selection/resource binding, link validation or lifecycle coordination; full file counted conservatively."
+    },
+    "apps/app/lib/bootstrap/app_config.dart": {
+      "member": "apps/app",
+      "included": true,
+      "reason": "Runtime selection/resource binding, link validation or lifecycle coordination; full file counted conservatively."
+    },
+    "apps/app/lib/bootstrap/bootstrap.dart": {
+      "member": "apps/app",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "apps/app/lib/bootstrap/dependency_bindings.dart": {
+      "member": "apps/app",
+      "included": true,
+      "reason": "Runtime selection/resource binding, link validation or lifecycle coordination; full file counted conservatively."
+    },
+    "apps/app/lib/core/router/app_router.dart": {
+      "member": "apps/app",
+      "included": true,
+      "reason": "Runtime selection/resource binding, link validation or lifecycle coordination; full file counted conservatively."
+    },
+    "apps/app/lib/core/theme/app_theme.dart": {
+      "member": "apps/app",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "apps/app/lib/main.dart": {
+      "member": "apps/app",
+      "included": false,
+      "reason": "Declarative route/view/theme/localization or package export; widget/integration validation remains required."
+    },
+    "apps/app/lib/platform/external_link_gateway.dart": {
+      "member": "apps/app",
+      "included": true,
+      "reason": "Runtime selection/resource binding, link validation or lifecycle coordination; full file counted conservatively."
+    },
+    "packages/movies_ui/lib/src/semantics/identified_widget.dart": {
+      "member": "packages/movies_ui",
+      "included": false,
+      "reason": "Declarative native-semantics wrapper; observable native IDs/actions are asserted by host widget tests."
+    },
+    "packages/catalog_feature/lib/presentation/support/paged_scroll_boundary.dart": {
+      "member": "packages/catalog_feature",
+      "included": true,
+      "reason": "Executable scroll-trigger ownership and deferred pagination coordination; conservatively count full file."
+    }
+  }
+}

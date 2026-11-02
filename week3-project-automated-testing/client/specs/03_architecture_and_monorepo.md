@@ -296,3 +296,11 @@ Validation after all specification gates includes a real workspace resolution, g
 The developer reviewed this document and replied “approved” on October 31, 2026. Approval covers the eight-package layout, dependency directions, shared favorites ownership, branch-preserving catalog navigation, async/write coordination, and exact candidate dependency baseline. Actual dependency resolution, generation, and iOS build verification remain pending as stated above.
 
 Stage 4 design-system discovery may now proceed. Later specifications, scaffolding, and application implementation remain gated by the selected Flutter SDD workflow. Prior approvals remain intact; this record does not imply approval of specifications that have not yet been written.
+
+## Implementation compatibility record — November 2, 2026
+
+The implemented workspace retains the approved app/eight-package boundaries. Drift runtime and generator are both pinned to 2.34.0 because the installed 2.34.4 runtime exposed preview APIs incompatible with the approved 2.34.0 generator. Xcode 27 requires the iOS deployment floor to be 15.0. Build-runner commands use `dart run build_runner build`; the installed version no longer supports the former conflicting-output flag. Selected-device Simulator builds are used because the generic universal build encountered an Xcode lipo failure. No global SDK workaround was installed.
+
+Code was initially implemented in an isolated branch/worktree, then copied into this visible IDE workspace at the developer's request. This directory is authoritative. Shared cross-feature widget journeys live in the composed host suite; each feature retains isolated viewmodel tests. Coverage includes cross-package host hits and enforces each owner's threshold.
+
+For short viewports, the shell leaves room for scrollable content and bounds the global Undo dock. Enlarged text or a short keyboard layout uses persistent tab icons with native semantic labels, selected state, and tooltips; text is not downscaled to fit. Native verification uses test-owned SQLite names and a dedicated test entrypoint rather than modifying ordinary Demo favorites.

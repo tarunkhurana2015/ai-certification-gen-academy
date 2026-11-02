@@ -1,0 +1,53 @@
+name: Movies client quality
+
+on:
+  pull_request:
+    paths:
+      - 'week3-project-automated-testing/client/**'
+      - '.github/workflows/movies-client-quality.yml'
+  push:
+    paths:
+      - 'week3-project-automated-testing/client/**'
+      - '.github/workflows/movies-client-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: movies-client-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: week3-project-automated-testing/client
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          architecture: x64
+          cache: true
+      - name: Verify SDK versions
+        run: |
+          flutter --version
+          dart --version
+          dart --version 2>&1 | grep -F 'Dart SDK version: 3.11.4'
+      - name: Run deterministic quality gate
+        run: dart run tool/quality.dart fast
+      - name: Upload diagnostics and reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: movies-client-quality
+          path: week3-project-automated-testing/client/artifacts/quality/
+          if-no-files-found: warn
+          retention-days: 14
+
+# This Linux job verifies deterministic Dart/Flutter tests. iOS Simulator,
+# lifecycle, browser return and authenticated TMDB checks are separate evidence.

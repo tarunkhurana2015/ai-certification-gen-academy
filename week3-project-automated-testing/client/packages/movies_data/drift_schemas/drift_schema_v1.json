@@ -1,0 +1,189 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": false
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "favorites",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "movie_id",
+            "getter_name": "movieId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK(movie_id > 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "title",
+            "getter_name": "title",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK(length(trim(title)) > 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "original_title",
+            "getter_name": "originalTitle",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "poster_path",
+            "getter_name": "posterPath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "backdrop_path",
+            "getter_name": "backdropPath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "release_date",
+            "getter_name": "releaseDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "vote_average",
+            "getter_name": "voteAverage",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "vote_count",
+            "getter_name": "voteCount",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "added_order",
+            "getter_name": "addedOrder",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK(added_order > 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "added_at_utc",
+            "getter_name": "addedAtUtc",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK((vote_average IS NULL AND vote_count IS NULL) OR (vote_average IS NOT NULL AND vote_count IS NOT NULL AND vote_average BETWEEN 0 AND 10 AND vote_count > 0))"
+        ],
+        "explicit_pk": [
+          "movie_id"
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "favorites_meta",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "singleton_id",
+            "getter_name": "singletonId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK(singleton_id = 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "last_added_order",
+            "getter_name": "lastAddedOrder",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK(last_added_order >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "singleton_id"
+        ]
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "favorites",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"favorites\" (\"movie_id\" INTEGER NOT NULL CHECK(movie_id > 0), \"title\" TEXT NOT NULL CHECK(length(trim(title)) > 0), \"original_title\" TEXT NULL, \"poster_path\" TEXT NULL, \"backdrop_path\" TEXT NULL, \"release_date\" TEXT NULL, \"vote_average\" REAL NULL, \"vote_count\" INTEGER NULL, \"added_order\" INTEGER NOT NULL UNIQUE CHECK(added_order > 0), \"added_at_utc\" INTEGER NOT NULL, PRIMARY KEY (\"movie_id\"), CHECK((vote_average IS NULL AND vote_count IS NULL) OR (vote_average IS NOT NULL AND vote_count IS NOT NULL AND vote_average BETWEEN 0 AND 10 AND vote_count > 0)));"
+        }
+      ]
+    },
+    {
+      "name": "favorites_meta",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"favorites_meta\" (\"singleton_id\" INTEGER NOT NULL CHECK(singleton_id = 1), \"last_added_order\" INTEGER NOT NULL CHECK(last_added_order >= 0), PRIMARY KEY (\"singleton_id\"));"
+        }
+      ]
+    }
+  ]
+}

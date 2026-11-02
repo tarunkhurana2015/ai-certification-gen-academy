@@ -1,0 +1,11 @@
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - '**/build/**'
+  errors:
+    invalid_annotation_target: ignore
+linter:
+  rules:
+    - avoid_print
+    - prefer_final_locals
