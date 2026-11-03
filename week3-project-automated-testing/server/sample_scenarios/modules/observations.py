@@ -84,10 +84,80 @@ def observe_ui(driver, artifact_root):
     return receipt
 
 
+
+def summarize_ui_hierarchy(hierarchy_path, max_elements=80, max_text_length=200):
+    """Read bounded, visible native attributes from a saved iOS hierarchy.
+
+    Native `name` may be an accessibility identifier or a label fallback. These
+    attributes describe the snapshot, not unique locators or proven tappability.
+    Truncated fields map attribute names to their original character lengths.
+    """
+    if max_elements < 1 or max_text_length < 1:
+        raise ValueError("UI summary limits must be positive.")
+    summary = {
+        "status": "unavailable", "source": "native_ios_hierarchy", "elements": [],
+        "matching_visible_elements": 0, "returned_elements": 0,
+        "element_limit": max_elements, "text_limit": max_text_length,
+        "truncated": False, "errors": [],
+    }
+    if not hierarchy_path:
+        summary["errors"].append({"type": "MissingHierarchy", "message": "No valid hierarchy artifact was captured."})
+        return summary
+    try:
+        root = ET.parse(hierarchy_path).getroot()
+    except (OSError, ET.ParseError) as error:
+        summary["errors"].append({"type": type(error).__name__, "message": str(error)})
+        return summary
+
+    def native_bool(value):
+        return {"true": True, "false": False}.get(value)
+
+    for node in root.iter():
+        attributes = node.attrib
+        if native_bool(attributes.get("visible")) is not True:
+            continue
+        # Ignore anonymous layout containers, retaining named text and controls.
+        has_text = any(attributes.get(key) for key in ("name", "label", "value"))
+        if not has_text and native_bool(attributes.get("accessible")) is not True:
+            continue
+        summary["matching_visible_elements"] += 1
+        if len(summary["elements"]) >= max_elements:
+            summary["truncated"] = True
+            continue
+        element = {
+            "type": attributes.get("type", node.tag),
+            "name": None, "label": None, "value": None,
+            "visible": True,
+            "enabled": native_bool(attributes.get("enabled")),
+            "accessible": native_bool(attributes.get("accessible")),
+        }
+        truncated_fields = {}
+        for key in ("name", "label", "value"):
+            value = attributes.get(key)
+            if value is not None and len(value) > max_text_length:
+                truncated_fields[key] = len(value)
+                value = value[:max_text_length]
+                summary["truncated"] = True
+            element[key] = value
+        if truncated_fields:
+            element["truncated_fields"] = truncated_fields
+        summary["elements"].append(element)
+    summary["status"] = "available"
+    summary["returned_elements"] = len(summary["elements"])
+    return summary
+
+
 def observe_session_ui(session):
     """Capture a host-owned active session, rejecting closed or changed sessions."""
     if not session.active:
         raise RuntimeError("This session is inactive. Start a new session before observing.")
     if session.driver.session_id != session.session_id:
         raise RuntimeError("The driver session changed. Start a new session before observing.")
-    return observe_ui(session.driver, session.artifact_root)
+    receipt = observe_ui(session.driver, session.artifact_root)
+    hierarchy = receipt.get("artifacts", {}).get("hierarchy", {})
+    path = hierarchy.get("path") if hierarchy.get("valid") is True else None
+    # Read the XML already captured; do not issue a second device source request.
+    receipt["ui_summary"] = summarize_ui_hierarchy(path)
+    if receipt.get("manifest_path"):
+        _persist_ui_receipt(receipt)
+    return receipt
