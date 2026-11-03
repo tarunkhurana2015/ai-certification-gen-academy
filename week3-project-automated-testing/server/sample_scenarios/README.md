@@ -4,7 +4,7 @@ The former `server/sample_scenario.ipynb` is now a small entry-point index. Its 
 
 ## How to use them
 
-Select the project's `.venv` Python kernel, open one notebook, and run its cells from top to bottom. Each notebook includes or imports the Python setup it needs; no cross-notebook shared kernel state is required. Lessons 01–16 retain their original source copies so the earlier learning steps remain visible. Lessons 17–19 import the shared Python helpers below instead of repeating infrastructure code.
+Select the project's `.venv` Python kernel, open one notebook, and run its cells from top to bottom. Each notebook includes or imports the Python setup it needs; no cross-notebook shared kernel state is required. Lessons 01–16 retain their original source copies so the earlier learning steps remain visible. Lessons 17–20 import the shared Python helpers below instead of repeating infrastructure code.
 
 You can start a kernel in the project root, `server/`, or this directory. Node activation locates the server through `.node-version`, `package.json`, and this directory; it does not change the working directory. The local runtimes, Appium home, audit snapshots, logs, and evidence remain under `server/.tools/`.
 
@@ -15,6 +15,7 @@ Stored outputs are historical evidence, not proof that a server/session is still
 ## Shared Python helpers (lesson 17 onward)
 
 - [modules/appium_runtime.py](modules/appium_runtime.py) selects existing local tools, validates the configured iOS target, and owns server/session startup and cleanup through `managed_ios_session()`.
+- [modules/ui_assertions.py](modules/ui_assertions.py) evaluates expected native attributes from full saved post-action XML and returns PASS, FAIL, or BLOCKED with evidence references. It makes no device/model calls.
 - [modules/ui_actions.py](modules/ui_actions.py) gives current observed buttons session-bound references, guards the single permitted tap, persists action receipts, and captures post-action evidence.
 - [modules/observations.py](modules/observations.py) captures native hierarchy/screenshots and persists structured receipts through `observe_ui()`. `observe_session_ui()` adds a bounded `ui_summary` read from the saved XML for the agent.
 
@@ -45,6 +46,7 @@ After changing an imported module, close any active session and restart the kern
 | 17 | [First real Appium tool](17_langchain_observation_tool.ipynb) | Define `@tool`, invoke once with `{}`, inspect its capture receipt, and close the session; no model or UI action. |
 | 18 | [First read-only observation agent](18_first_observation_agent.ipynb) | `create_agent()` invokes one observation tool against the real app; the LLM describes returned UI elements; no navigation. |
 | 19 | [First controlled UI action agent](19_first_ui_action_agent.ipynb) | Observe, tap the permitted Search button once, capture the resulting UI, and describe it; guards run in the shared helper. |
+| 20 | [UI assertions and first test result](20_ui_assertions_and_test_result.ipynb) | Reuse the Search action, then evaluate its full saved post-action XML in Python and print PASS/FAIL/BLOCKED with evidence. |
 
 ## Current boundary
 
@@ -54,10 +56,12 @@ Lesson 17 defines one simple LangChain observation tool and invokes it manually.
 
 Lesson 18 adds the first read-only `create_agent()` loop. It uses the existing `OPENAI_API_KEY` in `server/.env`; no key value belongs in a notebook. The model receives a bounded summary of actual native UI attributes and returns a description. The screenshot/XML remain saved evidence. This is not a navigation test or a pass/fail analyzer.
 
-Offline summary checks (no API/device activity):
+Offline summary, action, and assertion checks (no API/device activity):
 
 ```sh
 .venv/bin/python -m unittest discover -s server/sample_scenarios/tests -v
 ```
 
 Lesson 19 adds one action tool using references from the latest successful observation. The host permits the Search label and at most one click dispatch per session. Fresh uniqueness/identity/visibility/enabled checks and persisted intent precede dispatch; a new observation follows even after an uncertain response. Selecting Search can retain its existing branch stack. This exercise describes post-action evidence rather than claiming a complete scenario passed.
+
+Lesson 20 adds a deterministic expected-state check. For the Movies iOS example it requires the native Search button to be visible with value `"1"`; this means selected in this app's captured semantics. The helper validates action/capture provenance and reads the full saved XML, independently of the agent's final answer or summary truncation. PASS applies to that captured state, not to a transition, Search root, or an entire movie-search scenario. Ambiguous, missing-value, invalid, or unavailable evidence is BLOCKED; known contradictions are FAIL.
