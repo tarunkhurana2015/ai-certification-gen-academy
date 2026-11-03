@@ -1,0 +1,12 @@
+{
+  "name": "agentic-testing-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Appium tooling for the automated application testing project",
+  "scripts": {
+    "appium": "appium --address 127.0.0.1 --port 4723"
+  },
+  "devDependencies": {
+    "appium": "3.9.0"
+  }
+}
