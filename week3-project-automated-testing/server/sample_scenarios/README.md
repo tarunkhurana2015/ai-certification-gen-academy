@@ -4,7 +4,7 @@ The former `server/sample_scenario.ipynb` is now a small entry-point index. Its 
 
 ## How to use them
 
-Select the project's `.venv` Python kernel, open one notebook, and run its cells from top to bottom. Each notebook includes or imports the Python setup it needs; no cross-notebook shared kernel state is required. Lessons 01–16 retain their original source copies so the earlier learning steps remain visible. Lessons 17–18 import the shared Python helpers below instead of repeating infrastructure code.
+Select the project's `.venv` Python kernel, open one notebook, and run its cells from top to bottom. Each notebook includes or imports the Python setup it needs; no cross-notebook shared kernel state is required. Lessons 01–16 retain their original source copies so the earlier learning steps remain visible. Lessons 17–19 import the shared Python helpers below instead of repeating infrastructure code.
 
 You can start a kernel in the project root, `server/`, or this directory. Node activation locates the server through `.node-version`, `package.json`, and this directory; it does not change the working directory. The local runtimes, Appium home, audit snapshots, logs, and evidence remain under `server/.tools/`.
 
@@ -15,6 +15,7 @@ Stored outputs are historical evidence, not proof that a server/session is still
 ## Shared Python helpers (lesson 17 onward)
 
 - [modules/appium_runtime.py](modules/appium_runtime.py) selects existing local tools, validates the configured iOS target, and owns server/session startup and cleanup through `managed_ios_session()`.
+- [modules/ui_actions.py](modules/ui_actions.py) gives current observed buttons session-bound references, guards the single permitted tap, persists action receipts, and captures post-action evidence.
 - [modules/observations.py](modules/observations.py) captures native hierarchy/screenshots and persists structured receipts through `observe_ui()`. `observe_session_ui()` adds a bounded `ui_summary` read from the saved XML for the agent.
 
 Imports perform no tool activation, server startup, or device commands. The lesson calls these operations explicitly. Its app profile, short `@tool` function, direct `.invoke({})` call, and receipt inspection remain visible in the notebook. The shared runtime exposes `start_ios_session()` / `stop_ios_session()` for the lesson and retains its owned-resource cleanup internally. These helpers currently cover local iOS; other platform/provider adapters remain future work.
@@ -43,6 +44,7 @@ After changing an imported module, close any active session and restart the kern
 | 16 | [Reusable capture, inspection, and tap primitives](16_reusable_ui_operations.ipynb) | Live demo observes/inspects only; tap wrapper is not dispatched. |
 | 17 | [First real Appium tool](17_langchain_observation_tool.ipynb) | Define `@tool`, invoke once with `{}`, inspect its capture receipt, and close the session; no model or UI action. |
 | 18 | [First read-only observation agent](18_first_observation_agent.ipynb) | `create_agent()` invokes one observation tool against the real app; the LLM describes returned UI elements; no navigation. |
+| 19 | [First controlled UI action agent](19_first_ui_action_agent.ipynb) | Observe, tap the permitted Search button once, capture the resulting UI, and describe it; guards run in the shared helper. |
 
 ## Current boundary
 
@@ -57,3 +59,5 @@ Offline summary checks (no API/device activity):
 ```sh
 .venv/bin/python -m unittest discover -s server/sample_scenarios/tests -v
 ```
+
+Lesson 19 adds one action tool using references from the latest successful observation. The host permits the Search label and at most one click dispatch per session. Fresh uniqueness/identity/visibility/enabled checks and persisted intent precede dispatch; a new observation follows even after an uncertain response. Selecting Search can retain its existing branch stack. This exercise describes post-action evidence rather than claiming a complete scenario passed.
