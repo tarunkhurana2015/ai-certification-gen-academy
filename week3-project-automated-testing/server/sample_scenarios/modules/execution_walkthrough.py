@@ -96,7 +96,7 @@ def _collect_calls(events):
         if event['kind'] == 'call':
             call = event['call']
             args = call.get('args', {})
-            ref = args.get('element_ref') if isinstance(args, dict) else None
+            ref = (args.get('element_ref') or args.get('first_element_ref')) if isinstance(args, dict) else None
             row = dict(event, number=len(rows) + 1, before=observed_refs.get(ref),
                        payload=None, framework_status=None)
             rows.append(row)
@@ -123,6 +123,15 @@ def _target(row):
         return request['target'], 'Target recorded by the runtime'
     if row['before']:
         return row['before'], 'Target from an earlier observation; not proof it was tapped'
+    # Assertions and waits identify targets by native attributes, not tap refs.
+    # These are requested selectors, so do not describe them as resolved controls.
+    target = payload.get('target')
+    if isinstance(target, dict):
+        return target, 'Target selector recorded in the tool result'
+    args = row['call'].get('args', {})
+    if isinstance(args, dict) and (args.get('native_name') or args.get('label')):
+        return {'name': args.get('native_name'), 'label': args.get('label'),
+                'type': args.get('native_type')}, 'Requested selector; not proof of a match'
     return {}, 'No target identity recorded'
 
 
@@ -154,6 +163,13 @@ def _evidence(row):
         notes.append('Dispatch outcome is uncertain; do not assume the action succeeded.')
     if payload.get('reason'):
         notes.append(str(payload['reason']))
+    # Compound typing/Undo tools can fail inside a child operation. Keep that
+    # failure visible instead of showing only the outer BLOCKED status.
+    for key in ('clear_receipt', 'first', 'followup'):
+        child = payload.get(key)
+        if isinstance(child, dict) and child.get('status'):
+            notes.append(f"{key}: {child['status']}" +
+                         (f" — {child['reason']}" if child.get('reason') else ''))
     target, _ = _target(row)
     captures = list(_observations(payload))
     if captures:
@@ -212,8 +228,53 @@ def _ui_table(observation):
             + (_details('Saved screenshot and hierarchy paths', _pre(paths)) if paths else ''))
 
 
+def _call_table(rows, observation_links=None):
+    """Show each requested target next to its result, including failed attempts."""
+    links = observation_links or {}
+    overview = []
+    for row in rows:
+        target, source = _target(row)
+        args = row['call'].get('args', {})
+        args = args if isinstance(args, dict) else {}
+        label = target.get('label') or target.get('name') or 'No element target'
+        number = str(row['number'])
+        if row['turn'] is not None:
+            number += f"<br><small>LLM turn {row['turn']}</small>"
+        request = '<code>' + _text(row['call'].get('name', 'unknown')) + '</code><br>' + _text(label)
+        for field in ('text', 'direction', 'attribute', 'operator', 'expected'):
+            if field in args:
+                request += '<br><small>' + _text(field) + ': ' + _text(json.dumps(args[field], ensure_ascii=False)) + '</small>'
+        payload = row['payload'] or {}
+        ref = args.get('element_ref') or args.get('first_element_ref') or (payload.get('request') or {}).get('element_ref')
+        ids = [args.get(k) for k in ('observation_id', 'before_id', 'after_id')]
+        # A rejected call may have no before_observation_id in its receipt. Its
+        # ref still identifies historical evidence; linking does not validate it.
+        if isinstance(ref, str) and ref.partition(':')[0] in links:
+            ids.append(ref.partition(':')[0])
+        ids += [payload.get('before_observation_id')]
+        ids += [o.get('observation_id') for o in _observations(payload)]
+        evidence = []
+        for oid in dict.fromkeys(i for i in ids if i):
+            evidence.append('<a href="#' + _text(links[oid]) + '">' + _text(oid) + '</a>'
+                            if oid in links else _text(oid))
+        overview.append([number, request,
+                         '<code>' + _text(_native_name(target) if target else '—') + '</code><br>'
+                         + '<small>' + _text(source) + '</small>',
+                         '<code>' + _text(ref or 'Not supplied') + '</code>',
+                         '<b>' + _text(_status(row)) + '</b><br>'
+                         + '<br>'.join(_text(note) for note in _evidence(row)),
+                         '<br>'.join(evidence) or 'No capture attached'])
+    return _table(['Call', 'LLM requested / target', 'Semantics ID / native name',
+                   'Temporary reference', 'Tool outcome and captured evidence', 'Observations'], overview)
+
+
+def format_tool_call_table(saved_report, *, observation_links=None):
+    """Compact notebook view of actual requests; no files or model calls."""
+    return _call_table(_collect_calls(list(_recorded_events(None, saved_report))), observation_links)
+
+
 def format_execution_walkthrough(agent_result=None, *, saved_report=None,
-                                 runtime_receipts=None, error_type=None):
+                                 runtime_receipts=None, error_type=None, observation_links=None):
     """Render request → target → outcome, with details available on expansion.
 
     Accept either the existing agent_result OR a user-selected saved JSON report.
@@ -249,19 +310,7 @@ def format_execution_walkthrough(agent_result=None, *, saved_report=None,
         output.append('<p><b>Why some attempts were blocked:</b> the tool reported an expired '
                       'or invalid element reference. Each fresh observation replaces the usable references. '
                       'A later attempt must use the new reference even when the semantics ID stays the same.</p>')
-    overview = []
-    for row in rows:
-        target, _ = _target(row)
-        label = target.get('label') or target.get('name') or 'No element target'
-        number = str(row['number'])
-        if row['turn'] is not None:
-            number += f"<br><small>LLM turn {row['turn']}</small>"
-        overview.append([number,
-                         '<code>' + _text(row['call'].get('name', 'unknown')) + '</code><br>' + _text(label),
-                         '<code>' + _text(_native_name(target) if target else '—') + '</code>',
-                         '<b>' + _text(_status(row)) + '</b><br>'
-                         + '<br>'.join(_text(note) for note in _evidence(row))])
-    output.append(_table(['Call', 'LLM requested / target', 'Semantics ID / native name', 'Tool outcome and captured evidence'], overview))
+    output.append(_call_table(rows, observation_links))
     if rows and not assertions:
         output.append('<p><b>No assert_ui call was recorded.</b> Captured values are evidence, '
                       'not an overall PASS. The LLM’s completion message below is its assessment.</p>')

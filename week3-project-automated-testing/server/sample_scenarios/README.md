@@ -76,3 +76,31 @@ Lesson 20 adds a deterministic expected-state check. For the Movies iOS example 
 Lesson 21 selects one human-written request locally and invokes the shared agent with the same 18 tools for every row. There are no ID-based tool requirements, prerequisite tables, execution scripts, or checker registries. The LLM reasons from the request, tool schemas, and live observations. The toolkit supports bounded native actions, literal input, scrolling, waits, saved-state assertions, visual evidence, lifecycle, external handoffs, and optional live data discovery. See [tools/README.md](tools/README.md) for arguments and dependencies.
 
 Preview makes no model calls; a manual execution attempt uses tokens, including image tokens when screenshot review is requested. Network/storage inspectors require separately prepared condition evidence, and request-start verification requires host instrumentation. They report BLOCKED when prerequisites are unavailable. Individual assertions return scoped PASS/FAIL results; model prose and partial assertions do not certify the complete English scenario. Actual tool messages, runtime receipts, artifact references, and measured usage are retained for review. Live model/device runs remain manual.
+
+## Saved reports from lesson 21
+
+The final save cell writes matching JSON and HTML files in `server/.tools/manual-test-runs/`.
+The HTML includes every requested tool with its target/native identifier and outcome,
+plus each unique observation's recorded highlights, screenshot, and full returned UI table.
+Screenshots are embedded for standalone viewing; missing artifacts are explained.
+The HTML preserves the recorded result status and does not call the model or device.
+
+To render a previously saved JSON report without rerunning its test:
+
+```python
+import json
+from modules.html_report import render_test_report
+
+saved_path = REPORT_DIR / "MOV-HUM-027-17770123a0.json"  # Choose your saved run.
+report = json.loads(saved_path.read_text(encoding="utf-8"))
+html_path = saved_path.with_suffix(".html")
+html_path.write_text(
+    render_test_report(report, artifact_root=lesson_dir.parent / ".tools" / "observations"),
+    encoding="utf-8",
+)
+print(html_path)
+```
+
+Export reads only referenced evidence inside that observation directory. PNGs are
+limited to 10 MB each and 50 MB in total, with an explicit notice for any omitted image.
+JSON remains the original recorded evidence; HTML adds presentation and embedded images.

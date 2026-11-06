@@ -150,8 +150,16 @@ def build_agent_report(test_case, agent_result, *, execution_scope='native_ios_t
     return report
 
 
-def save_test_report(report, output_dir):
-    """Save one selected-run report locally with a unique name."""
+def save_test_report(report, output_dir, *, artifact_root=None):
+    """Save matching JSON and standalone HTML files; return the JSON Path.
+
+    JSON preserves the recorded tool data. HTML adds a readable walkthrough and
+    embeds existing screenshots, so it can be opened without the artifact folder.
+    Missing screenshots are reported in the HTML. No model/device call is made.
+    artifact_root restricts which local evidence files the HTML exporter may read.
+    """
+    from .html_report import render_test_report
+
     folder = Path(output_dir)
     folder.mkdir(parents=True, exist_ok=True)
     test_id = re.sub(r'[^A-Za-z0-9_-]', '_', report['test_id'])
@@ -159,4 +167,12 @@ def save_test_report(report, output_dir):
     with path.open('x', encoding='utf-8') as file:
         json.dump(report, file, indent=2)
         file.write('\n')
+    # Save the JSON first so an HTML/filesystem failure cannot discard the trace.
+    # Keep the same basename for the two formats and retain the existing Path API.
+    try:
+        html = render_test_report(report, artifact_root=artifact_root)
+        with path.with_suffix('.html').open('x', encoding='utf-8') as file:
+            file.write(html)
+    except Exception as error:
+        raise RuntimeError(f'JSON report saved to {path}, but HTML export failed: {type(error).__name__}') from error
     return path
