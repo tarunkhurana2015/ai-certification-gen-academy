@@ -79,10 +79,11 @@ Preview makes no model calls; a manual execution attempt uses tokens, including 
 
 ## Saved reports from lesson 21
 
-The final save cell writes matching JSON and HTML files in `server/.tools/manual-test-runs/`.
+The final save cell writes matching JSON and HTML files in `server/.tools/manual-test-runs/`,
+plus an available video with the same basename.
 The HTML includes every requested tool with its target/native identifier and outcome,
 plus each unique observation's recorded highlights, screenshot, and full returned UI table.
-Screenshots are embedded for standalone viewing; missing artifacts are explained.
+Screenshots are embedded; video is a separate neighboring file. Missing artifacts are explained.
 The HTML preserves the recorded result status and does not call the model or device.
 
 To render a previously saved JSON report without rerunning its test:
@@ -104,3 +105,46 @@ print(html_path)
 Export reads only referenced evidence inside that observation directory. PNGs are
 limited to 10 MB each and 50 MB in total, with an explicit notice for any omitted image.
 JSON remains the original recorded evidence; HTML adds presentation and embedded images.
+
+
+## Automatic video recording in lesson 21
+
+The invocation cell now sets `RECORD_VIDEO = True`. Recording is ordinary host code,
+not an LLM tool: it adds no model calls or tokens. Its visible lifecycle is:
+
+```text
+Create Appium session → start_run_video → agent.invoke
+                       finally: stop_run_video → close Appium session
+Save report → JSON + HTML + neighboring MP4 (or original MOV fallback)
+```
+
+The recorder starts just before the agent's first request, after session creation
+and app launch. It captures the screen throughout execution, including waits and
+failures. The cell's `finally` block retrieves the movie before Appium closes, also
+when the agent fails or you interrupt it. Run the save cell afterward to export it.
+Existing runs cannot acquire video retroactively.
+
+[modules/video_recording.py](modules/video_recording.py) uses Appium's native
+XCTest recording commands (Xcode 15+/iOS 17+). This local iOS implementation needs
+no FFmpeg. It checks recording/session ownership and saves the original MOV under
+`server/.tools/recordings/run-video-*/`. macOS's built-in `avconvert` produces an
+H.264 MP4 for browser playback; if conversion fails, the MOV remains available.
+MOV browser support varies, so the report also offers a download link.
+
+[modules/video_report.py](modules/video_report.py) copies that run's video next to
+its JSON/HTML report. The HTML has video controls; there is no autoplay. **Keep the
+HTML and video file together when moving or sharing the report.** Screenshots
+remain embedded, and recording/export failure never changes the test verdict.
+
+Recording statuses describe evidence availability: `SAVED`, `PARTIAL` (execution
+or finalization was interrupted), `UNAVAILABLE`, or `DISABLED`. The separate
+`export_status` says whether the report's video copy succeeded. Host elapsed time
+is approximate; the player's duration comes from the encoded video.
+
+Set `RECORD_VIDEO = False` before running the invocation cell if capture is not
+needed. Native XCTest recording has no configured duration cap here; stop long
+runs manually. Saving/exporting is limited to 256 MB per video. A kernel/process
+kill, lost Appium session, or interruption before the recorder returns its UUID
+can prevent retrieval. Normal Python exceptions and interrupts reach cleanup;
+a hard process kill cannot. These helpers currently cover the local iOS backend;
+Android, web, and HeadSpin recording adapters remain future work.

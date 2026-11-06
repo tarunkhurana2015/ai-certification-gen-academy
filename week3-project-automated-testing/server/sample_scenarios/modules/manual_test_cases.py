@@ -86,7 +86,7 @@ def _report_content(content):
     return content
 
 
-def build_agent_report(test_case, agent_result, *, execution_scope='native_ios_toolkit', error_type=None, execution_attempted=False, runtime_receipts=None):
+def build_agent_report(test_case, agent_result, *, execution_scope='native_ios_toolkit', error_type=None, execution_attempted=False, runtime_receipts=None, video_recording=None):
     """Retain the actual agent trace without treating prose as a verified verdict.
 
     BLOCKED here is explicitly model-reported or an execution error. All other
@@ -104,6 +104,9 @@ def build_agent_report(test_case, agent_result, *, execution_scope='native_ios_t
         'usage': {'model_responses': 0, 'input_tokens': 0, 'output_tokens': 0},
         'runtime_receipts': _report_content(list(runtime_receipts or [])),
         'verified_assertions': [],
+        # This is host evidence only. No video bytes or recording commands are
+        # added to the model's messages or the LLM's tool registry.
+        'video_recording': _report_content(video_recording),
     }
     report['verified_assertions'] = [receipt for receipt in report['runtime_receipts']
         if receipt.get('operation') == 'assert_ui' and receipt.get('status') in {'PASS', 'FAIL'}
@@ -150,27 +153,35 @@ def build_agent_report(test_case, agent_result, *, execution_scope='native_ios_t
     return report
 
 
-def save_test_report(report, output_dir, *, artifact_root=None):
-    """Save matching JSON and standalone HTML files; return the JSON Path.
+def save_test_report(report, output_dir, *, artifact_root=None, recording_root=None):
+    """Save JSON/HTML and an available sibling video; return the JSON Path.
 
     JSON preserves the recorded tool data. HTML adds a readable walkthrough and
-    embeds existing screenshots, so it can be opened without the artifact folder.
+    embeds existing screenshots. Video is copied alongside the HTML for playback.
     Missing screenshots are reported in the HTML. No model/device call is made.
     artifact_root restricts which local evidence files the HTML exporter may read.
     """
     from .html_report import render_test_report
+    from .video_report import copy_recording_for_report
 
     folder = Path(output_dir)
     folder.mkdir(parents=True, exist_ok=True)
     test_id = re.sub(r'[^A-Za-z0-9_-]', '_', report['test_id'])
     path = folder / f'{test_id}-{uuid4().hex[:10]}.json'
+    # Add export metadata to a new report value. Keep the original run evidence
+    # unchanged if the video copy is missing, invalid, or outside its trusted root.
+    saved_report = dict(report)
+    if report.get('video_recording') is not None:
+        video_root = (Path(recording_root) if recording_root is not None else
+                      Path(__file__).resolve().parents[2] / '.tools' / 'recordings')
+        saved_report['video_recording'] = copy_recording_for_report(report['video_recording'], path, video_root)
     with path.open('x', encoding='utf-8') as file:
-        json.dump(report, file, indent=2)
+        json.dump(saved_report, file, indent=2)
         file.write('\n')
     # Save the JSON first so an HTML/filesystem failure cannot discard the trace.
     # Keep the same basename for the two formats and retain the existing Path API.
     try:
-        html = render_test_report(report, artifact_root=artifact_root)
+        html = render_test_report(saved_report, artifact_root=artifact_root)
         with path.with_suffix('.html').open('x', encoding='utf-8') as file:
             file.write(html)
     except Exception as error:

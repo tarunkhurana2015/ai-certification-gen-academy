@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .execution_walkthrough import format_execution_walkthrough, _pre
 from .report_evidence import collect_report_observations, render_observation_gallery
+from .video_report import render_report_video
 
 
 # Everything is local: no fonts, JavaScript, or images fetched from the internet.
@@ -77,6 +78,7 @@ def render_test_report(report, *, artifact_root=None):
     walkthrough = format_execution_walkthrough(saved_report=report,
                     error_type=report.get('error_type'), observation_links=links)
     gallery = render_observation_gallery(report, root)
+    video = render_report_video(report.get('video_recording'))
     # Artifacts are embedded once in the gallery; tool rows link to those cards.
     # Full source JSON stays a separate companion file rather than being repeated
     # in the HTML or sent to another LLM to write a summary.
@@ -88,7 +90,7 @@ def render_test_report(report, *, artifact_root=None):
             + escape(str(report.get('reason', ''))) + '</p><p>'
             + 'Recorded: ' + escape(str(report.get('recorded_at', 'Not recorded')))
             + ' · Scope: ' + escape(str(report.get('execution_scope', 'Not recorded')))
-            + '</p><nav><a href="#calls">Tool-call walkthrough</a> · '
+            + '</p><nav><a href="#run-video">Test-run video</a> · <a href="#calls">Tool-call walkthrough</a> · '
             '<a href="#observations">Observations and screenshots</a></nav></header>'
-            '<div id="calls">' + walkthrough + _partial_journal(report) + '</div><div id="observations">' + gallery + '</div>'
+            + video + '<div id="calls">' + walkthrough + _partial_journal(report) + '</div><div id="observations">' + gallery + '</div>'
             '</main></body></html>')
