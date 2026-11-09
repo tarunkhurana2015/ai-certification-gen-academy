@@ -7,6 +7,11 @@ Recorded: November 4, 2026 (America/Chicago).
 implemented as part of this documentation task. Resume one small change at a time
 so its behavior and impact remain easy to learn and verify.
 
+The broader [known-gap register](KNOWN_GAPS.md) covers enterprise readiness,
+evaluations, company data, operations, and unfinished product scope. It links
+E01–E06 here; this file remains the detailed execution backlog. Recording gaps
+does not mean their fixes have been implemented.
+
 ## 1. Why revisit the current loop?
 
 The basic workflow remains appropriate:

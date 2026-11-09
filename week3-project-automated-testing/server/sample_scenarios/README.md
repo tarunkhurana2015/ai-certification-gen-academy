@@ -14,7 +14,9 @@ Stored outputs are historical evidence, not proof that a server/session is still
 
 For a step-by-step explanation of `ToolRuntime`, tool factories, and the agent loop, read [TOOLS.md](TOOLS.md).
 
-Deferred improvements to efficiency, recovery, and verification are tracked in [ENHANCEMENTS.md](ENHANCEMENTS.md).
+Known execution, security, operational, and product-scope gaps are tracked in
+[KNOWN_GAPS.md](KNOWN_GAPS.md), with status, milestones, and closure checks.
+[ENHANCEMENTS.md](ENHANCEMENTS.md) retains the detailed E01–E06 execution backlog.
 
 ## Shared Python helpers (lesson 17 onward)
 

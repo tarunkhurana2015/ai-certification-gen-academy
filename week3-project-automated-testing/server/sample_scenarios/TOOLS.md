@@ -2,6 +2,10 @@
 
 This guide explains how [notebook 21](21_movies_automated_test.ipynb) prepares its tools and how those tools execute against the app. Follow it alongside [tools/__init__.py](tools/__init__.py), [tools/_runtime.py](tools/_runtime.py), and [tools/dismiss_keyboard.py](tools/dismiss_keyboard.py).
 
+For current limitations and the work needed for a company pilot or shared service,
+see [KNOWN_GAPS.md](KNOWN_GAPS.md). The detailed execution improvements remain in
+[ENHANCEMENTS.md](ENHANCEMENTS.md).
+
 The central idea is: **create one shared runtime, build tools that remember it, and let the LLM choose which tool to execute.**
 
 ## 1. The overall flow
