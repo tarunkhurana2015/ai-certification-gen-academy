@@ -6,6 +6,44 @@ Comprehensive repository containing capstone projects, production implementation
 
 ## 🏆 Flagship Capstone Projects
 
+### 🧪 [Week 3 Capstone: Agentic UI Test Automation & Movies Demo](week3-project-automated-testing/)
+
+An agentic application-testing prototype that turns a **human-written English scenario** into live UI actions using **LangChain / LangGraph**, **Appium**, and **XCUITest**. The current implementation runs one manually selected scenario against a local iOS Simulator app and collects execution evidence for human review, including screenshots, available video, and a readable report.
+
+```mermaid
+flowchart LR
+    USER["One Human-Written Scenario"] --> AGENT["LangChain create_agent<br/>LangGraph Model–Tool Loop"]
+    AGENT -->|Choose a tool| TOOLS["18 Shared Tools<br/>Host Validation & Execution Limits"]
+    TOOLS -->|Appium / XCUITest| APP["Flutter Movies App<br/>Live TMDB API"]
+    APP -->|UI Hierarchy & Screenshots| TOOLS
+    TOOLS -->|Observed Results| AGENT
+    AGENT --> REPORT["Human Review<br/>Assertions · HTML Report · Video"]
+    TOOLS -.->|Saved Evidence| REPORT
+```
+
+#### Core Highlights:
+
+* 💬 **English-to-Action Execution**: Select one CSV scenario manually; the LLM chooses tools from their descriptions and current UI observations without per-test scripts or test-ID routing.
+* 🎬 **Flutter Movies Demo**: Home, Browse, Search, and Library tabs with live TMDB data, persistent local favorites, and deep navigation through movies, cast, people, filmography, and collections.
+* 🛠️ **Shared UI Toolkit**: 18 tools for observation, tapping, text entry, scrolling, Back navigation, waiting, assertions, visual review, and supporting operations. Tools requiring external instrumentation report missing prerequisites explicitly.
+* 🛡️ **Guarded Device Actions**: Typed tool arguments, fresh element references, native identity checks, session ownership, bounded actions, and persisted receipts. An uncertain action blocks further mutations.
+* 🔎 **Evidence-Based Checks**: Deterministic assertions verify explicit conditions in saved UI evidence. The complete scenario remains `REVIEW_REQUIRED` unless blocked; a click acknowledgment or model statement is not a verified overall pass.
+* 📹 **Readable Run Reports**: Matching JSON and HTML reports show tool calls, native identifiers, observation summaries, screenshots, and available run-video playback. Offline regression tests cover execution guards, evidence handling, and reporting.
+
+**Planned capabilities:** Android and web execution, HeadSpin device integration, application knowledge/RAG, cross-run memory, MCP exposure, and an outer multi-agent analysis/reporting workflow. Current limitations and enterprise-readiness work are tracked separately from implemented features.
+
+#### Quick Links:
+
+* 📁 **[Project Directory & Codebase](week3-project-automated-testing/)**
+* 📱 **[Movies Client Setup & Live TMDB Configuration](week3-project-automated-testing/client/README.md)**
+* 📓 **[Learning Notebooks & Scenario Guide](week3-project-automated-testing/server/sample_scenarios/README.md)**
+* ▶️ **[Notebook 21: Run One Human-Written Test](week3-project-automated-testing/server/sample_scenarios/21_movies_automated_test.ipynb)**
+* 🛠️ **[Tool Architecture & Agent Execution Flow](week3-project-automated-testing/server/sample_scenarios/TOOLS.md)**
+* 📋 **[Known Gaps & Enterprise Readiness](week3-project-automated-testing/server/sample_scenarios/KNOWN_GAPS.md)**
+* 🔧 **[Execution Enhancement Backlog](week3-project-automated-testing/server/sample_scenarios/ENHANCEMENTS.md)**
+
+---
+
 ### 🤖 [Week 2 Capstone: GenStockFolio — AI Financial Stock Analyst & Copilot](week2-project-stock-ai-analyzer/)
 
 An institutional-grade Financial AI Copilot designed to eliminate financial LLM hallucinations by fusing **Deterministic GAAP SQL**, **Dense + Sparse Hybrid RAG**, and **TypeSafe Jev Intent Routing**, backed by 24 automated backend test suites passing with a 100% success rate.
@@ -65,6 +103,16 @@ A modern, institutional-grade portfolio tracking and risk analytics application 
 
 ## 📚 Coursework & Laboratory Notebooks
 
+### 🔀 [Week 3: LangGraph & Multi-Agent Workflows](week3-langgraph/)
+
+Hands-on laboratory notebooks exploring explicit graph orchestration, agent tool loops, checkpointed state, and human-in-the-loop execution:
+
+* **[1_langgraph_react_agent.ipynb](week3-langgraph/1_langgraph_react_agent.ipynb)**: Build a ReAct time-off assistant with state reducers, tool nodes, conditional edges, streaming, human interrupts, and checkpoint persistence.
+* **[2_langchain_create_agent.ipynb](week3-langgraph/2_langchain_create_agent.ipynb)**: Build the assistant with LangChain `create_agent`, resume interrupted conversations, and apply human-in-the-loop middleware.
+* **[3_multi_agent_workflow.ipynb](week3-langgraph/3_multi_agent_workflow.ipynb)**: Route structured intent to time-off and expense specialists with policy retrieval, shared checkpointing, and interrupt/resume; includes an optional Jev/TypeSafe classifier comparison.
+
+---
+
 ### 🔬 [Week 2: Advanced Retrieval-Augmented Generation (RAG)](week2-rag/)
 Hands-on laboratory modules implementing advanced enterprise RAG techniques:
 * **`1_rag_pipeline.ipynb`**: End-to-end RAG architecture with LangChain, document loading, recursive character chunking, embedding generation, ChromaDB vector indexing, and grounded prompt synthesis.
@@ -93,6 +141,19 @@ Reference implementations for fundamental LLM integration patterns, vector searc
 
 ```text
 ai-certification-gen-academy/
+├── week3-project-automated-testing/   # ⭐ Week 3 Capstone: Agentic UI Testing & Movies Demo
+│   ├── client/                        # Flutter Movies app for iOS Simulator; live TMDB integration
+│   │   ├── apps/app/                  # Host app and retained tab navigation
+│   │   └── packages/                  # Tab features, shared catalog, data, and design system
+│   └── server/                        # Notebook runner, Appium runtime, and evidence reporting
+│       ├── sample_scenarios/          # Incremental learning notebooks and manual scenario execution
+│       │   ├── data/                  # Human-written test scenarios
+│       │   ├── modules/               # Session, observation, reporting, and video helpers
+│       │   ├── tools/                 # 18 shared LangChain tools and guarded runtime
+│       │   ├── tests/                 # Offline regression tests
+│       │   └── KNOWN_GAPS.md          # Readiness gaps, milestones, and closure checks
+│       └── docs/                      # Product scope and implementation documentation
+│
 ├── week2-project-stock-ai-analyzer/   # ⭐ Week 2 Capstone: AI Financial Analyst & Copilot
 │   ├── server/                        # FastAPI backend, Ingestion, Jev Classifier, RAG, SQL
 │   │   ├── app/                       # Clean 3-tier architecture (Ingestion, Retrieval, Generation)
@@ -108,6 +169,7 @@ ai-certification-gen-academy/
 │   ├── packages/                      # Clean Architecture feature packages (portfolio, allocation, analytics)
 │   └── specs/                         # 7 formally gated Spec-Driven Development (SDD) specifications
 │
+├── week3-langgraph/                   # Week 3 LangGraph labs (ReAct, create_agent, Multi-Agent)
 ├── week2-rag/                         # Week 2 RAG laboratory notebooks (Pipeline, Filtering, Hybrid)
 ├── week1-langchain/                   # Week 1 LangChain laboratory notebooks (01-07)
 └── langchain-basic/                   # Foundational reference implementations
