@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1240" viewBox="0 0 1600 1240" role="img" aria-labelledby="title desc">
+<title id="title">Current implemented architecture</title><desc id="desc">A single executor uses the notebook host and shared tool runtime to drive the Movies app through Appium and XCUITest. The app uses TMDB. Saved evidence supports HTML, JSON, and video review.</desc>
+<rect width="1600" height="1240" fill="white"/>
+<text x="80" y="82" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#182B4D">Current implemented architecture</text>
+<text x="80" y="128" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" fill="#53647D">Single executor • LLM chooses; host validates and executes; Appium drives</text>
+<rect x="80" y="190" width="870" height="90" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="515.0" y="246.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">Human scenario</text>
+<rect x="80" y="330" width="870" height="140" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="515.0" y="373.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">Notebook host</text>
+<text x="515.0" y="411.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">create_agent model–tool loop</text>
+<text x="515.0" y="449.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">LLM selects the next tool request</text>
+<polyline points="515,280 515,330" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="515,330 507.7538194339349,315.7349073888747 522.246180566065,315.7349073888747" fill="#7686A2"/>
+<rect x="80" y="520" width="870" height="110" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="515.0" y="567.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">Shared tool runtime</text>
+<text x="515.0" y="605.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Host validates and executes tool requests</text>
+<polyline points="515,470 515,520" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="515,520 507.7538194339349,505.7349073888747 522.246180566065,505.7349073888747" fill="#7686A2"/>
+<rect x="80" y="680" width="870" height="90" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="515.0" y="736.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">Appium server</text>
+<polyline points="515,630 515,680" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="515,680 507.7538194339349,665.7349073888747 522.246180566065,665.7349073888747" fill="#7686A2"/>
+<rect x="80" y="820" width="870" height="90" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="515.0" y="876.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">XCUITest / WebDriverAgent</text>
+<polyline points="515,770 515,820" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="515,820 507.7538194339349,805.7349073888747 522.246180566065,805.7349073888747" fill="#7686A2"/>
+<rect x="80" y="960" width="870" height="110" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="515.0" y="1007.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">Movies iOS app</text>
+<text x="515.0" y="1045.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Running on the iOS Simulator</text>
+<polyline points="515,910 515,960" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="515,960 507.7538194339349,945.7349073888747 522.246180566065,945.7349073888747" fill="#7686A2"/>
+<rect x="1080" y="520" width="440" height="110" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="1300.0" y="567.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">Saved evidence</text>
+<text x="1300.0" y="605.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">UI, screenshots, action logs</text>
+<polyline points="950,575 1080,575" fill="none" stroke="#6554B8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1080,575 1065.7349073888747,582.246180566065 1065.7349073888747,567.753819433935" fill="#6554B8"/>
+<rect x="1080" y="700" width="440" height="140" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="1300.0" y="743.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">Review artifacts</text>
+<text x="1300.0" y="781.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">HTML + JSON reports</text>
+<text x="1300.0" y="819.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Recorded video</text>
+<polyline points="1300,630 1300,700" fill="none" stroke="#6554B8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1300,700 1292.753819433935,685.7349073888747 1307.246180566065,685.7349073888747" fill="#6554B8"/>
+<rect x="1080" y="960" width="440" height="110" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="1300.0" y="1007.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">TMDB API</text>
+<text x="1300.0" y="1045.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Live catalog and metadata</text>
+<polyline points="950,1015 1080,1015" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1080,1015 1065.7349073888747,1022.246180566065 1065.7349073888747,1007.753819433935" fill="#7686A2"/>
+<text x="80" y="1152" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" fill="#53647D">The app calls its data provider directly. The testing host operates the visible UI.</text>
+<text x="80" y="1198" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Current runtime only; future multi-agent stages are not shown.</text>
+</svg>

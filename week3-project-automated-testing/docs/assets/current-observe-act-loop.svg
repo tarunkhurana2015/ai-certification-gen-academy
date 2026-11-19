@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1290" viewBox="0 0 1600 1290" role="img" aria-labelledby="title desc">
+<title id="title">Current observe–act loop</title><desc id="desc">The runtime observes the current UI, captures native XML and PNG, maps semantics and native identity to temporary element references, receives an LLM tool request, revalidates the target and limits, performs an Appium action, and observes again.</desc>
+<rect width="1600" height="1290" fill="white"/>
+<text x="80" y="82" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#182B4D">Current observe–act loop</text>
+<text x="80" y="128" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" fill="#53647D">Each device action is grounded in current UI evidence</text>
+<rect x="140" y="190" width="1080" height="110" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="680.0" y="237.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">Observe the current UI</text>
+<text x="680.0" y="275.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Read the active app screen</text>
+<rect x="140" y="350" width="1080" height="110" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="680.0" y="397.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">Capture native XML + PNG</text>
+<text x="680.0" y="435.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">UI hierarchy plus a screenshot</text>
+<polyline points="680,300 680,350" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="680,350 672.753819433935,335.7349073888747 687.246180566065,335.7349073888747" fill="#7686A2"/>
+<rect x="140" y="510" width="1080" height="110" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="680.0" y="557.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">Create temporary element_ref values</text>
+<text x="680.0" y="595.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Host maps semantics and native identity</text>
+<polyline points="680,460 680,510" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="680,510 672.753819433935,495.7349073888747 687.246180566065,495.7349073888747" fill="#7686A2"/>
+<rect x="140" y="670" width="1080" height="110" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="680.0" y="717.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">LLM requests a tool action</text>
+<text x="680.0" y="755.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">The request names an observed element_ref</text>
+<polyline points="680,620 680,670" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="680,670 672.753819433935,655.7349073888747 687.246180566065,655.7349073888747" fill="#7686A2"/>
+<rect x="140" y="830" width="1080" height="110" rx="18" fill="#F5F3FF" stroke="#C9D4E5" stroke-width="2"/>
+<text x="680.0" y="877.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6554B8">Host revalidates the target and limits</text>
+<text x="680.0" y="915.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Check identity, current state, and permitted action</text>
+<polyline points="680,780 680,830" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="680,830 672.753819433935,815.7349073888747 687.246180566065,815.7349073888747" fill="#7686A2"/>
+<rect x="140" y="990" width="1080" height="110" rx="18" fill="#F0F5FC" stroke="#C9D4E5" stroke-width="2"/>
+<text x="680.0" y="1037.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#182B4D">Appium performs the action</text>
+<text x="680.0" y="1075.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" fill="#53647D">Drive the app, then obtain a fresh observation</text>
+<polyline points="680,940 680,990" fill="none" stroke="#7686A2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="680,990 672.753819433935,975.7349073888747 687.246180566065,975.7349073888747" fill="#7686A2"/>
+<polyline points="1220,1045 1460,1045 1460,245 1220,245" fill="none" stroke="#6554B8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1220,245 1234.2650926111253,237.75381943393492 1234.2650926111253,252.24618056606508" fill="#6554B8"/>
+<text x="1340" y="590" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#6554B8">Observe</text>
+<text x="1340" y="630" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#6554B8">again</text>
+<text x="80" y="1176" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" fill="#53647D">element_ref is a temporary handle to observed UI, not a permanent app identifier.</text>
+<text x="80" y="1222" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" fill="#53647D">The host validates requests; Appium and the native driver execute device actions.</text>
+</svg>

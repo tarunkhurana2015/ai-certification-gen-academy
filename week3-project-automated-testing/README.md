@@ -1,3 +1,13 @@
+# Week 3 Agentic UI Test Automation
+
+Project overview, architecture, technical pillars, Movies client, evidence reporting,
+verification, and demo walkthroughs:
+
+- [Full project documentation](docs/WEEK_3_DOCUMENTATION.md)
+- [Word export for Google Docs](docs/WEEK_3_DOCUMENTATION.docx)
+- [Browser reading copy](docs/WEEK_3_DOCUMENTATION.html)
+- [Documentation assets and regeneration](docs/README.md)
+
 ## 🚀 Setup
 
 ### Prerequisites

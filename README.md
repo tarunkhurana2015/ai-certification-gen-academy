@@ -35,6 +35,8 @@ flowchart LR
 #### Quick Links:
 
 * 📁 **[Project Directory & Codebase](week3-project-automated-testing/)**
+* 📄 **[Week 3 Architecture & Project Documentation](week3-project-automated-testing/docs/WEEK_3_DOCUMENTATION.md)**
+* 📝 **[Google Docs-Compatible Word Export](week3-project-automated-testing/docs/WEEK_3_DOCUMENTATION.docx)**
 * 📱 **[Movies Client Setup & Live TMDB Configuration](week3-project-automated-testing/client/README.md)**
 * 📓 **[Learning Notebooks & Scenario Guide](week3-project-automated-testing/server/sample_scenarios/README.md)**
 * ▶️ **[Notebook 21: Run One Human-Written Test](week3-project-automated-testing/server/sample_scenarios/21_movies_automated_test.ipynb)**
